@@ -1,0 +1,10 @@
+/target/
+/.cache/
+/.tools/
+/.local/
+/.idea/
+*.iml
+.DS_Store
+src/main/resources/jdbc-local.properties
+.env
+*.log
