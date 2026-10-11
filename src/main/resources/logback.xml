@@ -1,0 +1,8 @@
+<configuration>
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder><charset>UTF-8</charset><pattern>%d{HH:mm:ss.SSS} %-5level [%X{requestId}] %logger{36} - %msg%n</pattern></encoder>
+  </appender>
+  <!-- SQL details are enabled explicitly in the test profile, not for real credentials/data. -->
+  <logger name="com.team.cms" level="INFO"/>
+  <root level="INFO"><appender-ref ref="CONSOLE"/></root>
+</configuration>

@@ -1,0 +1,35 @@
+package com.team.cms.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.util.List;
+import org.springframework.context.annotation.*;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.config.annotation.*;
+
+@Configuration
+@EnableWebMvc
+@ComponentScan(basePackages = "com.team.cms", useDefaultFilters = false, includeFilters = {
+    @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = Controller.class),
+    @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = ControllerAdvice.class)
+})
+public class SpringMvcConfig implements WebMvcConfigurer {
+    @Bean public LocalValidatorFactoryBean validator() { return new LocalValidatorFactoryBean(); }
+    @Override public org.springframework.validation.Validator getValidator() { return validator(); }
+    @Override public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        for (HttpMessageConverter<?> converter : converters) {
+            if (converter instanceof MappingJackson2HttpMessageConverter) {
+                ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+                mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+                ((MappingJackson2HttpMessageConverter) converter).setObjectMapper(mapper);
+            }
+        }
+    }
+    // Authentication interceptor/AOP will be implemented by 郭金滔 and registered here.
+    // No wildcard credentialed CORS. The initial WAR serves same-origin API requests.
+}
