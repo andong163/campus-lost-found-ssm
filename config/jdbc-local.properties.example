@@ -1,0 +1,4 @@
+# Copy to src/main/resources/jdbc-local.properties (Git ignores the destination).
+# Replace the placeholders locally. Do not commit real credentials.
+jdbc.username=YOUR_LOCAL_DATABASE_USER
+jdbc.password=YOUR_LOCAL_DATABASE_PASSWORD

@@ -1,0 +1,13 @@
+@base = http://127.0.0.1:8080/cms
+
+### Web链路：200，data.status=UP
+GET {{base}}/api/system/health
+
+### 数据库与角色初始化：200 或 503，不暴露连接信息
+GET {{base}}/api/system/readiness
+
+### 不存在接口：404，统一错误结构
+GET {{base}}/api/not-found
+
+### 错误请求方法：405，统一错误结构
+POST {{base}}/api/system/health

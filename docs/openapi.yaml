@@ -1,0 +1,56 @@
+openapi: 3.0.3
+info:
+  title: CMS SSM 基础工程接口
+  version: 0.1.0
+  description: 可导入 ApiFox。当前只实现基础检查，业务接口由各成员继续接入。
+servers:
+  - url: http://127.0.0.1:8088/cms
+paths:
+  /api/system/health:
+    get:
+      summary: Web 链路健康检查
+      responses:
+        '200':
+          description: 应用可处理请求
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+              example:
+                code: 200
+                message: success
+                data: {application: cms-ssm, status: UP}
+  /api/system/readiness:
+    get:
+      summary: 数据库和基础角色检查
+      description: 不代表所有 CMS 功能完成，仅验证 SELECT 1 和四个基础角色。
+      responses:
+        '200':
+          description: 基础数据库访问和角色初始化可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+              example:
+                code: 200
+                message: success
+                data: {database: UP, roleSeed: UP}
+        '503':
+          description: 数据库或基础角色初始化不可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+              example:
+                code: 503
+                message: 数据库连接或初始化检查失败
+                data: null
+components:
+  schemas:
+    Result:
+      type: object
+      required: [code, message, data]
+      properties:
+        code: {type: integer}
+        message: {type: string}
+        data: {type: object, nullable: true, additionalProperties: true}

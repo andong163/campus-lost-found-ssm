@@ -1,0 +1,52 @@
+[
+  {
+    "Method": "Get",
+    "Path": "/api/system/health",
+    "Status": 200,
+    "Body": {
+      "code": 200,
+      "message": "success",
+      "data": {
+        "status": "UP",
+        "application": "cms-ssm"
+      }
+    },
+    "HasRequestId": true
+  },
+  {
+    "Method": "Get",
+    "Path": "/api/system/readiness",
+    "Status": 200,
+    "Body": {
+      "code": 200,
+      "message": "success",
+      "data": {
+        "database": "UP",
+        "roleSeed": "UP"
+      }
+    },
+    "HasRequestId": true
+  },
+  {
+    "Method": "Get",
+    "Path": "/api/not-found",
+    "Status": 404,
+    "Body": {
+      "code": 404,
+      "message": "接口不存在",
+      "data": null
+    },
+    "HasRequestId": true
+  },
+  {
+    "Method": "Post",
+    "Path": "/api/system/health",
+    "Status": 405,
+    "Body": {
+      "code": 405,
+      "message": "请求方法不支持",
+      "data": null
+    },
+    "HasRequestId": true
+  }
+]
