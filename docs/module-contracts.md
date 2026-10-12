@@ -1,36 +1,46 @@
-# 模块接入约定
+# 校园失物招领模块接入约定
 
-## 公共请求与响应
+## 容器与映射
 
-基础地址 `/cms/api`；Controller 接收 DTO，Service 校验业务与管理事务，Mapper 访问数据库。禁止将 Entity 直接作为注册、角色分配和文章状态修改的请求体，防止客户端覆盖内部字段。
+根容器管理 Service、Mapper、事务和公共切面；MVC 子容器管理 Controller 与 Advice，并独立启用 AOP。根切面可以按注解或方法匹配 Controller，已有真实 MVC 拦截回归测试。Controller 权限仍由郭金滔实现，配置启用 AOP 不代表所有业务已经鉴权。
 
-成功使用 `Result.ok(data)`，HTTP 200。错误使用 `BusinessException(HttpStatus.CONFLICT, "可展示的提示")` 等由全局处理。约定 400 参数、401 未登录、403 无权限、404 不存在、409 冲突、500 系统异常；客户端不接收堆栈、SQL或口令。新增接口如需 201，需同时扩展 Result 的成功工厂并保持 HTTP/code 一致。
+Mapper 使用 @Mapper。复杂关联 XML 放 `src/main/resources/mapper/**/*.xml`，namespace 与接口全名一致；MP 专用工厂同时加载 XML 和 BaseMapper。新 @Configuration 需要显式导入，避免父子容器重复扫描。
 
-分页 DTO 可继承 `PageQuery`，Controller 使用 `@Valid @ModelAttribute`；默认 page=1、size=10，上限100。Service 可把 MP IPage 转为 `PageResult`。排序只能映射允许字段，不能把请求内容直接拼接进 SQL。模糊 `%keyword%` 不会自动受益于普通索引，性能优化需 EXPLAIN 和 SQL 次数证据；标题 FULLTEXT 仅在明确使用 MATCH 时生效，不替代中文包含查询语义。
+## API 与 DTO
 
-## 数据库与基础实体
+基础路径 `/cms/api`；成功 HTTP/code=200，统一 code/message/data。400 参数、401 未登录、403 越权、404 不存在或不可公开、409 状态／版本冲突、500 系统错误、503 基础依赖不可用。返回 X-Request-Id，不返回 SQL、堆栈、密码或认证细节。
 
-可变业务实体继承 `BaseEntity`，共用 id/createdAt/updatedAt/deleted/version。MP 的 insert/updateById 路径自动填充并支持逻辑删除、乐观锁；自定义 SQL、UpdateWrapper 或批量 SQL 必须自行校验更新条件、时间和版本，不能假定插件会全部代办。
+分页可继承 PageQuery，@Valid @ModelAttribute，默认 page=1、size=10，上限100。排序字段映射白名单，再追加 ID 保持稳定；日期范围和分类子树由模块明确处理。LIKE 使用参数绑定，不把请求字符串拼成 SQL。
 
-用户与角色代码软删除后仍保留唯一值；第一版不复用用户名。根分类 parent_id=NULL，多级循环、同级重名在孙睿 Service 检查。删除或停用父分类的子树规则必须在公开查询中同样应用。审核记录和日志是追加型记录，不继承软删除业务实体；用户软删除保留历史引用。
+批量请求复用 BatchIdsRequest：`{"ids":[1,2]}`。限制1～100个不重复的正整数，空、null、小数、重复和非法值返回400。所有权、当前状态与版本仍在 Service 检查；一项失败整批回滚，不根据 ID 数量假定成功。
 
-## 模块任务与接口前缀
+## 数据与共享值
 
-| 成员 | 包与接口前缀 | 接入重点 |
+可变业务实体继承 BaseEntity；MP 注入自动填充、逻辑删除与乐观锁。自定义 XML、Wrapper 和批量 SQL 自行维护 deleted 过滤、updated_at、version 以及预期状态条件；SQL影响行数0返回409，不能假定插件覆盖所有路径。
+
+ItemType=LOST/FOUND；ResolutionStatus=OPEN/RESOLVED；ClaimStatus=PENDING/APPROVED/REJECTED/CANCELLED/COMPLETED；ArticleStatus 延续六种 CMS 状态。cms_article 新字段参考 sql/init.sql。contact_info 与认领证据只能进入私有 DTO，禁止直接返回 Entity。
+
+cms_claim_request 的 active_applicant_id、approved_article_id 是数据库生成列；Entity 不映射它们，或明确禁止 insert/update。两类唯一索引保护有效申请及有效通过数量，终态记录允许保留多次申请历史。捕获实际 DuplicateKeyException 并转为409安全提示。
+
+## 模块职责与目标 API
+
+以下接口是规划，当前只有 system 接口实现。
+
+| 成员 | 包 | 目标路径与依赖 |
 |---|---|---|
-| 郭金滔 | auth；`/auth`、`/users`、`/roles`、`/permissions` | 当前用户入口、登录拦截与 AOP 权限；普通注册不能选择管理角色 |
-| 孙睿 | category；`/categories` | 分类树、状态、循环及文章关联校验 |
-| 袁运轩 | article；`/articles`、`/public/articles` | 内容维护、DTO、所有权、公开状态过滤、批量与查询优化 |
-| 杨程 | review/audit；`/reviews`、`/operation-logs` | 审核事务、共用状态入口、日志字段、联调集 |
+| 郭金滔 | auth | /auth、/users、/roles、/permissions；提供 CurrentUser 和权限注解 |
+| 孙睿 | category | /categories、/public/categories；提供分类树及可绑定校验 |
+| 袁运轩 | article | /items、/items/mine、/public/items；批量、submit、withdraw、edit-draft、offline、contact |
+| 杨程 | review、claim、audit | /reviews、/claims、/items/{id}/claims、/items/{id}/resolve、/operation-logs |
 
-这些接口是规划，当前仅实现 `/api/system/health` 与 `/api/system/readiness`。登录拦截和权限切面尚未实现，因此业务接口接入后必须同时补充鉴权；不能把健康检查当作已实现登录验证。
+注册只赋予低权限 EDITOR。学生允许本人单条下架，公开发布和批量管理由授权管理角色承担。分类新增绑定与启停／删除使用一致事务锁顺序；公开列表与详情都应用祖先有效性过滤。
 
-## 文章与审核共同规则
+## 共同状态入口
 
-持久化状态使用 `ArticleStatus` 的名称：DRAFT、PENDING_REVIEW、APPROVED、PUBLISHED、REJECTED、OFFLINE。
+杨程维护 ItemWorkflowService，袁运轩调用提审、撤回、发布、下架、修改和结案入口。具体服务尚待实现，不能绕过它直接设置状态。
 
-主流程 DRAFT → PENDING_REVIEW → APPROVED → PUBLISHED → OFFLINE；REJECTED 修改后重提。待审核禁止改正文，已发布修改前退回草稿停止公开，再审核。第一版分类一对多文章。
+主流程 DRAFT → PENDING_REVIEW → APPROVED → PUBLISHED → OFFLINE；待审可以撤回草稿；驳回修改后重提。已发布先下架再转草稿编辑，修改后重审；OFFLINE 内容未修改且分类有效、未结案时才能恢复发布。审核人不能审核本人内容，记录与状态同一事务。
 
-由杨程维护共同状态服务，袁运轩调用提交、发布和下架入口。更新包含预期状态和版本；影响行数0返回409。审核状态与记录同一事务。批量第一版整批成功或回滚，事务由公开 Service 方法承担，不能内部自调用绕过代理；空批次与重复ID先校验。
+认领创建、批准、取消和交接均先锁定 cms_article 行，再处理申请。批准前复核 FOUND、PUBLISHED、OPEN 和所有权；分类停用时只允许原申请继续核实。批准不会自动结案；真实交接后 APPROVED → COMPLETED，物品 OPEN → RESOLVED，记录 resolved_at 并关闭其他待审申请。事务方法经公开 Service 代理调用，避免内部自调用失效。
 
-请求诊断 `RequestLogFilter` 只记录方法、路径、状态、耗时与 requestId，不保存请求体。杨程实现的数据库审计记录是另一组件，须排除敏感字段；普通日志失败不应回滚正常业务，审批记录则属于审批事务的一部分。
+请求诊断过滤器只记录方法、路径、状态、耗时和 requestId。业务审计由杨程保存，排除密码、内容、联系方式与证据；审计失败可定位，不让正常操作重复执行。内容审核记录与认领记录属于业务事务。

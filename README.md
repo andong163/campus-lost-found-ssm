@@ -1,73 +1,75 @@
-# 基于 SSM 的企业资讯与知识内容管理系统
+# 基于 SSM 的校园失物招领信息管理系统
 
-这是高鸣远负责的第一阶段基础工程。已建立手工 SSM 整合、公共组件、数据库初稿与测试；用户权限、分类、文章、审核及操作审计由对应组员继续开发。
+这是高鸣远负责的基础工程，已按五人分工及新需求从通用 CMS 调整为校园失物招领场景。版本为 0.2.0-SNAPSHOT。当前提供可运行 SSM、公共组件、十表结构与升级工具；注册登录、分类、信息、审核认领、业务日志及页面仍由相应组员接入。
 
-## 环境与版本
+## 环境
 
-Java 11、Maven 3.9、Spring/SpringMVC 5.3.39、MyBatis-Plus 3.5.3.1、MySQL 8.0.16+、Tomcat 9.0.122。以课程要求的 `javax.servlet` 技术栈构建 WAR；本机 Tomcat 11 使用 Jakarta 命名空间，不能直接部署这一版本。
+JDK 11、Maven 3.9、Spring/SpringMVC 5.3.39、MyBatis-Plus 3.5.3.1、MySQL 8.0.16+、Tomcat 9.0.122。WAR 保留工程名 cms-ssm、上下文 /cms 与 javax.servlet 技术栈。Tomcat 11 的 Jakarta 命名空间与本工程不同。版本统一由高鸣远维护。
 
-便携 JDK 在本机 `.tools` 中，已用官方 SHA-256 校验；该目录和 Maven 缓存不会进入 Git。组员克隆后需自行准备 JDK 11，可通过脚本的 `-JavaHome 'C:\你的JDK11目录'` 参数指定。版本属于课程基础工程的固定配置，不表示该技术栈适用于外网生产部署。
+本机便携 JDK 在 .tools，Maven 缓存在 .cache，两者不进入源码包。组员准备自己的 JDK 11，使用脚本参数 `-JavaHome 'C:\你的JDK11目录'` 或 JAVA_HOME。
 
-## 快速运行
+## 运行步骤
 
-在 `cms-ssm` 目录打开 PowerShell：
+在 cms-ssm 目录打开 PowerShell：
 
 ```powershell
-# 1. 首次配置；若已有私密文件，不要覆盖它
+# 第一次填写本地配置，保留已经存在的文件
 if (-not (Test-Path src/main/resources/jdbc-local.properties)) {
     Copy-Item config/jdbc-local.properties.example src/main/resources/jdbc-local.properties
 }
-# 编辑上面的私密文件，填写本机 MySQL 用户与密码
+# 编辑私密文件，配置本机 MySQL；无需发送给其他成员
 
-# 2. 首次创建项目数据库（本机已初始化时跳过，不覆盖已存在的表）
+# 数据库尚未初始化：执行这一个命令
 ./scripts/bootstrap-db.ps1
+# 已有旧版九表：改为执行升级命令，不要重复初始化
+# ./scripts/upgrade-db.ps1
 
-# 3. 运行测试并构建 target/cms.war
 ./scripts/build.ps1
-
-# 4. 本地运行真正的 WAR；前台终端 Ctrl+C 停止
-./scripts/run-dev.ps1 -Port 8080
+./scripts/run-dev.ps1 -Port 8088
 ```
 
-检查 `http://127.0.0.1:8080/cms/api/system/health` 和 `/cms/api/system/readiness`。健康检查验证 Web 链路；就绪检查验证数据库访问和四个基础角色，不代表所有业务模块完成。
+本机旧库已经执行升级；其他成员根据自己的库选择初始化或升级。运行前先阅读 [数据库升级说明](docs/database-upgrade.md)。
 
-也可用环境变量 `CMS_DB_URL`、`CMS_DB_USERNAME`、`CMS_DB_PASSWORD`。私密文件未配置时才使用这些默认映射；部署环境中不要放本地配置文件。若需要指定外置配置路径，给 Tomcat JVM 传入 `-Dcms.config.file=绝对路径`。
+访问 `/cms/api/system/health` 检查 Web 链路，访问 `/cms/api/system/readiness` 检查 MySQL、四个角色以及招领和认领结构。健康结果的 application 为 campus-lost-found；这些接口不代表业务系统已经完成，也不提供后台管理页面。
 
-## 数据库与凭据
+可用 CMS_DB_URL、CMS_DB_USERNAME、CMS_DB_PASSWORD 配置连接。外置文件与环境变量遵循文件优先；自定义文件用 JVM `-Dcms.config.file=绝对路径`。本地数据库工具仅允许回环地址和 cms_content，且尊重配置的端口，不操作其他库。
 
-初始化文件为 `sql/init.sql`，目标库 `cms_content`，包含九张关联表和四个角色。脚本没有 DROP/TRUNCATE，也没有用户账号或默认密码。初始化助手发现目标库已有任何表即停止；后续修改使用独立迁移脚本，不能拿初始化文件当作自动升级工具。
+## 本版优化
 
-`src/main/resources/jdbc-local.properties` 被 Git 忽略，同时被 Maven resources 排除，不进入 WAR。服务器账号凭据从环境或外置配置读取。不要发送、截图、提交这个私密文件。实际业务建议使用专用数据库账号；本机首次初始化使用用户提供的本地账号。
+- MVC 子容器启用 AOP，验证根容器权限切面能拦截 Controller；服务层仍在根容器管理事务。
+- 加载 `classpath*:mapper/**/*.xml`，支持复杂关联 SQL 与 MP BaseMapper 共存。
+- 批量 DTO 校验 1～100 个正整数 ID，拒绝空、重复、null 和小数 ID，避免错误截断。
+- 就绪检查连接失败统一返回 503，并验证新表和字段；设置本地连接及读写超时。
+- 补充 ItemType、ResolutionStatus、ClaimStatus 枚举，区分公开内容、物品处理和认领进度。
+- 新增认领唯一索引，约束同人重复有效申请与单物品多个有效批准；升级后用真实 MySQL 事务探针验证并回滚。
 
-## 项目目录与分工
+详见 [优化记录](docs/optimization-record.md) 和 [验证记录](docs/test-record.md)。
 
-```text
-src/main/java/com/team/cms/
-  config/             高鸣远：Spring、MVC、MP、数据源、事务
-  common/             高鸣远：统一结果、校验、异常、分页、基础实体
-  system/             高鸣远：基础健康与就绪检查
-  auth/               郭金滔：用户、角色、权限与登录
-  category/           孙睿：多级分类
-  article/            袁运轩：文章、检索、发布和批量操作
-  review/             杨程：审核及审核记录
-  audit/              杨程：业务操作审计
-src/test/             基础集成测试与本地工具，不进入 WAR
-sql/                  数据库初稿，变更由高鸣远审核
-docs/                 架构、接口约定、协作、过程与测试记录
-```
+## 模块职责
 
-业务模块目录目前只保留职责说明。组员按自己的模块开发 Controller/Service/Mapper/Entity/DTO，并以 `@Mapper` 标记 Mapper。新配置类需要显式导入；父容器不扫描 MVC 或其他配置类，避免重复创建组件。
+| 成员 | 目录 | 主责 |
+|---|---|---|
+| 高鸣远 | config、common、system、scripts、sql | 基础工程、公共组件、结构统筹、Git 合并和部署 |
+| 郭金滔 | auth | 注册登录、用户角色权限、AOP 与登录拦截 |
+| 孙睿 | category | 分类树、排序、启停与分类有效性 |
+| 袁运轩 | article | 寻物招领信息、公开／本人检索、批量及页面 |
+| 杨程 | review、claim、audit | 审核、认领核实、交接结案、日志与状态服务 |
 
-## 测试与下一步
+业务目录保留职责占位，不能将枚举或表结构当作已实现业务。Mapper 标记 @Mapper；XML 放 src/main/resources/mapper。DTO 与 Entity 分开，公开响应排除联系方式与认领证据。详情约定见 [模块接入](docs/module-contracts.md)。
 
-`build.ps1` 验证父子容器职责、MP CRUD、自动填充、分页、逻辑删除、乐观锁、事务回滚、参数与错误返回，以及 Tomcat 9 的真实 HTTP 请求。数据库自动化测试用独立 H2；真实 MySQL 初始化由显式 bootstrap 命令验证，两者证据分开记录。
+## 数据与协作
 
-下一步：高鸣远逐行检查基础配置与公共组件，组员确认表结构、状态和接口，再接入业务模块。尚未建立远程仓库，推送需先提供仓库地址。参考 [需求分析](docs/requirements.md)、[模块约定](docs/module-contracts.md)、[架构设计](docs/architecture.md)、[Git协作](docs/git-workflow.md)、[开发记录](docs/development-record.md)。[OpenAPI](docs/openapi.yaml) 可导入 ApiFox；[测试记录](docs/test-record.md) 说明实际验证范围。
+sql/init.sql 为全新十表安装；sql/migrations 为旧九表的增量升级。保留 cms_article 表名，新增业务字段与 cms_claim_request。EDITOR 显示为学生，四个既有角色代码保持兼容；角色种子没有用户口令，注册低权限与接口授权由郭金滔实现。
 
-## 官方依据
+本地 jdbc-local.properties 同时被 Git 与 Maven WAR 排除。共享仓库尚需配置远程地址；各成员使用自己的 feature 分支和身份提交，由高鸣远合入 develop。参考 [Git 流程](docs/git-workflow.md)、[需求](docs/requirements.md)、[架构](docs/architecture.md)、[开发记录](docs/development-record.md)。
 
-- [Spring 5.3 MVC 与容器初始化](https://docs.spring.io/spring-framework/docs/5.3.25/reference/html/web.html)
+学校项目以实验二 SSM 为基础升级 CMS，仍需保留独立开发、AI 人工校验与修改痕迹。EMP 实验的单独交付以教师安排为准。
+
+## 接口与官方参考
+
+[OpenAPI](docs/openapi.yaml) 可导入 ApiFox，当前只描述实际实现的健康和就绪接口；业务接口清单在模块接入文档中注明为规划。
+
+- [Spring 5.3 MVC](https://docs.spring.io/spring-framework/docs/5.3.25/reference/html/web.html)
 - [Spring 5.3.39 核心与事务](https://docs.spring.io/spring-framework/docs/5.3.39/reference/html/core.html)
-- [MyBatis-Plus 手工 Spring 配置](https://baomidou.com/en/getting-started/config/)
-- [Tomcat 9 下载与校验](https://tomcat.apache.org/download-90.cgi)
-- [微软 JDK 11 便携包地址与校验](https://learn.microsoft.com/en-us/java/openjdk/download-major-urls)
+- [MyBatis-Plus 配置](https://baomidou.com/en/getting-started/config/)
+- [Tomcat 9](https://tomcat.apache.org/download-90.cgi)

@@ -1,0 +1,30 @@
+CREATE TABLE IF NOT EXISTS cms_claim_request (
+ id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ article_id BIGINT NOT NULL,
+ applicant_id BIGINT NOT NULL,
+ claim_description VARCHAR(1000) NOT NULL,
+ contact_info VARCHAR(100) NOT NULL,
+ status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+ reviewer_id BIGINT NULL,
+ review_comment VARCHAR(500) NOT NULL DEFAULT '',
+ cancel_reason VARCHAR(500) NOT NULL DEFAULT '',
+ reviewed_at DATETIME NULL,
+ completed_at DATETIME NULL,
+ created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ version INT NOT NULL DEFAULT 0,
+ active_applicant_id BIGINT GENERATED ALWAYS AS
+   (CASE WHEN status IN ('PENDING','APPROVED') THEN applicant_id ELSE NULL END) STORED,
+ approved_article_id BIGINT GENERATED ALWAYS AS
+   (CASE WHEN status='APPROVED' THEN article_id ELSE NULL END) STORED,
+ UNIQUE KEY uk_claim_active_applicant(article_id, active_applicant_id),
+ UNIQUE KEY uk_claim_approved_item(approved_article_id),
+ KEY idx_claim_item(article_id, status, created_at, id),
+ KEY idx_claim_applicant(applicant_id, created_at, id),
+ KEY idx_claim_reviewer(reviewer_id, status, created_at),
+ CONSTRAINT fk_claim_article FOREIGN KEY(article_id) REFERENCES cms_article(id),
+ CONSTRAINT fk_claim_applicant FOREIGN KEY(applicant_id) REFERENCES sys_user(id),
+ CONSTRAINT fk_claim_reviewer FOREIGN KEY(reviewer_id) REFERENCES sys_user(id),
+ CONSTRAINT ck_claim_status CHECK(status IN ('PENDING','APPROVED','REJECTED','CANCELLED','COMPLETED')),
+ CONSTRAINT ck_claim_version CHECK(version >= 0)
+) ENGINE=InnoDB;

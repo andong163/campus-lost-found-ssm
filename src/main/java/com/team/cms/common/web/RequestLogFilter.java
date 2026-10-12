@@ -13,6 +13,7 @@ public class RequestLogFilter extends OncePerRequestFilter {
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
             FilterChain chain) throws ServletException, IOException {
         long start = System.nanoTime();
+        String previousRequestId = MDC.get("requestId");
         String requestId = UUID.randomUUID().toString();
         MDC.put("requestId", requestId);
         response.setHeader("X-Request-Id", requestId);
@@ -21,7 +22,8 @@ public class RequestLogFilter extends OncePerRequestFilter {
             LOG.info("{} {} status={} elapsedMs={}", request.getMethod(),
                 request.getRequestURI().replaceAll("[\\r\\n]", ""), response.getStatus(),
                 (System.nanoTime() - start) / 1_000_000);
-            MDC.remove("requestId");
+            if (previousRequestId == null) MDC.remove("requestId");
+            else MDC.put("requestId", previousRequestId);
         }
     }
 }

@@ -70,4 +70,34 @@ public class WebContractTest {
         MockHttpServletResponse response = mvc.perform(get("/api/system/readiness")).andReturn().getResponse();
         assertCode(response, 503); assertFalse(response.getContentAsString().contains("jdbc:"));
     }
+    @Test public void parentAspectActuallyInterceptsMvcController() throws Exception {
+        assertCode(mvc.perform(get("/__test/denied-by-aspect")).andReturn().getResponse(), 403);
+    }
+    @Test public void batchValidationRejectsEmptyDuplicateInvalidAndFractionalIds() throws Exception {
+        for (String body : new String[]{"{}", "{\"ids\":[]}", "{\"ids\":[1,1]}",
+                "{\"ids\":[0]}", "{\"ids\":[null]}", "{\"ids\":[1.9]}"}) {
+            assertCode(mvc.perform(post("/__test/batch").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andReturn().getResponse(), 400);
+        }
+        String oversized = "{\"ids\":" + java.util.stream.LongStream.rangeClosed(1, 101)
+            .boxed().collect(java.util.stream.Collectors.toList()).toString() + "}";
+        assertCode(mvc.perform(post("/__test/batch").contentType(MediaType.APPLICATION_JSON).content(oversized))
+            .andReturn().getResponse(), 400);
+        JsonNode body = assertCode(mvc.perform(post("/__test/batch").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"ids\":[1,2]}")).andReturn().getResponse(), 200);
+        assertEquals(2, body.get("data").asInt());
+    }
+    @Test public void readinessDetectsMissingClaimTableWithoutLeakingSql() throws Exception {
+        JdbcTemplate sql = new JdbcTemplate(context.getBean(DataSource.class));
+        sql.execute("DROP TABLE cms_claim_request");
+        MockHttpServletResponse response = mvc.perform(get("/api/system/readiness")).andReturn().getResponse();
+        assertCode(response, 503); assertFalse(response.getContentAsString().contains("cms_claim_request"));
+    }
+    @Test public void readinessReturns503WhenConnectionCannotBeAcquired() throws Exception {
+        com.alibaba.druid.pool.DruidDataSource source = context.getBean(com.alibaba.druid.pool.DruidDataSource.class);
+        source.setEnable(false);
+        try {
+            assertCode(mvc.perform(get("/api/system/readiness")).andReturn().getResponse(), 503);
+        } finally { source.setEnable(true); }
+    }
 }

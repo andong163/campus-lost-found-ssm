@@ -1,52 +1,54 @@
 [
   {
-    "Method": "Get",
-    "Path": "/api/system/health",
-    "Status": 200,
-    "Body": {
+    "method": "GET",
+    "path": "/api/system/health",
+    "status": 200,
+    "body": {
       "code": 200,
       "message": "success",
       "data": {
         "status": "UP",
-        "application": "cms-ssm"
+        "application": "campus-lost-found"
       }
     },
-    "HasRequestId": true
+    "requestId": "4c011d7b-779f-4674-9481-ea8650b347fe"
   },
   {
-    "Method": "Get",
-    "Path": "/api/system/readiness",
-    "Status": 200,
-    "Body": {
+    "method": "GET",
+    "path": "/api/system/readiness",
+    "status": 200,
+    "body": {
       "code": 200,
       "message": "success",
       "data": {
         "database": "UP",
+        "itemSchema": "UP",
+        "claimSchema": "UP",
         "roleSeed": "UP"
       }
     },
-    "HasRequestId": true
+    "requestId": "5b4d8000-4731-43de-aa08-fe4374b92f76"
   },
   {
-    "Method": "Get",
-    "Path": "/api/not-found",
-    "Status": 404,
-    "Body": {
+    "method": "GET",
+    "path": "/api/not-found",
+    "status": 404,
+    "body": {
       "code": 404,
       "message": "接口不存在",
       "data": null
     },
-    "HasRequestId": true
+    "requestId": "be2f16fd-28d2-477f-a4bd-bf27579a504c"
   },
   {
-    "Method": "Post",
-    "Path": "/api/system/health",
-    "Status": 405,
-    "Body": {
+    "method": "POST",
+    "path": "/api/system/health",
+    "status": 405,
+    "body": {
       "code": 405,
       "message": "请求方法不支持",
       "data": null
     },
-    "HasRequestId": true
+    "requestId": "2a2311bb-a8c3-48e4-925b-9147fb87ece4"
   }
 ]

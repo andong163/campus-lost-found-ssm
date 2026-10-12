@@ -1,6 +1,7 @@
 package com.team.cms.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.util.List;
@@ -14,6 +15,8 @@ import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
 @EnableWebMvc
+// Controllers are child-container beans; the parent's AOP post-processors are not inherited.
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan(basePackages = "com.team.cms", useDefaultFilters = false, includeFilters = {
     @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = Controller.class),
     @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = ControllerAdvice.class)
@@ -26,6 +29,8 @@ public class SpringMvcConfig implements WebMvcConfigurer {
             if (converter instanceof MappingJackson2HttpMessageConverter) {
                 ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
                 mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+                // Do not silently truncate IDs such as 1.9 to 1 in a destructive batch request.
+                mapper.disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT);
                 ((MappingJackson2HttpMessageConverter) converter).setObjectMapper(mapper);
             }
         }

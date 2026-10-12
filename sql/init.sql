@@ -84,6 +84,12 @@ CREATE TABLE IF NOT EXISTS cms_article (
  author_id BIGINT NOT NULL,
  category_id BIGINT NOT NULL,
  status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+ item_type VARCHAR(10) NOT NULL,
+ event_time DATETIME NOT NULL,
+ location VARCHAR(100) NOT NULL,
+ contact_info VARCHAR(100) NOT NULL,
+ resolution_status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
+ resolved_at DATETIME NULL,
  published_at DATETIME NULL,
  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -93,10 +99,16 @@ CREATE TABLE IF NOT EXISTS cms_article (
  KEY idx_article_category(category_id, deleted, status, id),
  KEY idx_article_author(author_id, deleted, id),
  FULLTEXT KEY idx_article_title(title),
+ KEY idx_item_filter(deleted, status, item_type, resolution_status, event_time, id),
  CONSTRAINT fk_article_author FOREIGN KEY(author_id) REFERENCES sys_user(id),
  CONSTRAINT fk_article_category FOREIGN KEY(category_id) REFERENCES cms_category(id),
  CONSTRAINT ck_article_status CHECK(status IN ('DRAFT','PENDING_REVIEW','APPROVED','PUBLISHED','REJECTED','OFFLINE')),
- CONSTRAINT ck_article_deleted CHECK(deleted IN (0,1))
+ CONSTRAINT ck_article_deleted CHECK(deleted IN (0,1)),
+ CONSTRAINT ck_item_type CHECK(item_type IN ('LOST','FOUND')),
+ CONSTRAINT ck_item_resolution CHECK(resolution_status IN ('OPEN','RESOLVED')),
+ CONSTRAINT ck_item_resolved_at CHECK(
+   (resolution_status='OPEN' AND resolved_at IS NULL) OR
+   (resolution_status='RESOLVED' AND resolved_at IS NOT NULL))
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS cms_review_record (
@@ -112,6 +124,37 @@ CREATE TABLE IF NOT EXISTS cms_review_record (
  CONSTRAINT fk_review_article FOREIGN KEY(article_id) REFERENCES cms_article(id),
  CONSTRAINT fk_review_user FOREIGN KEY(reviewer_id) REFERENCES sys_user(id),
  CONSTRAINT ck_review_decision CHECK(decision IN ('APPROVED','REJECTED'))
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS cms_claim_request (
+ id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ article_id BIGINT NOT NULL,
+ applicant_id BIGINT NOT NULL,
+ claim_description VARCHAR(1000) NOT NULL,
+ contact_info VARCHAR(100) NOT NULL,
+ status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+ reviewer_id BIGINT NULL,
+ review_comment VARCHAR(500) NOT NULL DEFAULT '',
+ cancel_reason VARCHAR(500) NOT NULL DEFAULT '',
+ reviewed_at DATETIME NULL,
+ completed_at DATETIME NULL,
+ created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ version INT NOT NULL DEFAULT 0,
+ active_applicant_id BIGINT GENERATED ALWAYS AS
+   (CASE WHEN status IN ('PENDING','APPROVED') THEN applicant_id ELSE NULL END) STORED,
+ approved_article_id BIGINT GENERATED ALWAYS AS
+   (CASE WHEN status='APPROVED' THEN article_id ELSE NULL END) STORED,
+ UNIQUE KEY uk_claim_active_applicant(article_id, active_applicant_id),
+ UNIQUE KEY uk_claim_approved_item(approved_article_id),
+ KEY idx_claim_item(article_id, status, created_at, id),
+ KEY idx_claim_applicant(applicant_id, created_at, id),
+ KEY idx_claim_reviewer(reviewer_id, status, created_at),
+ CONSTRAINT fk_claim_article FOREIGN KEY(article_id) REFERENCES cms_article(id),
+ CONSTRAINT fk_claim_applicant FOREIGN KEY(applicant_id) REFERENCES sys_user(id),
+ CONSTRAINT fk_claim_reviewer FOREIGN KEY(reviewer_id) REFERENCES sys_user(id),
+ CONSTRAINT ck_claim_status CHECK(status IN ('PENDING','APPROVED','REJECTED','CANCELLED','COMPLETED')),
+ CONSTRAINT ck_claim_version CHECK(version >= 0)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS sys_operation_log (
@@ -134,5 +177,5 @@ CREATE TABLE IF NOT EXISTS sys_operation_log (
 
 -- Only non-sensitive role metadata; user module provisions real test users locally.
 INSERT INTO sys_role(code, name) VALUES
- ('ADMIN', '管理员'), ('EDITOR', '编辑人员'), ('REVIEWER', '审核人员'), ('VIEWER', '普通用户')
+ ('ADMIN', '管理员'), ('EDITOR', '学生'), ('REVIEWER', '审核人员'), ('VIEWER', '只读用户')
 ON DUPLICATE KEY UPDATE code = VALUES(code);

@@ -1,4 +1,6 @@
 # Copy to src/main/resources/jdbc-local.properties (Git ignores the destination).
 # Replace the placeholders locally. Do not commit real credentials.
+# Local bootstrap/upgrade honors this URL and only accepts loopback cms_content.
+jdbc.url=jdbc:mysql://127.0.0.1:3306/cms_content?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
 jdbc.username=YOUR_LOCAL_DATABASE_USER
 jdbc.password=YOUR_LOCAL_DATABASE_PASSWORD
