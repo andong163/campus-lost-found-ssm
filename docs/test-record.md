@@ -1,32 +1,42 @@
-# 基础工程验证记录
+# 校园失物招领基础工程验证记录
 
-日期：2026年10月12日。以下由 Codex 实际执行，人工复现和截图请由高鸣远补充。
+日期：2026年10月12日，版本0.2.0-SNAPSHOT。以下由Codex实际执行，高鸣远需自行复现、审查并补充本人截图。原0.1.0基础版为13项，本版新增回归后为22项。
 
-## 构建与自动化
+## 完整构建
 
-Microsoft OpenJDK 11.0.32.1、Maven、Tomcat 9.0.122；执行 `scripts/build.ps1`，最终 BUILD SUCCESS。
+JDK11、Maven、Tomcat9，执行 scripts/build.ps1，最终 BUILD SUCCESS。
 
 | 测试类 | 数量 | 结果 |
 |---|---:|---|
-| FrameworkIntegrationTest | 5 | 全部通过 |
-| WebContractTest | 6 | 全部通过 |
 | ContainerSmokeTest | 1 | 通过 |
+| FrameworkIntegrationTest | 6 | 通过 |
+| LocalDatabaseSupportTest | 3 | 通过 |
+| RequestLogFilterTest | 1 | 通过 |
+| WebContractTest | 10 | 通过 |
 | WarDeploymentIT | 1 | 通过 |
 
-共13项，失败0、错误0、跳过0。覆盖父子容器、MP CRUD和填充、分页、逻辑删除、乐观锁冲突、声明式事务的检查异常回滚、参数验证、404/405/409/500/503统一结果及日志标识。
+共22项，失败0、错误0、跳过0。框架与Web测试使用隔离H2；包括父子容器、MP CRUD／填充／分页／逻辑删除／乐观锁、事务回滚、XML映射、Controller AOP拦截、批量参数、小数ID拒绝、MDC恢复以及统一错误结果。
 
-前三类数据库测试使用隔离 H2 MySQL 模式，不冒充真实 MySQL。最后一类在打包后启动独立 JVM，只让 Tomcat 与 annotations API 出现在父类路径，WAR 使用生产类和自己的依赖；通过健康接口200和不存在接口404，避免测试环境类路径掩盖部署错误。
+## 独立WAR与启动优化
 
-原始报告由 Maven 生成在 target/surefire-reports 与 target/failsafe-reports；WAR部署日志在 target/war-smoke.log。它们是构建产物，不进入 Git。
+打包后由独立JVM部署生产WAR，父类路径只有工具类、Tomcat与annotations API，确认真实Servlet初始化及HTTP health=200、未知接口=404。没有把H2、测试Controller或测试Mapper放入WAR。
 
-## 真实MySQL
+首次WAR检查在90秒上限内未完成，日志停留在容器初始化。限制本地JAR扫描后首次通过的启动检查为81359毫秒；改用Tomcat解包WAR并消除空XML配置提示后，本机本次同一检查为7236毫秒，最终完整构建约21秒。该值仅表示此机器和此基础工程的运行记录，不代表业务查询性能或其他环境的保证。
 
-本机 MySQL 8.0.44，专用库 cms_content。显式执行 bootstrap-db.ps1：目标原先没有表，sql/init.sql 成功建立九表和四个角色；插入事务探针后回滚，复查为0。没有创建业务用户、写入真实内容或修改其他数据库。
+本地启动器只扫描spring-web的SCI，不使用JSP/TLD；以后引入其他SCI时通过 cms.scan.extra 追加逗号分隔JAR匹配式，增加JSP时需调整TLD策略。普通外置Tomcat部署不受该本地启动器策略影响。
 
-私密连接文件不输出、不进入Git；打包检查确认 WAR 没有该文件及测试类。后续实际 HTTP 检查结果保存在 http-verification.json，数据库就绪检查仅验证连接和四个基础角色，不证明所有业务已实现。
+## 真实MySQL升级
 
-最终 WAR 在本机 127.0.0.1:8088 运行的检查结果：GET health=200、GET readiness=200、未知接口=404、POST health=405；HTTP 状态与响应 code 一致，均包含 X-Request-Id。运行日志没有 ERROR、Exception 或 ClassNotFound 匹配项。此 readiness 检查实际连接上面的 MySQL 库。
+本机MySQL8.0.44，目标cms_content。原九表内容表为空，增量升级新增六个招领字段及cms_claim_request，保留四个角色代码，更新默认显示名称。没有修改其他数据库或覆盖旧文章。
 
-## 尚待全组验证
+真实数据库探针验证同人同物品的重复有效申请被拒绝、同物品第二个APPROVED被唯一索引拒绝，并验证完成状态与结案时间更新；全部探针数据回滚。再次执行升级跳过ALTER并重复验证成功。这里验证的是SQL约束，认领Service的权限、行锁和真实并发仍由杨程实现后测试。
 
-登录与权限、分类规则、文章业务、审核状态、批量业务、操作审计、N+1优化和完整演示均需对应作者实现后补充用例。当前13项是基础工程的测试数，不是完整 CMS 的验收结果。
+## 实际HTTP与打包检查
+
+临时在127.0.0.1:8089启动生产WAR，GET health=200、GET readiness=200、未知路径=404、POST health=405，HTTP/code一致且有X-Request-Id。readiness实际连接MySQL，并检查itemSchema及claimSchema；记录见http-verification.json。测试进程已关闭。
+
+检查WAR中私密配置和测试文件为0，公开源码匹配本机私密口令为0。原始Maven报告及本地日志位于target或忽略文件，不进入源码归档。
+
+## 仍由组员接入的范围
+
+登录权限实现、分类规则、信息CRUD、审核状态服务、认领核实交接、业务审计、页面及N+1 SQL优化仍需对应成员开发。22项是基础工程回归数，不能当作完整失物招领系统验收结果。

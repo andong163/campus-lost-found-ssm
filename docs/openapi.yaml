@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: CMS SSM 基础工程接口
-  version: 0.1.0
+  title: 校园失物招领 SSM 基础工程接口
+  version: 0.2.0
   description: 可导入 ApiFox。当前只实现基础检查，业务接口由各成员继续接入。
 servers:
   - url: http://127.0.0.1:8088/cms
@@ -19,11 +19,11 @@ paths:
               example:
                 code: 200
                 message: success
-                data: {application: cms-ssm, status: UP}
+                data: {application: campus-lost-found, status: UP}
   /api/system/readiness:
     get:
-      summary: 数据库和基础角色检查
-      description: 不代表所有 CMS 功能完成，仅验证 SELECT 1 和四个基础角色。
+      summary: 数据库角色与招领结构检查
+      description: 验证数据库、四个基础角色、招领字段与认领表，不代表业务功能完成。
       responses:
         '200':
           description: 基础数据库访问和角色初始化可用
@@ -34,7 +34,7 @@ paths:
               example:
                 code: 200
                 message: success
-                data: {database: UP, roleSeed: UP}
+                data: {database: UP, roleSeed: UP, itemSchema: UP, claimSchema: UP}
         '503':
           description: 数据库或基础角色初始化不可用
           content:

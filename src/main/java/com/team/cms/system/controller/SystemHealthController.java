@@ -11,10 +11,10 @@ public class SystemHealthController {
     private final SystemHealthService service;
     public SystemHealthController(SystemHealthService service) { this.service = service; }
     @GetMapping("/health") public Result<Map<String, String>> health() {
-        return Result.ok(Map.of("application", "cms-ssm", "status", "UP"));
+        return Result.ok(Map.of("application", "campus-lost-found", "status", "UP"));
     }
     @GetMapping("/readiness") public Result<Map<String, String>> readiness() {
         service.checkDatabase();
-        return Result.ok(Map.of("database", "UP", "roleSeed", "UP"));
+        return Result.ok(Map.of("database", "UP", "roleSeed", "UP", "itemSchema", "UP", "claimSchema", "UP"));
     }
 }

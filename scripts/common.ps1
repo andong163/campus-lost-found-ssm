@@ -39,9 +39,8 @@ function Get-CmsToolClasspath([string]$JavaHome, [switch]$ContainerOnly) {
     Invoke-CmsMaven $JavaHome @('dependency:build-classpath', '-Dmdep.includeScope=test', '-Dmdep.outputFile=target/tool-classpath.txt') | Out-Host
     $destination = Join-Path $script:CmsRoot 'target/dev-tools/com/team/cms/tools'
     New-Item -ItemType Directory -Path $destination -Force | Out-Null
-    foreach ($name in @('LocalServer.class', 'MySqlBootstrap.class')) {
-        Copy-Item -LiteralPath (Join-Path $script:CmsRoot "target/test-classes/com/team/cms/tools/$name") -Destination $destination -Force
-    }
+    Get-ChildItem -LiteralPath (Join-Path $script:CmsRoot 'target/test-classes/com/team/cms/tools') -Filter '*.class' |
+        Copy-Item -Destination $destination -Force
     # Only command-line tool classes are visible to the parent; fixtures stay out of the deployed WAR.
     $libraries = (Get-Content -LiteralPath (Join-Path $script:CmsRoot 'target/tool-classpath.txt') -Raw).Trim()
     if ($ContainerOnly) {

@@ -56,4 +56,10 @@ public class FrameworkIntegrationTest {
         stale.setName("stale"); assertEquals(0, mapper.updateById(stale));
         assertEquals("first", mapper.selectById(row.getId()).getName());
     }
+    @Test public void customXmlMapperLoadsAlongsideMybatisPlusStatements() {
+        TestRecord row = new TestRecord(); row.setName("XML mapper"); mapper.insert(row);
+        assertEquals(1L, mapper.countVisibleFromXml());
+        mapper.deleteById(row.getId());
+        assertEquals(0L, mapper.countVisibleFromXml());
+    }
 }

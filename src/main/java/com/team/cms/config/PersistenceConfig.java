@@ -15,6 +15,8 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 @Configuration
@@ -35,6 +37,10 @@ public class PersistenceConfig {
         source.setInitialSize(0); source.setMinIdle(0); source.setMaxActive(10);
         source.setMaxWait(5000); source.setValidationQuery("SELECT 1");
         source.setTestWhileIdle(true);
+        source.setValidationQueryTimeout(2);
+        if (url.startsWith("jdbc:mysql:")) {
+            source.setConnectionProperties("connectTimeout=3000;socketTimeout=5000");
+        }
         return source;
     }
 
@@ -56,6 +62,8 @@ public class PersistenceConfig {
         MybatisConfiguration configuration = new MybatisConfiguration();
         configuration.setMapUnderscoreToCamelCase(true);
         factory.setConfiguration(configuration);
+        Resource[] mapperXml = new PathMatchingResourcePatternResolver().getResources("classpath*:mapper/**/*.xml");
+        if (mapperXml.length != 0) factory.setMapperLocations(mapperXml);
         factory.setPlugins(plugins);
         GlobalConfig global = new GlobalConfig();
         global.setBanner(false);
