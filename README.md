@@ -68,6 +68,8 @@ if (-not (Test-Path src/main/resources/jdbc-local.properties)) {
 
 业务目录保留职责占位，不能将枚举或表结构当作已实现业务。Mapper 标记 @Mapper；XML 放 src/main/resources/mapper。DTO 与 Entity 分开，公开响应排除联系方式与认领证据。详情约定见 [模块接入](docs/module-contracts.md)。
 
+四轮开发、每人每轮的任务与验收、20 个功能或集成 PR 及发布安排，见 [五人分阶段开发与多次合并分工](docs/team-iteration-plan.md)。
+
 ## 数据与协作
 
 sql/init.sql 为全新十表安装；sql/migrations 为旧九表的增量升级。保留 cms_article 表名，新增业务字段与 cms_claim_request。EDITOR 显示为学生，四个既有角色代码保持兼容；角色种子没有用户口令，注册低权限与接口授权由郭金滔实现。
