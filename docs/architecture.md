@@ -1,5 +1,7 @@
 # 校园失物招领架构与数据设计
 
+技术基线为传统 Spring + Spring MVC + MyBatis（SSM），禁止 Spring Boot。WebAppInitializer 按 Servlet 标准注册 DispatcherServlet 和父子容器，配置类显式声明 MVC、数据源、事务及 SqlSessionFactory；MyBatis-Plus 只作 MyBatis 增强。最终交付 WAR + 外部 Tomcat 9，本地嵌入 Tomcat 仅用于 src/test 中的开发验证工具。
+
 ## 请求与容器
 
 ```mermaid

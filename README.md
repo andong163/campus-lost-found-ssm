@@ -2,6 +2,17 @@
 
 这是高鸣远负责的基础工程，已按五人分工及新需求从通用 CMS 调整为校园失物招领场景。版本为 0.2.0-SNAPSHOT。当前提供可运行 SSM、公共组件、十表结构与升级工具；注册登录、分类、信息、审核认领、业务日志及页面仍由相应组员接入。
 
+## 技术栈硬性约束
+
+全组严格使用传统 **Spring + Spring MVC + MyBatis（SSM）**，不得使用 Spring Boot。现有工程通过配置类手动整合框架，按 WAR 部署到 Tomcat 9；使用注解配置不要求改成 XML，也不表示使用 Spring Boot。
+
+- 禁止引入 `org.springframework.boot` 依赖、Boot 父 POM／BOM、`spring-boot-starter-*` 或 `spring-boot-maven-plugin`。
+- 禁止使用 `@SpringBootApplication`、`@EnableAutoConfiguration`、`SpringApplication.run`，不得改为 Boot 可执行 JAR。
+- Spring IoC／AOP／事务、Spring MVC 的 DispatcherServlet、数据源、SqlSessionFactory 和 Mapper 均由本工程显式配置。
+- 按学校评分要求保留 MyBatis-Plus 作为 MyBatis 增强组件，采用非 Boot 的手动接入方式，禁止换成 MP 的 Boot starter。
+
+`scripts/run-dev.ps1` 使用 `src/test` 中的本地 Tomcat 辅助工具部署实际构建的 WAR；它只用于开发和验证。嵌入 Tomcat 为 test 依赖，不打入交付 WAR。正式部署将 `target/cms.war` 放入外部 Tomcat 9 的 webapps 目录。
+
 ## 环境
 
 JDK 11、Maven 3.9、Spring/SpringMVC 5.3.39、MyBatis-Plus 3.5.3.1、MySQL 8.0.16+、Tomcat 9.0.122。WAR 保留工程名 cms-ssm、上下文 /cms 与 javax.servlet 技术栈。Tomcat 11 的 Jakarta 命名空间与本工程不同。版本统一由高鸣远维护。
@@ -61,7 +72,7 @@ if (-not (Test-Path src/main/resources/jdbc-local.properties)) {
 
 sql/init.sql 为全新十表安装；sql/migrations 为旧九表的增量升级。保留 cms_article 表名，新增业务字段与 cms_claim_request。EDITOR 显示为学生，四个既有角色代码保持兼容；角色种子没有用户口令，注册低权限与接口授权由郭金滔实现。
 
-本地 jdbc-local.properties 同时被 Git 与 Maven WAR 排除。共享仓库尚需配置远程地址；各成员使用自己的 feature 分支和身份提交，由高鸣远合入 develop。参考 [Git 流程](docs/git-workflow.md)、[需求](docs/requirements.md)、[架构](docs/architecture.md)、[开发记录](docs/development-record.md)。
+本地 jdbc-local.properties 同时被 Git 与 Maven WAR 排除。共享私有仓库为 [andong163/campus-lost-found-ssm](https://github.com/andong163/campus-lost-found-ssm)，默认分支为 develop；各成员使用自己的 feature 分支和身份提交，由高鸣远合入 develop。参考 [Git 流程](docs/git-workflow.md)、[需求](docs/requirements.md)、[架构](docs/architecture.md)、[开发记录](docs/development-record.md)。
 
 学校项目以实验二 SSM 为基础升级 CMS，仍需保留独立开发、AI 人工校验与修改痕迹。EMP 实验的单独交付以教师安排为准。
 

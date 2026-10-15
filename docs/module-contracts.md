@@ -1,5 +1,11 @@
 # 校园失物招领模块接入约定
 
+## 全组技术约束
+
+所有模块严格使用 Spring、Spring MVC、MyBatis 的传统 SSM 整合方式，禁止 Spring Boot。不得添加 Boot 父 POM／BOM、`org.springframework.boot` 依赖、任何 Boot starter 或 Boot Maven 插件；不得新增 Boot 启动类、自动配置或可执行 JAR。MyBatis-Plus 按评分要求作为 MyBatis 增强保留，只能使用现有手动配置，不引入 MP Boot starter。
+
+提交合并前检查 pom.xml、源码入口和 WAR 依赖；新增组件通过显式 Bean／配置类接入。交付形态保持 WAR + 外部 Tomcat 9。本地 Tomcat 测试工具留在 src/test，不能移入业务源码或作为发布运行时。
+
 ## 容器与映射
 
 根容器管理 Service、Mapper、事务和公共切面；MVC 子容器管理 Controller 与 Advice，并独立启用 AOP。根切面可以按注解或方法匹配 Controller，已有真实 MVC 拦截回归测试。Controller 权限仍由郭金滔实现，配置启用 AOP 不代表所有业务已经鉴权。
