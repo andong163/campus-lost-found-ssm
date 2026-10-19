@@ -31,9 +31,15 @@ public class SpringMvcConfig implements WebMvcConfigurer {
                 mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
                 // Do not silently truncate IDs such as 1.9 to 1 in a destructive batch request.
                 mapper.disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT);
+                mapper.enable(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS);
                 ((MappingJackson2HttpMessageConverter) converter).setObjectMapper(mapper);
             }
         }
+    }
+    @Override public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Narrow mappings leave unknown /api routes with the unified JSON 404 contract.
+        registry.addResourceHandler("/pages/**").addResourceLocations("/pages/");
+        registry.addResourceHandler("/assets/**").addResourceLocations("/assets/");
     }
     // Authentication interceptor/AOP will be implemented by 郭金滔 and registered here.
     // No wildcard credentialed CORS. The initial WAR serves same-origin API requests.
