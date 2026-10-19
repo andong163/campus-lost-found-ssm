@@ -38,7 +38,11 @@
     <resources><resource><directory>src/main/resources</directory><excludes><exclude>jdbc-local.properties</exclude></excludes></resource></resources>
     <plugins>
       <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version></plugin>
-      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.2.5</version></plugin>
+      <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.2.5</version>
+        <!-- JDK 9+ 上 Spring 5.3 的 CGLIB 在 Tomcat 容器类加载器内生成代理子类需打开 java.lang，
+             否则 ContainerSmokeTest 报 ClassLoader mismatch，要求 JVM 加 add-opens java.base/java.lang。 -->
+        <configuration><argLine>--add-opens=java.base/java.lang=ALL-UNNAMED</argLine></configuration>
+      </plugin>
       <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-failsafe-plugin</artifactId><version>3.2.5</version>
         <executions><execution><goals><goal>integration-test</goal><goal>verify</goal></goals></execution></executions>
       </plugin>
