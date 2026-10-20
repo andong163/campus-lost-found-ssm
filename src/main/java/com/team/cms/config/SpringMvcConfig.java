@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.team.cms.auth.AuthConstants;
+import com.team.cms.auth.web.AuthInterceptor;
 import java.util.List;
 import org.springframework.context.annotation.*;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -35,6 +37,12 @@ public class SpringMvcConfig implements WebMvcConfigurer {
             }
         }
     }
-    // Authentication interceptor/AOP will be implemented by 郭金滔 and registered here.
+    // 登录拦截器：保护 /api/**，白名单为注册、登录与系统健康接口。
+    @Bean public AuthInterceptor authInterceptor() { return new AuthInterceptor(); }
+    @Override public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(authInterceptor())
+            .addPathPatterns("/api/**")
+            .excludePathPatterns(AuthConstants.PUBLIC_PATHS);
+    }
     // No wildcard credentialed CORS. The initial WAR serves same-origin API requests.
 }

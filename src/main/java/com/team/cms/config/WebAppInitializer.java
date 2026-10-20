@@ -2,6 +2,8 @@ package com.team.cms.config;
 
 import com.team.cms.common.web.RequestLogFilter;
 import javax.servlet.Filter;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
@@ -16,5 +18,10 @@ public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServlet
     }
     @Override protected Filter[] getServletFilters() {
         return new Filter[]{new CharacterEncodingFilter("UTF-8", true), new RequestLogFilter()};
+    }
+    @Override public void onStartup(ServletContext servletContext) throws ServletException {
+        super.onStartup(servletContext);
+        // 会话 30 分钟无操作失效。
+        servletContext.setSessionTimeout(30);
     }
 }
