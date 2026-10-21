@@ -405,7 +405,7 @@ git pull --ff-only origin develop
 | --- | --- | --- | --- | --- |
 | GMY R1 | 高鸣远 | 待填写 | 待填写 | 待执行 |
 | GJT R1 | 郭金滔 | 待填写 | 待填写 | 待执行 |
-| SR R1 | 孙睿 | 待填写 | 待填写 | 待执行 |
+| SR R1 | 孙睿 | [#1](https://github.com/andong163/campus-lost-found-ssm/pull/1) | 见 PR 合并记录 | 第一轮分类与认证接入验收通过，44 项测试通过；R2～R4 保持待执行 |
 | YYX R1 | 袁运轩 | 待填写 | 待填写 | 待执行 |
 | YC R1 | 杨程 | 待填写 | 待填写 | 待执行 |
 | GMY R2 | 高鸣远 | 待填写 | 待填写 | 待执行 |

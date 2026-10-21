@@ -11,3 +11,31 @@ GET {{base}}/api/not-found
 
 ### 错误请求方法：405，统一错误结构
 POST {{base}}/api/system/health
+
+### 分类管理请求先调用 /api/auth/login，并沿用返回的 JSESSIONID Cookie。
+# 实际用户名和密码填写在本机客户端中，不提交真实凭据。
+# 未登录管理接口返回 401；已登录但缺 category:add/category:view 返回 403。
+
+### 分类：新增一级分类，200，返回 id/name/parentId/sortOrder/enabled；需 category:add 或 ADMIN
+POST {{base}}/api/categories
+Content-Type: application/json
+
+{"name": "电子产品"}
+
+### 分类：同级重名，409（比较规则：trim + 忽略大小写）
+POST {{base}}/api/categories
+Content-Type: application/json
+
+{"name": "电子产品"}
+
+### 分类：新增子分类（parentId 必须存在且未停用），200
+POST {{base}}/api/categories
+Content-Type: application/json
+
+{"name": "手机", "parentId": 1, "sortOrder": 5}
+
+### 分类：管理端分类树（含停用节点），200；需 category:view 或 ADMIN
+GET {{base}}/api/categories/tree
+
+### 分类：公开分类树（游客可用，父停用整棵子树隐藏），200
+GET {{base}}/api/public/categories
