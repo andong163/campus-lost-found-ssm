@@ -2,6 +2,8 @@
 
 日期：2026年10月21日。范围为 SR R1，接收孙睿原始提交 `a1531b7`，在已包含郭金滔认证模块的 `develop` 基线上验收。高鸣远个人分支的 GMY R1 保持独立，不随本次合并进入 develop。
 
+实际合并记录：[Pull Request #1](https://github.com/andong163/campus-lost-found-ssm/pull/1)，提交与实时合并状态均可在此核对。
+
 ## 本轮交付
 
 - 分类 Entity、Mapper、新增接口和管理分类树。
