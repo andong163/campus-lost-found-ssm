@@ -4,6 +4,8 @@
 
 实际合并记录：[Pull Request #1](https://github.com/andong163/campus-lost-found-ssm/pull/1)，提交与实时合并状态均可在此核对。
 
+第一轮后续补丁：IDEA 分类服务注入候选提示的排查、修复及同步方式见 [分类注入说明](category-injection-troubleshooting.md)，不包含第二至第四轮功能。
+
 ## 本轮交付
 
 - 分类 Entity、Mapper、新增接口和管理分类树。

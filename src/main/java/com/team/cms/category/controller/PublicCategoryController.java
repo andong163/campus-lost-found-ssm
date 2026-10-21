@@ -4,6 +4,7 @@ import com.team.cms.category.dto.CategoryOption;
 import com.team.cms.category.service.CategoryAccessService;
 import com.team.cms.common.api.Result;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PublicCategoryController {
     private final CategoryAccessService access;
 
-    public PublicCategoryController(CategoryAccessService access) {
+    public PublicCategoryController(@Qualifier("categoryServiceImpl") CategoryAccessService access) {
         this.access = access;
     }
 

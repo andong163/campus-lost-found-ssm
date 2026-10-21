@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -43,6 +44,7 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -135,6 +137,18 @@ public class CategoryIntegrationTest {
         } catch (BusinessException error) {
             assertEquals(status, error.getStatus().value());
         }
+    }
+
+    @Test public void bothCategoryContractsResolveToOneActualServiceWithoutMapperImpostors() {
+        Map<String, CategoryService> management = BeanFactoryUtils.beansOfTypeIncludingAncestors(context, CategoryService.class);
+        Map<String, CategoryAccessService> access = BeanFactoryUtils.beansOfTypeIncludingAncestors(context, CategoryAccessService.class);
+        assertEquals(Collections.singleton("categoryServiceImpl"), management.keySet());
+        assertEquals(Collections.singleton("categoryServiceImpl"), access.keySet());
+        assertSame(management.get("categoryServiceImpl"), access.get("categoryServiceImpl"));
+        assertSame(categoryService, categoryAccess);
+        assertFalse(context.containsBean("categoryService"));
+        assertFalse(context.containsBean("categoryAccessService"));
+        assertTrue(context.containsBean("categoryMapper"));
     }
 
     @Test public void createNestedTreeAndAdminTreeOrder() throws Exception {
