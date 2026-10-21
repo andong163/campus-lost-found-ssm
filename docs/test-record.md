@@ -40,3 +40,17 @@ JDK11、Maven、Tomcat9，执行 scripts/build.ps1，最终 BUILD SUCCESS。
 ## 仍由组员接入的范围
 
 登录权限实现、分类规则、信息CRUD、审核状态服务、认领核实交接、业务审计、页面及N+1 SQL优化仍需对应成员开发。22项是基础工程回归数，不能当作完整失物招领系统验收结果。
+
+## 分类模块 R1（孙睿）
+
+日期：2026年10月19日。新增分类管理接口（POST /api/categories、GET /api/categories/tree、GET /api/public/categories）与跨模块契约 CategoryAccessService（requireBindable/isBindable/publicTree）。
+
+| 测试类 | 数量 | 结果 |
+|---|---:|---|
+| CategoryIntegrationTest | 11 | 通过10、跳过1 |
+
+跳过项为"未登录401/无权限403"，等待郭金滔的权限注解与拦截器合入后启用。全量回归（含既有22项与容器冒烟）共32项，失败0、错误0。
+
+覆盖：新增树形与排序、父级不存在/已删除404、父或祖先停用409、同级重名（trim+忽略大小写，Java层比较以对齐MySQL ci排序规则）409、不同父级允许同名、删除后重建、公开树父停用隐藏整棵子树、管理树保留停用节点、requireBindable 对 400/404/409 全覆盖、10线程并发同名只有一个成功、参数校验400（空名/超长/负数排序/小数或0的parentId）。
+
+环境说明：本机无 JDK 11，使用 JDK 17（maven.compiler.release=11 仍产出 Java 11 字节码）；pom 的 surefire 增加 argLine `--add-opens=java.base/java.lang=ALL-UNNAMED`，否则 ContainerSmokeTest 在 JDK 9+ 上报 CGLIB ClassLoader mismatch。MySQL 生产结构与 H2 测试库的大小写差异通过 Java 层比较规避，不依赖数据库排序规则。
