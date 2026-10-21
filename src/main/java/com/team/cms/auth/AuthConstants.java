@@ -6,6 +6,9 @@ public final class AuthConstants {
 
     /** 会话中保存的当前用户属性名。 */
     public static final String SESSION_USER = "CMS_CURRENT_USER";
+    /** 登录会话中的写请求防护令牌。 */
+    public static final String SESSION_CSRF_TOKEN = "CMS_CSRF_TOKEN";
+    public static final String CSRF_HEADER = "X-CSRF-Token";
 
     public static final String ROLE_ADMIN = "ADMIN";
     public static final String ROLE_EDITOR = "EDITOR";
