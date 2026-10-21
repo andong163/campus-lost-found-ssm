@@ -2,6 +2,8 @@ package com.team.cms;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.team.cms.auth.security.CurrentUserContext;
+import com.team.cms.auth.service.AuthService;
 import com.team.cms.category.dto.CategoryCreateRequest;
 import com.team.cms.category.service.CategoryAccessService;
 import com.team.cms.category.service.CategoryService;
@@ -21,13 +23,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import javax.sql.DataSource;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestPropertySource;
@@ -53,17 +55,39 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
     @ContextConfiguration(name = "mvc", classes = SpringMvcConfig.class)})
 @TestPropertySource(properties = {"jdbc.driver=org.h2.Driver",
     "jdbc.url=jdbc:h2:mem:category;MODE=MySQL;DB_CLOSE_DELAY=-1", "jdbc.username=sa", "jdbc.password="})
-@Sql("/schema-category.sql")
+@Sql({"/auth-schema-test.sql", "/schema-category.sql"})
 public class CategoryIntegrationTest {
     @Autowired private WebApplicationContext context;
     @Autowired private CategoryService categoryService;
     @Autowired private CategoryAccessService categoryAccess;
+    @Autowired private AuthService authService;
     private MockMvc mvc;
+    private MockHttpSession adminSession;
     private final ObjectMapper json = new ObjectMapper();
 
-    @Before public void setup() {
+    @Before public void setup() throws Exception {
         mvc = MockMvcBuilders.webAppContextSetup(context).addFilters(new RequestLogFilter())
             .addDispatcherServletCustomizer(servlet -> servlet.setThrowExceptionIfNoHandlerFound(true)).build();
+        authService.ensureAdmin("categoryadmin", "category-test-password");
+        adminSession = login("categoryadmin");
+    }
+
+    private MockHttpSession login(String username) throws Exception {
+        MockHttpServletResponse response;
+        org.springframework.test.web.servlet.MvcResult result = mvc.perform(post("/api/auth/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(json.writeValueAsString(Map.of("username", username, "password", "category-test-password"))))
+            .andReturn();
+        response = result.getResponse();
+        assertCode(response, 200);
+        return (MockHttpSession) result.getRequest().getSession(false);
+    }
+
+    private MockHttpSession registerStudent(String username) throws Exception {
+        assertCode(mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+            .content(json.writeValueAsString(Map.of("username", username, "displayName", "分类测试学生",
+                "password", "category-test-password")))).andReturn().getResponse(), 200);
+        return login(username);
     }
 
     private JdbcTemplate sql() {
@@ -90,7 +114,7 @@ public class CategoryIntegrationTest {
         payload.put("name", name);
         payload.put("parentId", parentId);
         payload.put("sortOrder", sortOrder);
-        return mvc.perform(post("/api/categories").contentType(MediaType.APPLICATION_JSON)
+        return mvc.perform(post("/api/categories").session(adminSession).contentType(MediaType.APPLICATION_JSON)
             .characterEncoding(StandardCharsets.UTF_8.name())
             .content(json.writeValueAsString(payload))).andReturn().getResponse();
     }
@@ -120,7 +144,7 @@ public class CategoryIntegrationTest {
         create("电脑", electronics, 2);
         create("手机壳", phone, 0);
 
-        JsonNode tree = assertCode(mvc.perform(get("/api/categories/tree")).andReturn().getResponse(), 200).get("data");
+        JsonNode tree = assertCode(mvc.perform(get("/api/categories/tree").session(adminSession)).andReturn().getResponse(), 200).get("data");
         assertEquals(2, tree.size());
         assertEquals("电子产品", tree.get(0).get("name").asText()); // 同级 sortOrder 相同，按 id 稳定排序
         assertEquals("证件", tree.get(1).get("name").asText());
@@ -189,7 +213,7 @@ public class CategoryIntegrationTest {
         long a = create("A", null);
         long a1 = create("A1", a);
         sql().update("UPDATE cms_category SET enabled=0 WHERE id=?", a1);
-        JsonNode tree = assertCode(mvc.perform(get("/api/categories/tree")).andReturn().getResponse(), 200).get("data");
+        JsonNode tree = assertCode(mvc.perform(get("/api/categories/tree").session(adminSession)).andReturn().getResponse(), 200).get("data");
         JsonNode node = tree.get(0).get("children").get(0);
         assertEquals("A1", node.get("name").asText());
         assertFalse(node.get("enabled").asBoolean()); // 管理树保留停用节点并标记
@@ -259,15 +283,58 @@ public class CategoryIntegrationTest {
         Map<String, Object> negative = new HashMap<>();
         negative.put("name", "x");
         negative.put("sortOrder", -1);
-        assertCode(mvc.perform(post("/api/categories").contentType(MediaType.APPLICATION_JSON)
+        assertCode(mvc.perform(post("/api/categories").session(adminSession).contentType(MediaType.APPLICATION_JSON)
             .content(json.writeValueAsString(negative))).andReturn().getResponse(), 400);
-        assertCode(mvc.perform(post("/api/categories").contentType(MediaType.APPLICATION_JSON)
+        assertCode(mvc.perform(post("/api/categories").session(adminSession).contentType(MediaType.APPLICATION_JSON)
             .content("{\"name\":\"x\",\"parentId\":0}")).andReturn().getResponse(), 400);
-        assertCode(mvc.perform(post("/api/categories").contentType(MediaType.APPLICATION_JSON)
+        assertCode(mvc.perform(post("/api/categories").session(adminSession).contentType(MediaType.APPLICATION_JSON)
             .content("{\"name\":\"x\",\"parentId\":1.9}")).andReturn().getResponse(), 400); // 小数 ID 拒绝
     }
 
-    @Ignore("等待郭金滔 R1 的权限注解与拦截器合入后启用：未登录 401 / 无权限 403")
-    @Test public void writeEndpointRequiresPermission() {
+    @Test public void managementEndpointsRequireLoginAndPermission() throws Exception {
+        String payload = "{\"name\":\"未授权新增\"}";
+        assertCode(mvc.perform(post("/api/categories").contentType(MediaType.APPLICATION_JSON)
+            .content(payload)).andReturn().getResponse(), 401);
+        assertCode(mvc.perform(get("/api/categories/tree")).andReturn().getResponse(), 401);
+        MockHttpSession student = registerStudent("catstudent");
+        assertCode(mvc.perform(post("/api/categories").session(student).contentType(MediaType.APPLICATION_JSON)
+            .content(payload)).andReturn().getResponse(), 403);
+        assertCode(mvc.perform(get("/api/categories/tree").session(student)).andReturn().getResponse(), 403);
+        assertEquals(0, sql().queryForObject("SELECT COUNT(*) FROM cms_category", Integer.class).intValue());
+        assertTrue(CurrentUserContext.get() == null);
+    }
+
+    @Test public void explicitCategoryPermissionsWorkForNonAdminAndStayDistinct() throws Exception {
+        registerStudent("catdelegate");
+        // Test-only grants: production role/permission administration remains the auth module's work.
+        sql().update("UPDATE sys_user_role SET role_id=(SELECT id FROM sys_role WHERE code='VIEWER') "
+            + "WHERE user_id=(SELECT id FROM sys_user WHERE username='catdelegate')");
+        sql().update("INSERT INTO sys_permission(code,name) VALUES ('category:view','分类查看'), ('category:add','分类新增')");
+        sql().update("INSERT INTO sys_role_permission(role_id,permission_id) "
+            + "SELECT r.id,p.id FROM sys_role r,sys_permission p WHERE r.code='VIEWER' AND p.code='category:view'");
+        MockHttpSession delegate = login("catdelegate");
+        assertCode(mvc.perform(get("/api/categories/tree").session(delegate)).andReturn().getResponse(), 200);
+        assertCode(mvc.perform(post("/api/categories").session(delegate).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"name\":\"禁止新增\"}")).andReturn().getResponse(), 403);
+        sql().update("DELETE FROM sys_role_permission WHERE role_id=(SELECT id FROM sys_role WHERE code='VIEWER')");
+        sql().update("INSERT INTO sys_role_permission(role_id,permission_id) "
+            + "SELECT r.id,p.id FROM sys_role r,sys_permission p WHERE r.code='VIEWER' AND p.code='category:add'");
+        delegate = login("catdelegate");
+        assertCode(mvc.perform(post("/api/categories").session(delegate).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"name\":\"允许新增\"}")).andReturn().getResponse(), 200);
+        assertCode(mvc.perform(get("/api/categories/tree").session(delegate)).andReturn().getResponse(), 403);
+    }
+
+    @Test public void publicCategoryRouteRemainsAnonymousWithoutOpeningManagementRoutes() throws Exception {
+        create("游客分类", null);
+        JsonNode tree = assertCode(mvc.perform(get("/api/public/categories")).andReturn().getResponse(), 200).get("data");
+        assertEquals(1, tree.size());
+        assertEquals("游客分类", tree.get(0).get("name").asText());
+        assertFalse(tree.get(0).has("enabled"));
+        assertFalse(tree.get(0).has("deleted"));
+        assertTrue(CurrentUserContext.get() == null);
+        assertCode(mvc.perform(post("/api/public/categories").contentType(MediaType.APPLICATION_JSON)
+            .content("{}")).andReturn().getResponse(), 405);
+        assertCode(mvc.perform(get("/api/categories/tree")).andReturn().getResponse(), 401);
     }
 }

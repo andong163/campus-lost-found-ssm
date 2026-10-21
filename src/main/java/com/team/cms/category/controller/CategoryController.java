@@ -1,5 +1,6 @@
 package com.team.cms.category.controller;
 
+import com.team.cms.auth.security.RequirePermission;
 import com.team.cms.category.dto.CategoryCreateRequest;
 import com.team.cms.category.dto.CategoryCreateResponse;
 import com.team.cms.category.dto.CategoryTreeNode;
@@ -23,15 +24,14 @@ public class CategoryController {
         this.service = service;
     }
 
-    // TODO(GJT R1): 待郭金滔的权限注解与拦截器合入后挂 @RequiresPermission("category:add")。
-    // 在此之前按 R1 停合条件本接口不得判定为完成，并在 PR 中登记该依赖。
     @PostMapping
+    @RequirePermission("category:add")
     public Result<CategoryCreateResponse> create(@Valid @RequestBody CategoryCreateRequest request) {
         return Result.ok(service.create(request));
     }
 
-    // TODO(GJT R1): 待郭金滔的权限注解与拦截器合入后挂 @RequiresPermission("category:view")。
     @GetMapping("/tree")
+    @RequirePermission("category:view")
     public Result<List<CategoryTreeNode>> tree() {
         return Result.ok(service.tree());
     }

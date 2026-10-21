@@ -16,6 +16,7 @@ public final class AuthConstants {
     public static final String[] PUBLIC_PATHS = {
         "/api/auth/register",
         "/api/auth/login",
+        "/api/public/categories",
         "/api/system/**"
     };
 }

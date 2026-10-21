@@ -1,0 +1,122 @@
+{
+  "task": "SR R1 integration",
+  "date": "2026-10-21",
+  "developBaseline": "83713e3",
+  "originalCategoryCommit": "a1531b7",
+  "scope": "第一轮分类基础与真实认证接入；第二至第四轮保持待开发",
+  "javaRuntimeVersions": [
+    "11.0.32.1"
+  ],
+  "packaging": "war",
+  "testSuites": [
+    {
+      "name": "com.team.cms.AdminInitializerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.AuthFlowTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.CategoryIntegrationTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.ContainerSmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.FrameworkIntegrationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.LocalDatabaseSupportTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.RequestLogFilterTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.WebContractTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.WarDeploymentIT",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "tests": 44,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "runtimeJarCount": 34,
+  "runtimeLibraries": [
+    "WEB-INF/lib/aspectjweaver-1.9.7.jar",
+    "WEB-INF/lib/classmate-1.5.1.jar",
+    "WEB-INF/lib/druid-1.2.23.jar",
+    "WEB-INF/lib/hibernate-validator-6.2.5.Final.jar",
+    "WEB-INF/lib/jackson-annotations-2.17.3.jar",
+    "WEB-INF/lib/jackson-core-2.17.3.jar",
+    "WEB-INF/lib/jackson-databind-2.17.3.jar",
+    "WEB-INF/lib/jackson-datatype-jsr310-2.17.3.jar",
+    "WEB-INF/lib/jakarta.validation-api-2.0.2.jar",
+    "WEB-INF/lib/javax.el-3.0.1-b12.jar",
+    "WEB-INF/lib/jboss-logging-3.4.1.Final.jar",
+    "WEB-INF/lib/jsqlparser-4.4.jar",
+    "WEB-INF/lib/logback-classic-1.2.13.jar",
+    "WEB-INF/lib/logback-core-1.2.13.jar",
+    "WEB-INF/lib/mybatis-3.5.10.jar",
+    "WEB-INF/lib/mybatis-plus-3.5.3.1.jar",
+    "WEB-INF/lib/mybatis-plus-annotation-3.5.3.1.jar",
+    "WEB-INF/lib/mybatis-plus-core-3.5.3.1.jar",
+    "WEB-INF/lib/mybatis-plus-extension-3.5.3.1.jar",
+    "WEB-INF/lib/mybatis-spring-2.0.7.jar",
+    "WEB-INF/lib/mysql-connector-j-8.0.33.jar",
+    "WEB-INF/lib/protobuf-java-3.21.9.jar",
+    "WEB-INF/lib/slf4j-api-1.7.32.jar",
+    "WEB-INF/lib/spring-aop-5.3.39.jar",
+    "WEB-INF/lib/spring-aspects-5.3.39.jar",
+    "WEB-INF/lib/spring-beans-5.3.39.jar",
+    "WEB-INF/lib/spring-context-5.3.39.jar",
+    "WEB-INF/lib/spring-core-5.3.39.jar",
+    "WEB-INF/lib/spring-expression-5.3.39.jar",
+    "WEB-INF/lib/spring-jcl-5.3.39.jar",
+    "WEB-INF/lib/spring-jdbc-5.3.39.jar",
+    "WEB-INF/lib/spring-tx-5.3.39.jar",
+    "WEB-INF/lib/spring-web-5.3.39.jar",
+    "WEB-INF/lib/spring-webmvc-5.3.39.jar"
+  ],
+  "forbiddenArchiveEntries": 0,
+  "warSha256": "87358406c2c558b1fa53ab3733970ca36f4c4c54345ec36eaa10fe196fff0f09",
+  "warSmoke": "WAR smoke passed: health=200, missing=404, isolated container classpath, startupMs=9342"
+}

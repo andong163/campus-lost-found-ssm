@@ -43,6 +43,8 @@ JDK11、Maven、Tomcat9，执行 scripts/build.ps1，最终 BUILD SUCCESS。
 
 ## 分类模块 R1（孙睿）
 
+以下为孙睿原分支的历史自测。2026年10月21日与郭金滔认证模块的集成结果见 [SR R1 集成验收](sr-r1-integration.md)：44 项全部通过，分类测试 13 项，原权限跳过项已启用。
+
 日期：2026年10月19日。新增分类管理接口（POST /api/categories、GET /api/categories/tree、GET /api/public/categories）与跨模块契约 CategoryAccessService（requireBindable/isBindable/publicTree）。
 
 | 测试类 | 数量 | 结果 |
