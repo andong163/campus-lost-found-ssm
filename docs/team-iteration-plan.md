@@ -403,7 +403,7 @@ git pull --ff-only origin develop
 
 | 计划 ID | 负责人 | GitHub PR 编号 | 合并提交 | 验收结果 |
 | --- | --- | --- | --- | --- |
-| GMY R1 | 高鸣远 | 待填写 | 待填写 | 待执行 |
+| GMY R1 | 高鸣远 | 暂不创建，先提交 feature/gaomingyuan-base | 未合并 | 公共基线完成；29 项测试、6 项打包反例通过，暂不进入 develop |
 | GJT R1 | 郭金滔 | 待填写 | 待填写 | 待执行 |
 | SR R1 | 孙睿 | [#1](https://github.com/andong163/campus-lost-found-ssm/pull/1) | 见 PR 合并记录 | 第一轮分类与认证接入验收通过，44 项测试通过；R2～R4 保持待执行 |
 | YYX R1 | 袁运轩 | 待填写 | 待填写 | 待执行 |

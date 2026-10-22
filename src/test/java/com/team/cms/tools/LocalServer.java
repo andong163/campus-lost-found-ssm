@@ -49,10 +49,13 @@ public final class LocalServer {
                 String baseUrl = "http://127.0.0.1:" + tomcat.getConnector().getLocalPort() + "/cms";
                 HttpResponse<String> health = client.send(HttpRequest.newBuilder(URI.create(baseUrl + "/api/system/health")).GET().build(), HttpResponse.BodyHandlers.ofString());
                 HttpResponse<String> missing = client.send(HttpRequest.newBuilder(URI.create(baseUrl + "/api/not-found")).GET().build(), HttpResponse.BodyHandlers.ofString());
-                if (health.statusCode() != 200 || missing.statusCode() != 404 || !missing.body().contains("\"code\":404")) {
+                HttpResponse<String> page = client.send(HttpRequest.newBuilder(URI.create(baseUrl + "/pages/index.html")).GET().build(), HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> css = client.send(HttpRequest.newBuilder(URI.create(baseUrl + "/assets/css/base.css")).GET().build(), HttpResponse.BodyHandlers.ofString());
+                if (health.statusCode() != 200 || missing.statusCode() != 404 || !missing.body().contains("\"code\":404") ||
+                    page.statusCode() != 200 || !page.body().contains("校园失物招领") || css.statusCode() != 200) {
                     throw new IllegalStateException("WAR smoke HTTP check failed");
                 }
-                System.out.println("WAR smoke passed: health=200, missing=404, isolated container classpath, startupMs=" +
+                System.out.println("WAR smoke passed: health=200, missing=404, page=200, css=200, isolated container classpath, startupMs=" +
                     (System.nanoTime() - startupStart) / 1_000_000);
             } finally { tomcat.stop(); tomcat.destroy(); }
             return;

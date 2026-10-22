@@ -2,6 +2,7 @@ package com.team.cms.support;
 
 import com.team.cms.common.api.*;
 import com.team.cms.common.exception.BusinessException;
+import com.team.cms.common.domain.ItemType;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,20 @@ public class WebProbeController {
     @GetMapping("/denied-by-aspect") public Result<String> deniedByRootAspect() { return Result.ok("must not execute"); }
     @PostMapping("/batch") public Result<Integer> batch(@Valid @RequestBody BatchIdsRequest input) {
         return Result.ok(input.getIds().size());
+    }
+    @PostMapping("/version") public Result<Integer> version(@Valid @RequestBody VersionInput input) {
+        return Result.ok(input.getVersion());
+    }
+    @GetMapping("/database-conflict") public void databaseConflict() {
+        throw new org.springframework.dao.DuplicateKeyException("private-sql-marker");
+    }
+    @GetMapping("/dependency-failure") public void dependencyFailure() {
+        throw new org.springframework.transaction.CannotCreateTransactionException("private-sql-marker");
+    }
+    public static class VersionInput extends VersionRequest {
+        @javax.validation.constraints.NotNull private ItemType itemType;
+        public ItemType getItemType() { return itemType; }
+        public void setItemType(ItemType itemType) { this.itemType = itemType; }
     }
     public static class Input {
         @NotBlank(message = "名称不能为空") private String name;

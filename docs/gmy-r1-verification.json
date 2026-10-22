@@ -1,0 +1,128 @@
+{
+  "task": "GMY R1",
+  "packaging": "war",
+  "javaRelease": 11,
+  "springBootSourceMatches": 0,
+  "forbiddenRuntimeDependencies": 0,
+  "forbiddenArchiveEntries": 0,
+  "modulePageDirectories": [
+    "auth",
+    "category",
+    "items",
+    "review",
+    "claims",
+    "audit"
+  ],
+  "runtimeJarCount": 34,
+  "warSha256": "0fa6a189f5c96510e0f30b21424732bcc9c2f42cef175a44ee3b3f0a4c330946",
+  "runtimeLibraries": [
+    "WEB-INF/lib/aspectjweaver-1.9.7.jar",
+    "WEB-INF/lib/classmate-1.5.1.jar",
+    "WEB-INF/lib/druid-1.2.23.jar",
+    "WEB-INF/lib/hibernate-validator-6.2.5.Final.jar",
+    "WEB-INF/lib/jackson-annotations-2.17.3.jar",
+    "WEB-INF/lib/jackson-core-2.17.3.jar",
+    "WEB-INF/lib/jackson-databind-2.17.3.jar",
+    "WEB-INF/lib/jackson-datatype-jsr310-2.17.3.jar",
+    "WEB-INF/lib/jakarta.validation-api-2.0.2.jar",
+    "WEB-INF/lib/javax.el-3.0.1-b12.jar",
+    "WEB-INF/lib/jboss-logging-3.4.1.Final.jar",
+    "WEB-INF/lib/jsqlparser-4.4.jar",
+    "WEB-INF/lib/logback-classic-1.2.13.jar",
+    "WEB-INF/lib/logback-core-1.2.13.jar",
+    "WEB-INF/lib/mybatis-3.5.10.jar",
+    "WEB-INF/lib/mybatis-plus-3.5.3.1.jar",
+    "WEB-INF/lib/mybatis-plus-annotation-3.5.3.1.jar",
+    "WEB-INF/lib/mybatis-plus-core-3.5.3.1.jar",
+    "WEB-INF/lib/mybatis-plus-extension-3.5.3.1.jar",
+    "WEB-INF/lib/mybatis-spring-2.0.7.jar",
+    "WEB-INF/lib/mysql-connector-j-8.0.33.jar",
+    "WEB-INF/lib/protobuf-java-3.21.9.jar",
+    "WEB-INF/lib/slf4j-api-1.7.32.jar",
+    "WEB-INF/lib/spring-aop-5.3.39.jar",
+    "WEB-INF/lib/spring-aspects-5.3.39.jar",
+    "WEB-INF/lib/spring-beans-5.3.39.jar",
+    "WEB-INF/lib/spring-context-5.3.39.jar",
+    "WEB-INF/lib/spring-core-5.3.39.jar",
+    "WEB-INF/lib/spring-expression-5.3.39.jar",
+    "WEB-INF/lib/spring-jcl-5.3.39.jar",
+    "WEB-INF/lib/spring-jdbc-5.3.39.jar",
+    "WEB-INF/lib/spring-tx-5.3.39.jar",
+    "WEB-INF/lib/spring-web-5.3.39.jar",
+    "WEB-INF/lib/spring-webmvc-5.3.39.jar"
+  ],
+  "date": "2026-10-19",
+  "contractVersion": "GMY-R1-1",
+  "baselineTests": 22,
+  "javaRuntimeVersions": [
+    "11.0.32.1"
+  ],
+  "mavenVersion": "3.9.16",
+  "testSuites": [
+    {
+      "name": "com.team.cms.ContainerSmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.FoundationContractTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.FrameworkIntegrationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.LocalDatabaseSupportTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.RequestLogFilterTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.WebContractTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.team.cms.WarDeploymentIT",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "totalJavaTests": 29,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "negativeArtifactChecks": {
+    "passed": 6,
+    "cases": [
+      "private-config",
+      "env-file",
+      "test-tool",
+      "boot-name",
+      "embedded-runtime",
+      "renamed-boot"
+    ]
+  },
+  "warSmoke": "WAR smoke passed: health=200, missing=404, page=200, css=200, isolated container classpath, startupMs=7476"
+}

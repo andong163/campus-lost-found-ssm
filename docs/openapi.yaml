@@ -47,6 +47,26 @@ paths:
                 data: null
 components:
   schemas:
+    VersionRequest:
+      type: object
+      description: 单条写操作的公共请求基类，业务接口由模块负责人实现。
+      required: [version]
+      properties:
+        version: {type: integer, format: int32, minimum: 0}
+    BatchIdsRequest:
+      type: object
+      description: 批量在同一事务中验证权限与状态，任一失败全部回滚。
+      required: [ids]
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+          items: {type: integer, format: int64, minimum: 1}
+    ItemType:
+      type: string
+      enum: [LOST, FOUND]
     Result:
       type: object
       required: [code, message, data]
