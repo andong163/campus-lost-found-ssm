@@ -23,6 +23,9 @@ public class Article extends BaseEntity {
     private LocalDateTime resolvedAt;
     private LocalDateTime publishedAt;
 
+    public boolean isFound() { return itemType == ItemType.FOUND; }
+    public boolean isLost() { return itemType == ItemType.LOST; }
+
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getContent() { return content; }

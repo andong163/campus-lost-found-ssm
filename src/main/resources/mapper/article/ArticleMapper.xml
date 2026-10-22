@@ -20,4 +20,26 @@
     WHERE id = #{id} AND deleted = 0 AND status = #{expectedStatus}
       AND version = #{expectedVersion}
   </update>
+  <update id="updateStatus">
+    UPDATE cms_article
+    SET status = #{targetStatus},
+        updated_at = CURRENT_TIMESTAMP,
+        version = version + 1
+        <if test="publishedAt != null">, published_at = #{publishedAt}</if>
+    WHERE id = #{id}
+      AND status = #{expectedStatus}
+      AND version = #{version}
+      AND deleted = 0
+  </update>
+  <update id="resolve">
+    UPDATE cms_article
+    SET resolution_status = 'RESOLVED',
+        resolved_at = #{resolvedAt},
+        updated_at = CURRENT_TIMESTAMP,
+        version = version + 1
+    WHERE id = #{id}
+      AND resolution_status = 'OPEN'
+      AND version = #{version}
+      AND deleted = 0
+  </update>
 </mapper>

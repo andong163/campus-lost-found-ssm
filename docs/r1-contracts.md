@@ -60,6 +60,8 @@ R1 的令牌检查只覆盖 POST `/api/items`；其他写接口的统一覆盖�
 
 接口类型留在各自模块，第一轮不注册空实现。依赖方向为 ArticleService → ItemWorkflowService → ArticleMapper，工作流不能反向依赖 ArticleService。修改正文且伴随状态变化的复合操作在同一 REQUIRED 事务内完成；独立 EDIT_DRAFT 只做显式状态转换，客户端后续编辑使用返回的新版本。
 
+总合并后的 Article 沿用公共枚举并提供 isFound()/isLost()；Mapper 同时保留袁运轩的本人草稿查询、updateStatusIfVersion 和杨程的 updateStatus、resolve。统一 selectByIdForUpdate(Long) 接受原 long 调用的自动装箱，必须在事务内调用。完整参数见 JSON 的 interfaces.ArticleMapper；方法返回零行不能退回无条件更新，具体审核与结案服务仍在后续轮次实现。
+
 新模块沿既有包目录放置 Controller、DTO、Service、Entity、Mapper；Mapper 标记 @Mapper，XML 放 `src/main/resources/mapper/模块名`。页面放 `src/main/webapp/pages/模块名`，公共 CSS 与 JS 放 assets。Spring 已统一映射 pages 和 assets，新增页面无需修改公共 MVC 配置。
 
 ## 第一轮边界与后续合并

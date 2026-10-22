@@ -417,7 +417,9 @@
     "claimDescription",
     "studentNumber",
     "roleCodes",
-    "permissionCodes"
+    "permissionCodes",
+    "roles",
+    "permissions"
   ],
   "interfaces": {
     "CategoryAccessService": {
@@ -464,6 +466,7 @@
       "owner": "杨程",
       "safeFields": [
         "operatorId",
+        "operatorName",
         "module",
         "action",
         "targetId",
@@ -478,7 +481,8 @@
         "contactInfo",
         "claimDescription"
       ],
-      "runtimeName": "com.team.cms.audit.service.AuditService / AuditTemplate"
+      "runtimeName": "com.team.cms.audit.service.AuditService / AuditTemplate",
+      "transactionBoundary": "AuditTemplate wraps a transactional service call; success is logged after the business transaction completes. ReviewRecord remains in the business transaction."
     },
     "CurrentUserContext": {
       "owner": "郭金滔",
@@ -497,6 +501,31 @@
       "missingPermissionStatus": 403,
       "ADMIN": "existing role bypass",
       "multiplePermissions": "R2 proposal; do not rename or invent a replacement annotation in each module"
+    },
+    "ArticleMapper": {
+      "owner": "袁运轩；与杨程协调版本、锁及状态原语",
+      "package": "com.team.cms.article.mapper",
+      "entityEnums": {
+        "status": "ArticleStatus",
+        "itemType": "ItemType",
+        "resolutionStatus": "ResolutionStatus"
+      },
+      "methods": [
+        "Article selectDraftByIdAndAuthor(long id, long authorId)",
+        "Article selectByIdForUpdate(Long id)",
+        "int updateStatusIfVersion(long id, ArticleStatus expectedStatus, ArticleStatus nextStatus, int expectedVersion)",
+        "int updateStatus(Long id, String expectedStatus, String targetStatus, int version, LocalDateTime publishedAt)",
+        "int resolve(Long id, int version, LocalDateTime resolvedAt)"
+      ],
+      "idCompatibility": "Long lock argument accepts prior primitive long callers by boxing; validate nullable IDs before service calls",
+      "helperMethods": [
+        "boolean Article.isFound()",
+        "boolean Article.isLost()"
+      ],
+      "lockOrder": "within the same transaction: article row first, then claim/review rows",
+      "zeroAffectedRows": "service maps missing/state/version conflict according to operation, never unconditional fallback",
+      "workflowImplemented": false,
+      "workflowOwner": "杨程 R2-R4; SQL primitives alone do not authorize transitions or handover"
     }
   },
   "schemaTables": [
@@ -668,14 +697,15 @@
   ],
   "sessionContract": {
     "implementationOwner": "郭金滔",
-    "implemented": "login Session active; CSRF added by YYX R1 for draft creation only",
+    "implemented": true,
     "cookie": "JSESSIONID",
     "csrfHeader": "X-CSRF-Token",
     "csrfBootstrap": "GET /api/auth/csrf after login",
     "csrfResponseField": "data (string)",
     "refreshCsrfAfterLogin": true,
     "invalidateOnLogout": true,
-    "coverage": "POST /api/items only in R1; registration/login/logout/category/global CSRF coverage remains scheduled auth work"
+    "coverage": "POST /api/items only in R1; registration/login/logout/category/global CSRF coverage remains scheduled auth work",
+    "csrfScope": "POST /api/items only; no claim of global R1 CSRF coverage"
   },
   "runtimePermissionCompatibility": {
     "canonicalCatalog": "41 planned codes remain stable; constants do not automatically grant permissions",
