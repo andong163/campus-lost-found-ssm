@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.cms.claim.mapper.ClaimRequestMapper">
+
+  <sql id="claimColumns">
+    id, article_id, applicant_id, claim_description, contact_info, status,
+    reviewer_id, review_comment, cancel_reason, reviewed_at, completed_at,
+    created_at, updated_at, version
+  </sql>
+
+  <sql id="claimViewColumns">
+    c.id, c.article_id, a.title AS article_title, a.item_type,
+    c.applicant_id, u.display_name AS applicant_name,
+    c.claim_description, c.contact_info, c.status,
+    c.reviewer_id, rv.display_name AS reviewer_name,
+    c.review_comment, c.cancel_reason, c.reviewed_at, c.completed_at,
+    c.created_at, c.version
+  </sql>
+
+  <select id="selectByIdForUpdate" resultType="com.team.cms.claim.entity.ClaimRequest">
+    SELECT <include refid="claimColumns"/>
+    FROM cms_claim_request
+    WHERE id = #{id}
+    FOR UPDATE
+  </select>
+
+  <select id="selectApprovedForUpdate" resultType="com.team.cms.claim.entity.ClaimRequest">
+    SELECT <include refid="claimColumns"/>
+    FROM cms_claim_request
+    WHERE article_id = #{articleId} AND status = 'APPROVED'
+    FOR UPDATE
+  </select>
+
+  <select id="selectApprovedByItem" resultType="com.team.cms.claim.entity.ClaimRequest">
+    SELECT <include refid="claimColumns"/>
+    FROM cms_claim_request
+    WHERE article_id = #{articleId} AND status = 'APPROVED'
+  </select>
+
+  <select id="countActiveByApplicant" resultType="int">
+    SELECT COUNT(*) FROM cms_claim_request
+    WHERE article_id = #{articleId}
+      AND applicant_id = #{applicantId}
+      AND status IN ('PENDING', 'APPROVED')
+  </select>
+
+  <select id="countActiveByItem" resultType="int">
+    SELECT COUNT(*) FROM cms_claim_request
+    WHERE article_id = #{articleId}
+      AND status IN ('PENDING', 'APPROVED')
+  </select>
+
+  <select id="countApprovedByItem" resultType="int">
+    SELECT COUNT(*) FROM cms_claim_request
+    WHERE article_id = #{articleId} AND status = 'APPROVED'
+  </select>
+
+  <select id="countApprovedByApplicant" resultType="int">
+    SELECT COUNT(*) FROM cms_claim_request
+    WHERE article_id = #{articleId}
+      AND applicant_id = #{applicantId}
+      AND status = 'APPROVED'
+  </select>
+
+  <update id="updateDecision">
+    UPDATE cms_claim_request
+    SET status = #{targetStatus},
+        reviewer_id = #{reviewerId},
+        review_comment = #{comment},
+        reviewed_at = #{reviewedAt},
+        updated_at = CURRENT_TIMESTAMP,
+        version = version + 1
+    WHERE id = #{id}
+      AND status = 'PENDING'
+      AND version = #{version}
+  </update>
+
+  <update id="updateCancel">
+    UPDATE cms_claim_request
+    SET status = 'CANCELLED',
+        cancel_reason = #{reason},
+        updated_at = CURRENT_TIMESTAMP,
+        version = version + 1
+    WHERE id = #{id}
+      AND status IN ('PENDING', 'APPROVED')
+      AND version = #{version}
+  </update>
+
+  <update id="complete">
+    UPDATE cms_claim_request
+    SET status = 'COMPLETED',
+        completed_at = #{completedAt},
+        updated_at = CURRENT_TIMESTAMP,
+        version = version + 1
+    WHERE id = #{id}
+      AND status = 'APPROVED'
+      AND version = #{version}
+  </update>
+
+  <update id="closePendingByItem">
+    UPDATE cms_claim_request
+    SET status = 'CANCELLED',
+        cancel_reason = #{reason},
+        updated_at = CURRENT_TIMESTAMP,
+        version = version + 1
+    WHERE article_id = #{articleId}
+      AND status = 'PENDING'
+  </update>
+
+  <select id="selectMine" resultType="com.team.cms.claim.dto.ClaimView">
+    SELECT <include refid="claimViewColumns"/>
+    FROM cms_claim_request c
+    JOIN cms_article a ON a.id = c.article_id
+    JOIN sys_user u ON u.id = c.applicant_id
+    LEFT JOIN sys_user rv ON rv.id = c.reviewer_id
+    WHERE c.applicant_id = #{applicantId}
+      <if test="status != null and status != ''">AND c.status = #{status}</if>
+    ORDER BY c.created_at DESC, c.id DESC
+  </select>
+
+  <select id="selectQueue" resultType="com.team.cms.claim.dto.ClaimView">
+    SELECT <include refid="claimViewColumns"/>
+    FROM cms_claim_request c
+    JOIN cms_article a ON a.id = c.article_id
+    JOIN sys_user u ON u.id = c.applicant_id
+    LEFT JOIN sys_user rv ON rv.id = c.reviewer_id
+    <where>
+      <if test="status != null and status != ''">AND c.status = #{status}</if>
+      <if test="itemId != null">AND c.article_id = #{itemId}</if>
+    </where>
+    ORDER BY c.created_at DESC, c.id DESC
+  </select>
+
+  <select id="selectByItem" resultType="com.team.cms.claim.dto.ClaimView">
+    SELECT <include refid="claimViewColumns"/>
+    FROM cms_claim_request c
+    JOIN cms_article a ON a.id = c.article_id
+    JOIN sys_user u ON u.id = c.applicant_id
+    LEFT JOIN sys_user rv ON rv.id = c.reviewer_id
+    WHERE c.article_id = #{articleId}
+    ORDER BY c.created_at DESC, c.id DESC
+  </select>
+
+  <select id="selectApprovedView" resultType="com.team.cms.claim.dto.ClaimView">
+    SELECT <include refid="claimViewColumns"/>
+    FROM cms_claim_request c
+    JOIN cms_article a ON a.id = c.article_id
+    JOIN sys_user u ON u.id = c.applicant_id
+    LEFT JOIN sys_user rv ON rv.id = c.reviewer_id
+    WHERE c.article_id = #{articleId} AND c.status = 'APPROVED'
+  </select>
+</mapper>
