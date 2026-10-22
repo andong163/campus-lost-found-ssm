@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: 校园失物招领 SSM 基础工程接口
   version: 0.2.0
-  description: 可导入 ApiFox。当前只实现基础检查，业务接口由各成员继续接入。
+  description: 可导入 ApiFox。本文件记录基础检查；第一轮业务接口示例见 docs/r1-api.http，后续按实际实现汇总。
 servers:
   - url: http://127.0.0.1:8088/cms
 paths:

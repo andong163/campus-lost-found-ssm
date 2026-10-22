@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.cms.review.mapper.ReviewRecordMapper">
+
+  <select id="selectViewsByArticleId" resultType="com.team.cms.review.dto.ReviewRecordView">
+    SELECT r.id, r.article_id, r.reviewer_id, u.display_name AS reviewer_name,
+           r.decision, r.comment, r.article_version, r.created_at
+    FROM cms_review_record r
+    JOIN sys_user u ON u.id = r.reviewer_id
+    WHERE r.article_id = #{articleId}
+    ORDER BY r.created_at ASC, r.id ASC
+  </select>
+
+  <select id="selectHistory" resultType="com.team.cms.review.dto.ReviewRecordView">
+    SELECT r.id, r.article_id, r.reviewer_id, u.display_name AS reviewer_name,
+           r.decision, r.comment, r.article_version, r.created_at
+    FROM cms_review_record r
+    JOIN sys_user u ON u.id = r.reviewer_id
+    <where>
+      <if test="q.articleId != null">AND r.article_id = #{q.articleId}</if>
+      <if test="q.decision != null">AND r.decision = #{q.decision}</if>
+    </where>
+    ORDER BY r.created_at DESC, r.id DESC
+  </select>
+</mapper>
