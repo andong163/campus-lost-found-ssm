@@ -6,10 +6,12 @@ import com.team.cms.auth.dto.LoginRequest;
 import com.team.cms.auth.dto.RegisterRequest;
 import com.team.cms.auth.security.CurrentUser;
 import com.team.cms.auth.security.CurrentUserContext;
+import com.team.cms.auth.security.CsrfTokenService;
 import com.team.cms.auth.service.AuthService;
 import com.team.cms.common.api.Result;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
+    private final CsrfTokenService csrfTokenService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, CsrfTokenService csrfTokenService) {
         this.authService = authService;
+        this.csrfTokenService = csrfTokenService;
     }
 
     @PostMapping("/register")
@@ -43,7 +47,16 @@ public class AuthController {
         }
         HttpSession session = httpRequest.getSession(true);
         session.setAttribute(AuthConstants.SESSION_USER, user);
+        csrfTokenService.issue(session);
         return Result.ok(CurrentUserResponse.from(user));
+    }
+
+    /** 登录后由同源页面读取令牌，供物品草稿写请求放入 X-CSRF-Token 请求头。 */
+    @GetMapping("/csrf")
+    public Result<String> csrf(HttpServletRequest request, HttpServletResponse response) {
+        CurrentUserContext.require();
+        response.setHeader("Cache-Control", "no-store");
+        return Result.ok(csrfTokenService.current(request.getSession(false)));
     }
 
     @PostMapping("/logout")

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.cms.article.mapper.ArticleMapper">
+  <select id="selectDraftByIdAndAuthor" resultType="com.team.cms.article.entity.Article">
+    SELECT id, title, content, author_id, category_id, status, item_type, event_time,
+           location, contact_info, resolution_status, resolved_at, published_at,
+           created_at, updated_at, deleted, version
+    FROM cms_article
+    WHERE id = #{id} AND author_id = #{authorId} AND status = 'DRAFT' AND deleted = 0
+  </select>
+  <select id="selectByIdForUpdate" resultType="com.team.cms.article.entity.Article">
+    SELECT id, title, content, author_id, category_id, status, item_type, event_time,
+           location, contact_info, resolution_status, resolved_at, published_at,
+           created_at, updated_at, deleted, version
+    FROM cms_article WHERE id = #{id} AND deleted = 0 FOR UPDATE
+  </select>
+  <update id="updateStatusIfVersion">
+    UPDATE cms_article SET status = #{nextStatus}, version = version + 1,
+           updated_at = CURRENT_TIMESTAMP
+    WHERE id = #{id} AND deleted = 0 AND status = #{expectedStatus}
+      AND version = #{expectedVersion}
+  </update>
+</mapper>
