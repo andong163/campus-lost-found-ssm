@@ -4,6 +4,9 @@ import com.team.cms.common.api.Result;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.validation.ConstraintViolationException;
+import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.transaction.CannotCreateTransactionException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -25,6 +29,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Object> constraint(ConstraintViolationException error) {
         return response(HttpStatus.BAD_REQUEST, "请求参数不合法", null);
+    }
+    @ExceptionHandler({DataIntegrityViolationException.class, ConcurrencyFailureException.class})
+    public ResponseEntity<Object> dataConflict(Exception error) {
+        return response(HttpStatus.CONFLICT, "数据或状态冲突，请刷新后重试", null);
+    }
+    @ExceptionHandler({DataAccessResourceFailureException.class, CannotCreateTransactionException.class})
+    public ResponseEntity<Object> dependencyUnavailable(Exception error) {
+        return response(HttpStatus.SERVICE_UNAVAILABLE, "基础服务暂不可用，请稍后重试", null);
     }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> unexpected(Exception error) {

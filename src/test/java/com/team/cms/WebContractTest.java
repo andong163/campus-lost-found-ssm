@@ -100,4 +100,33 @@ public class WebContractTest {
             assertCode(mvc.perform(get("/api/system/readiness")).andReturn().getResponse(), 503);
         } finally { source.setEnable(true); }
     }
+    @Test public void versionAndEnumContractsRejectInvalidJsonValues() throws Exception {
+        for (String body : new String[]{"{\"itemType\":\"FOUND\"}",
+                "{\"version\":-1,\"itemType\":\"FOUND\"}", "{\"version\":null,\"itemType\":\"FOUND\"}",
+                "{\"version\":1.5,\"itemType\":\"FOUND\"}", "{\"version\":2147483648,\"itemType\":\"FOUND\"}",
+                "{\"version\":0,\"itemType\":0}"}) {
+            assertCode(mvc.perform(post("/__test/version").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andReturn().getResponse(), 400);
+        }
+        JsonNode valid = assertCode(mvc.perform(post("/__test/version").contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":0,\"itemType\":\"FOUND\"}")).andReturn().getResponse(), 200);
+        assertEquals(0, valid.get("data").asInt());
+    }
+    @Test public void databaseExceptionsKeepStatusContractWithoutLeakingSql() throws Exception {
+        MockHttpServletResponse conflict = mvc.perform(get("/__test/database-conflict")).andReturn().getResponse();
+        assertCode(conflict, 409);
+        assertFalse(conflict.getContentAsString().contains("private-sql-marker"));
+        MockHttpServletResponse unavailable = mvc.perform(get("/__test/dependency-failure")).andReturn().getResponse();
+        assertCode(unavailable, 503);
+        assertFalse(unavailable.getContentAsString().contains("private-sql-marker"));
+    }
+    @Test public void modulePageAndAssetsServeWithoutChangingApi404Contract() throws Exception {
+        MockHttpServletResponse page = mvc.perform(get("/pages/index.html")).andReturn().getResponse();
+        assertEquals(200, page.getStatus());
+        assertTrue(new String(page.getContentAsByteArray(), java.nio.charset.StandardCharsets.UTF_8).contains("校园失物招领"));
+        MockHttpServletResponse css = mvc.perform(get("/assets/css/base.css")).andReturn().getResponse();
+        assertEquals(200, css.getStatus());
+        assertTrue(css.getContentType().startsWith("text/css"));
+        assertCode(mvc.perform(get("/api/not-found")).andReturn().getResponse(), 404);
+    }
 }
