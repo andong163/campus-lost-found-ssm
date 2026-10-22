@@ -14,6 +14,8 @@
 
 原始提交和个人 feature 分支保留。使用独立 integration 分支解决冲突并追加记录，再正常合入 develop，不强推、不重写历史。实际 PR 与合并记录在 team-iteration-plan.md 登记；后续 R2～R4 条目保持待执行。
 
+本次实际记录：高鸣远 [PR #4](https://github.com/andong163/campus-lost-found-ssm/pull/4)、袁运轩已有 [PR #3](https://github.com/andong163/campus-lost-found-ssm/pull/3)、杨程 [PR #5](https://github.com/andong163/campus-lost-found-ssm/pull/5)。郭金滔原有合并为 83713e3，孙睿与补丁为 PR #1、#2。实时状态以 PR 为准。
+
 ## 冲突处理与固定接口
 
 1. MVC 同时保留登录拦截器与 pages/assets 静态资源映射，未知 API 仍返回统一 JSON 404。
