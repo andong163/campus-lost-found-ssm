@@ -6,9 +6,17 @@ import com.team.cms.common.domain.ArticleStatus;
 import java.time.LocalDateTime;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 @Mapper
 public interface ArticleMapper extends BaseMapper<Article> {
+    IPage<Article> selectMine(Page<Article> page, @Param("authorId") long authorId,
+            @Param("status") ArticleStatus status);
+    IPage<Article> selectReviewQueue(Page<Article> page);
+    IPage<Article> selectApprovedQueue(Page<Article> page);
+    Article selectByIdAndAuthor(@Param("id") long id, @Param("authorId") long authorId);
+    int updateEditable(@Param("article") Article article, @Param("expectedVersion") int expectedVersion);
     /** 按作者查询私有草稿；调用前仍须验证登录身份和读取权限。 */
     Article selectDraftByIdAndAuthor(@Param("id") long id, @Param("authorId") long authorId);
 

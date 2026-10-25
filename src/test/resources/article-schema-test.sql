@@ -18,3 +18,18 @@ CREATE TABLE IF NOT EXISTS cms_article (
  version INT NOT NULL DEFAULT 0
 );
 DELETE FROM cms_article;
+CREATE TABLE IF NOT EXISTS cms_review_record (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY, article_id BIGINT NOT NULL, reviewer_id BIGINT NOT NULL,
+ decision VARCHAR(20) NOT NULL, comment VARCHAR(500) NOT NULL,
+ article_version INT NOT NULL, created_at TIMESTAMP NOT NULL
+);
+DELETE FROM cms_review_record;
+CREATE TABLE IF NOT EXISTS cms_claim_request (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY, article_id BIGINT NOT NULL, applicant_id BIGINT NOT NULL,
+ claim_description VARCHAR(1000) NOT NULL, contact_info VARCHAR(100) NOT NULL,
+ status VARCHAR(20) NOT NULL, reviewer_id BIGINT, review_comment VARCHAR(500) NOT NULL DEFAULT '',
+ cancel_reason VARCHAR(500) NOT NULL DEFAULT '', reviewed_at TIMESTAMP,
+ completed_at TIMESTAMP, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, version INT NOT NULL DEFAULT 0
+);
+DELETE FROM cms_claim_request;

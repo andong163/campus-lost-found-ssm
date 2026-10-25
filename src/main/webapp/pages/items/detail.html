@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>信息详情</title><link rel="stylesheet" href="../../assets/css/base.css"></head><body><main>
+<nav><a href="mine.html">返回我的信息</a></nav><h1 id="title">加载中…</h1><p id="notice" role="status"></p>
+<p id="state"></p><p id="content"></p><p id="meta"></p><section><h2>审核意见</h2><div id="reviews">加载中…</div></section>
+<div id="actions"></div></main><script src="../../assets/js/items.js"></script><script>
+const id=new URLSearchParams(location.search).get('id');let item;
+async function load(){try{item=await api('/items/'+encodeURIComponent(id)+'/mine');
+ document.querySelector('#title').textContent=item.title;
+ document.querySelector('#state').textContent='状态：'+(statusText[item.status]||item.status)+' · 版本 '+item.version;
+ document.querySelector('#content').textContent=item.content;
+ document.querySelector('#meta').textContent=`${item.itemType} · ${item.location} · ${item.eventTime} · 联系方式：${item.contactInfo}`;
+ const reviews=await api('/items/'+encodeURIComponent(id)+'/reviews');const box=document.querySelector('#reviews');box.replaceChildren();
+ if(!reviews.length)box.textContent='暂无审核记录';for(const r of reviews){const p=document.createElement('p');p.textContent=`${r.decision}：${r.comment||'无意见'}`;box.append(p)}
+ const actions=document.querySelector('#actions');actions.replaceChildren();
+ if(['DRAFT','REJECTED'].includes(item.status)){const a=document.createElement('a');a.href='edit.html?id='+id;a.textContent='编辑';actions.append(a)}
+ const map={DRAFT:['submit','提交审核'],REJECTED:['submit','重新提交审核'],PENDING_REVIEW:['withdraw','撤回'],PUBLISHED:['offline','下架'],OFFLINE:['draft','转为草稿']};
+ if(map[item.status]){const [op,label]=map[item.status];const button=document.createElement('button');button.textContent=label;
+ button.onclick=async()=>{button.disabled=true;try{await write('/items/'+id+'/'+op,'POST',{version:item.version});show('操作成功');await load()}catch(e){show(e.message,true);button.disabled=false}};actions.append(button)}
+ }catch(e){show(e.message,true)}}load();
+</script></body></html>

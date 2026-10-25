@@ -1,0 +1,12 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>登录</title><link rel="stylesheet" href="../../assets/css/base.css"></head><body><main>
+<nav><a href="../index.html">首页</a></nav><h1>登录</h1><p id="notice" role="status"></p>
+<form id="form"><label>用户名<input name="username" required autocomplete="username"></label>
+<label>密码<input name="password" type="password" required autocomplete="current-password"></label>
+<button type="submit">登录</button></form></main><script src="../../assets/js/items.js"></script><script>
+document.querySelector('#form').onsubmit=async e=>{e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;
+ try{await api('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},
+ body:JSON.stringify(Object.fromEntries(new FormData(e.target)))});
+ location.href=new URLSearchParams(location.search).get('next')==='review'?'../review/pending.html':'../items/mine.html';
+ }catch(error){show(error.message,true);button.disabled=false}};
+</script></body></html>

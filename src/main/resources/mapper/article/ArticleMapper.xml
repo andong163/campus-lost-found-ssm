@@ -1,6 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.team.cms.article.mapper.ArticleMapper">
+  <select id="selectMine" resultType="com.team.cms.article.entity.Article">
+    SELECT id, title, content, author_id, category_id, status, item_type, event_time,
+           location, contact_info, resolution_status, resolved_at, published_at,
+           created_at, updated_at, deleted, version
+    FROM cms_article WHERE author_id = #{authorId} AND deleted = 0
+    <if test="status != null">AND status = #{status}</if>
+    ORDER BY created_at DESC, id DESC
+  </select>
+  <select id="selectReviewQueue" resultType="com.team.cms.article.entity.Article">
+    SELECT id, title, content, author_id, category_id, status, item_type, event_time,
+           location, contact_info, resolution_status, resolved_at, published_at,
+           created_at, updated_at, deleted, version
+    FROM cms_article WHERE status = 'PENDING_REVIEW' AND deleted = 0
+    ORDER BY updated_at ASC, id ASC
+  </select>
+  <select id="selectApprovedQueue" resultType="com.team.cms.article.entity.Article">
+    SELECT id, title, content, author_id, category_id, status, item_type, event_time,
+           location, contact_info, resolution_status, resolved_at, published_at,
+           created_at, updated_at, deleted, version
+    FROM cms_article WHERE status = 'APPROVED' AND deleted = 0
+    ORDER BY updated_at ASC, id ASC
+  </select>
+  <select id="selectByIdAndAuthor" resultType="com.team.cms.article.entity.Article">
+    SELECT id, title, content, author_id, category_id, status, item_type, event_time,
+           location, contact_info, resolution_status, resolved_at, published_at,
+           created_at, updated_at, deleted, version
+    FROM cms_article WHERE id = #{id} AND author_id = #{authorId} AND deleted = 0
+  </select>
+  <update id="updateEditable">
+    UPDATE cms_article SET title = #{article.title}, content = #{article.content},
+      item_type = #{article.itemType}, category_id = #{article.categoryId},
+      event_time = #{article.eventTime}, location = #{article.location},
+      contact_info = #{article.contactInfo}, updated_at = CURRENT_TIMESTAMP,
+      version = version + 1
+    WHERE id = #{article.id} AND author_id = #{article.authorId} AND deleted = 0
+      AND status IN ('DRAFT','REJECTED') AND version = #{expectedVersion}
+  </update>
   <select id="selectDraftByIdAndAuthor" resultType="com.team.cms.article.entity.Article">
     SELECT id, title, content, author_id, category_id, status, item_type, event_time,
            location, contact_info, resolution_status, resolved_at, published_at,

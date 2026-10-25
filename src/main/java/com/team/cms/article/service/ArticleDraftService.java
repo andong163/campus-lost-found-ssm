@@ -2,6 +2,11 @@ package com.team.cms.article.service;
 
 import com.team.cms.article.dto.PrivateArticleDetail;
 import com.team.cms.article.dto.CreateDraftRequest;
+import com.team.cms.article.dto.EditArticleRequest;
+import com.team.cms.article.dto.MyArticleQuery;
+import com.team.cms.common.api.PageResult;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import java.util.stream.Collectors;
 import com.team.cms.article.entity.Article;
 import com.team.cms.article.mapper.ArticleMapper;
 import com.team.cms.auth.security.CurrentUserContext;
@@ -43,5 +48,41 @@ public class ArticleDraftService {
             throw new BusinessException(HttpStatus.NOT_FOUND, "草稿不存在");
         }
         return PrivateArticleDetail.fromAuthorizedArticle(article);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<PrivateArticleDetail> listMine(MyArticleQuery query) {
+        long authorId = CurrentUserContext.require().getId();
+        Page<Article> page = new Page<>(query.getPage(), query.getSize());
+        articleMapper.selectMine(page, authorId, query.getStatus());
+        return new PageResult<>(page.getCurrent(), page.getSize(), page.getTotal(),
+                page.getRecords().stream().map(PrivateArticleDetail::fromAuthorizedArticle)
+                        .collect(Collectors.toList()));
+    }
+
+    @Transactional(readOnly = true)
+    public PrivateArticleDetail getMine(long id) {
+        Article article = articleMapper.selectByIdAndAuthor(id, CurrentUserContext.require().getId());
+        if (article == null) throw new BusinessException(HttpStatus.NOT_FOUND, "信息不存在");
+        return PrivateArticleDetail.fromAuthorizedArticle(article);
+    }
+
+    @Transactional
+    public PrivateArticleDetail editMine(long id, EditArticleRequest request) {
+        long authorId = CurrentUserContext.require().getId();
+        Article article = articleMapper.selectByIdAndAuthor(id, authorId);
+        if (article == null) throw new BusinessException(HttpStatus.NOT_FOUND, "信息不存在");
+        if (!article.getVersion().equals(request.getVersion()) ||
+                (article.getStatus() != com.team.cms.common.domain.ArticleStatus.DRAFT &&
+                 article.getStatus() != com.team.cms.common.domain.ArticleStatus.REJECTED))
+            throw new BusinessException(HttpStatus.CONFLICT, "状态或版本已变化，请刷新后重试");
+        categoryAccessService.requireBindable(request.getCategoryId());
+        article.setTitle(request.getTitle()); article.setContent(request.getContent());
+        article.setItemType(request.getItemType()); article.setCategoryId(request.getCategoryId());
+        article.setEventTime(request.getEventTime()); article.setLocation(request.getLocation());
+        article.setContactInfo(request.getContactInfo());
+        if (articleMapper.updateEditable(article, request.getVersion()) != 1)
+            throw new BusinessException(HttpStatus.CONFLICT, "状态或版本已变化，请刷新后重试");
+        return getMine(id);
     }
 }

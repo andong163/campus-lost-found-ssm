@@ -206,4 +206,131 @@ public class ArticleDraftHttpTest {
             .contentType(MediaType.APPLICATION_JSON).content(draftJson(1)))
             .andReturn().getResponse().getStatus());
     }
+
+    @Test public void editReviewResubmitAndVersionRules() throws Exception {
+        MockHttpSession owner=loginNewUser("r2owner");
+        MockHttpSession other=loginNewUser("r2other");
+        MockHttpSession reviewer=loginNewUser("r2reviewer");
+        JdbcTemplate jdbc=new JdbcTemplate(dataSource);
+        long reviewerId=((CurrentUser)reviewer.getAttribute(AuthConstants.SESSION_USER)).getId();
+        jdbc.update("DELETE FROM sys_user_role WHERE user_id=?",reviewerId);
+        jdbc.update("INSERT INTO sys_user_role(user_id,role_id) SELECT ?,id FROM sys_role WHERE code='REVIEWER'",reviewerId);
+        String credentials=json.writeValueAsString(Map.of("username","r2reviewer","password","password123"));
+        MvcResult login=mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+            .content(credentials)).andReturn();
+        reviewer=(MockHttpSession)login.getRequest().getSession(false);
+        long categoryId=category(true);
+        long id=insertDraft(((CurrentUser)owner.getAttribute(AuthConstants.SESSION_USER)).getId());
+        jdbc.update("UPDATE cms_article SET category_id=? WHERE id=?",categoryId,id);
+        String edit=draftJson(categoryId).replaceFirst("}$",",\"version\":0}");
+        String ownerToken=csrfToken(owner),reviewToken=csrfToken(reviewer);
+        assertEquals(404,mvc.perform(get("/api/items/{id}/mine",id).session(other)).andReturn().getResponse().getStatus());
+        MvcResult otherList=mvc.perform(get("/api/items/mine").session(other)).andReturn();
+        assertEquals(200,otherList.getResponse().getStatus());
+        assertEquals(0,json.readTree(otherList.getResponse().getContentAsByteArray()).at("/data/records").size());
+        assertEquals(200,mvc.perform(put("/api/items/{id}",id).session(owner).header(AuthConstants.CSRF_HEADER,ownerToken)
+            .contentType(MediaType.APPLICATION_JSON).content(edit)).andReturn().getResponse().getStatus());
+        assertEquals(409,mvc.perform(put("/api/items/{id}",id).session(owner).header(AuthConstants.CSRF_HEADER,ownerToken)
+            .contentType(MediaType.APPLICATION_JSON).content(edit)).andReturn().getResponse().getStatus());
+        String version1="{\"version\":1}";
+        assertEquals(200,mvc.perform(post("/api/items/{id}/submit",id).session(owner).header(AuthConstants.CSRF_HEADER,ownerToken)
+            .contentType(MediaType.APPLICATION_JSON).content(version1)).andReturn().getResponse().getStatus());
+        assertEquals(409,mvc.perform(put("/api/items/{id}",id).session(owner).header(AuthConstants.CSRF_HEADER,ownerToken)
+            .contentType(MediaType.APPLICATION_JSON).content(edit)).andReturn().getResponse().getStatus());
+        String reject="{\"version\":2,\"comment\":\"请补充地点细节\"}";
+        assertEquals(403,mvc.perform(post("/api/reviews/{id}/reject",id).session(owner).header(AuthConstants.CSRF_HEADER,ownerToken)
+            .contentType(MediaType.APPLICATION_JSON).content(reject)).andReturn().getResponse().getStatus());
+        assertEquals(200,mvc.perform(post("/api/reviews/{id}/reject",id).session(reviewer).header(AuthConstants.CSRF_HEADER,reviewToken)
+            .contentType(MediaType.APPLICATION_JSON).content(reject)).andReturn().getResponse().getStatus());
+        assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM cms_review_record WHERE article_id=?",Integer.class,id).intValue());
+        assertEquals(200,mvc.perform(get("/api/items/{id}/reviews",id).session(owner)).andReturn().getResponse().getStatus());
+        assertEquals(200,mvc.perform(put("/api/items/{id}",id).session(owner).header(AuthConstants.CSRF_HEADER,ownerToken)
+            .contentType(MediaType.APPLICATION_JSON).content(edit.replace("\"version\":0","\"version\":3"))).andReturn().getResponse().getStatus());
+        assertEquals(200,mvc.perform(post("/api/items/{id}/submit",id).session(owner).header(AuthConstants.CSRF_HEADER,ownerToken)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"version\":4}")).andReturn().getResponse().getStatus());
+        assertEquals(200,mvc.perform(post("/api/reviews/{id}/approve",id).session(reviewer).header(AuthConstants.CSRF_HEADER,reviewToken)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"version\":5}")).andReturn().getResponse().getStatus());
+        assertEquals(2,jdbc.queryForObject("SELECT COUNT(*) FROM cms_review_record WHERE article_id=?",Integer.class,id).intValue());
+        MvcResult approved=mvc.perform(get("/api/reviews/approved").session(reviewer)).andReturn();
+        assertEquals(200,approved.getResponse().getStatus());
+        assertEquals(1,json.readTree(approved.getResponse().getContentAsByteArray()).at("/data/records").size());
+        assertEquals(200,mvc.perform(post("/api/reviews/{id}/publish",id).session(reviewer)
+            .header(AuthConstants.CSRF_HEADER,reviewToken).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":6}")).andReturn().getResponse().getStatus());
+        assertEquals("PUBLISHED",articleMapper.selectById(id).getStatus().name());
+    }
+
+    @Test public void failedReviewRecordRollsBackStatusAndSelfReviewIsForbidden() throws Exception {
+        MockHttpSession reviewer=loginNewUser("rollbackReviewer");
+        long reviewerId=((CurrentUser)reviewer.getAttribute(AuthConstants.SESSION_USER)).getId();
+        JdbcTemplate jdbc=new JdbcTemplate(dataSource);
+        jdbc.update("DELETE FROM sys_user_role WHERE user_id=?",reviewerId);
+        jdbc.update("INSERT INTO sys_user_role(user_id,role_id) SELECT ?,id FROM sys_role WHERE code='REVIEWER'",reviewerId);
+        String credentials=json.writeValueAsString(Map.of("username","rollbackReviewer","password","password123"));
+        reviewer=(MockHttpSession)mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+            .content(credentials)).andReturn().getRequest().getSession(false);
+        String token=csrfToken(reviewer);
+        long ownId=insertDraft(reviewerId);
+        jdbc.update("UPDATE cms_article SET status='PENDING_REVIEW',version=1 WHERE id=?",ownId);
+        assertEquals(403,mvc.perform(post("/api/reviews/{id}/approve",ownId).session(reviewer)
+            .header(AuthConstants.CSRF_HEADER,token).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":1}")).andReturn().getResponse().getStatus());
+        MockHttpSession owner=loginNewUser("rollbackOwner");
+        long id=insertDraft(((CurrentUser)owner.getAttribute(AuthConstants.SESSION_USER)).getId());
+        long categoryId=category(true);
+        jdbc.update("UPDATE cms_article SET status='PENDING_REVIEW',version=1,category_id=? WHERE id=?",categoryId,id);
+        jdbc.execute("DROP TABLE cms_review_record");
+        assertEquals(500,mvc.perform(post("/api/reviews/{id}/approve",id).session(reviewer)
+            .header(AuthConstants.CSRF_HEADER,token).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":1}")).andReturn().getResponse().getStatus());
+        assertEquals("PENDING_REVIEW",articleMapper.selectById(id).getStatus().name());
+        assertEquals(Integer.valueOf(1),articleMapper.selectById(id).getVersion());
+    }
+
+    @Test public void withdrawAndPublishedItemMustGoOfflineBeforeEditing() throws Exception {
+        MockHttpSession owner=loginNewUser("transitionOwner");
+        long ownerId=((CurrentUser)owner.getAttribute(AuthConstants.SESSION_USER)).getId();
+        long categoryId=category(true),id=insertDraft(ownerId);
+        JdbcTemplate jdbc=new JdbcTemplate(dataSource);
+        jdbc.update("UPDATE cms_article SET category_id=?,status='PENDING_REVIEW',version=1 WHERE id=?",categoryId,id);
+        String token=csrfToken(owner);
+        assertEquals(200,mvc.perform(post("/api/items/{id}/withdraw",id).session(owner)
+            .header(AuthConstants.CSRF_HEADER,token).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":1}")).andReturn().getResponse().getStatus());
+        assertEquals("DRAFT",articleMapper.selectById(id).getStatus().name());
+        jdbc.update("UPDATE cms_article SET status='PUBLISHED',version=3 WHERE id=?",id);
+        String edit=draftJson(categoryId).replaceFirst("}$",",\"version\":3}");
+        assertEquals(409,mvc.perform(put("/api/items/{id}",id).session(owner)
+            .header(AuthConstants.CSRF_HEADER,token).contentType(MediaType.APPLICATION_JSON)
+            .content(edit)).andReturn().getResponse().getStatus());
+        assertEquals(200,mvc.perform(post("/api/items/{id}/offline",id).session(owner)
+            .header(AuthConstants.CSRF_HEADER,token).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":3}")).andReturn().getResponse().getStatus());
+        assertEquals(200,mvc.perform(post("/api/items/{id}/draft",id).session(owner)
+            .header(AuthConstants.CSRF_HEADER,token).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":4}")).andReturn().getResponse().getStatus());
+        assertEquals(200,mvc.perform(put("/api/items/{id}",id).session(owner)
+            .header(AuthConstants.CSRF_HEADER,token).contentType(MediaType.APPLICATION_JSON)
+            .content(edit.replace("\"version\":3","\"version\":5"))).andReturn().getResponse().getStatus());
+    }
+
+    @Test public void specificSubmitPermissionIsRequiredEvenWithLegacyEditGrant() throws Exception {
+        MockHttpSession first=loginNewUser("submitPermission");
+        long authorId=((CurrentUser)first.getAttribute(AuthConstants.SESSION_USER)).getId();
+        long categoryId=category(true),id=insertDraft(authorId);
+        JdbcTemplate jdbc=new JdbcTemplate(dataSource);
+        jdbc.update("UPDATE cms_article SET category_id=? WHERE id=?",categoryId,id);
+        jdbc.update("DELETE FROM sys_role_permission WHERE role_id=(SELECT id FROM sys_role WHERE code='EDITOR') " +
+            "AND permission_id=(SELECT id FROM sys_permission WHERE code='item:submit')");
+        String credentials=json.writeValueAsString(Map.of("username","submitPermission","password","password123"));
+        MockHttpSession session=(MockHttpSession)mvc.perform(post("/api/auth/login")
+            .contentType(MediaType.APPLICATION_JSON).content(credentials)).andReturn().getRequest().getSession(false);
+        String token=csrfToken(session);
+        assertEquals(200,mvc.perform(get("/api/items/{id}/mine",id).session(session))
+            .andReturn().getResponse().getStatus());
+        assertEquals(403,mvc.perform(post("/api/items/{id}/submit",id).session(session)
+            .header(AuthConstants.CSRF_HEADER,token).contentType(MediaType.APPLICATION_JSON)
+            .content("{\"version\":0}")).andReturn().getResponse().getStatus());
+        assertEquals("DRAFT",articleMapper.selectById(id).getStatus().name());
+    }
 }
