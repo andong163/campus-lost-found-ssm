@@ -6,7 +6,7 @@
   const modules = ['auth', 'category', 'items', 'review', 'claims', 'audit'];
   const labels = { auth: '账户管理', category: '分类管理', items: '我的信息', review: '审核工作台', claims: '认领与交接', audit: '操作记录' };
   const manifests = new Map();
-  let host, dialog, feedback, sessionArea, nav;
+  let host, dialog, feedback, sessionArea, nav, loginTrigger;
   const link = path => new URL(path, root).href;
   function node(tag, className, text) {
     const element = document.createElement(tag); if (className) element.className = className;
@@ -72,7 +72,10 @@
     }));
     renderNav();
   }
-  function openLogin() { if (!dialog.open) dialog.showModal(); dialog.querySelector('input').focus(); }
+  function openLogin() {
+    if (!dialog.open) { loginTrigger = document.activeElement; dialog.showModal(); }
+    dialog.querySelector('input').focus();
+  }
   async function refreshSession() {
     const sequence = ++authSequence;
     try {
@@ -85,23 +88,35 @@
     return user;
   }
   function createLogin() {
-    dialog = node('dialog', 'login-dialog'); dialog.setAttribute('aria-labelledby', 'session-title');
+    dialog = node('dialog', 'login-dialog'); dialog.setAttribute('aria-labelledby', 'session-title'); dialog.setAttribute('aria-describedby', 'session-description');
     const form = node('form');
     const title = node('h2', '', '登录校园账号'); title.id = 'session-title';
-    form.append(node('p', 'eyebrow', '欢迎回来'), title, node('p', 'muted', '登录后使用你的校园服务。'));
+    const description = node('p', 'muted', '登录后使用你的校园服务。'); description.id = 'session-description';
+    form.append(node('p', 'eyebrow', '欢迎回来'), title, description);
     [['username', '账号', 'text', 'username'], ['password', '密码', 'password', 'current-password']].forEach(([name, text, type, autocomplete]) => {
       const label = node('label', 'field-label', text); const input = node('input'); input.name = name; input.type = type;
       input.required = true; input.autocomplete = autocomplete; input.maxLength = name === 'password' ? 64 : 30;
+      input.setAttribute('aria-describedby', 'session-error');
       label.append(input); form.append(label);
     });
-    const errorText = node('p', 'form-error'); errorText.setAttribute('role', 'alert');
+    const errorText = node('p', 'form-error'); errorText.id = 'session-error'; errorText.setAttribute('role', 'alert');
     const actions = node('div', 'dialog-actions');
     const cancel = node('button', 'button button-quiet', '取消'); cancel.type = 'button'; cancel.addEventListener('click', () => dialog.close());
     const submit = node('button', 'button button-primary', '登录'); submit.type = 'submit';
     actions.append(cancel, submit); form.append(errorText, actions); dialog.append(form); document.body.append(dialog);
-    dialog.addEventListener('close', () => { form.reset(); errorText.textContent = ''; });
+    function clearValidation() {
+      errorText.textContent = '';
+      form.querySelectorAll('input').forEach(input => input.removeAttribute('aria-invalid'));
+    }
+    form.addEventListener('input', clearValidation);
+    dialog.addEventListener('close', () => {
+      form.reset(); clearValidation();
+      const target = loginTrigger?.isConnected && !loginTrigger.hidden && !loginTrigger.disabled ? loginTrigger : sessionArea.querySelector('button');
+      target?.focus();
+    });
     form.addEventListener('submit', async event => {
-      event.preventDefault(); submit.disabled = true; errorText.textContent = '';
+      event.preventDefault(); if (submit.disabled) return;
+      submit.disabled = true; form.setAttribute('aria-busy', 'true'); clearValidation();
       const data = new FormData(form);
       try {
         ++authSequence;
@@ -109,7 +124,11 @@
         Cms.api.invalidateSession(); setUser(value); dialog.close(); notify('登录成功。');
       } catch (error) {
         errorText.textContent = error.status === 401 ? '账号或密码不正确，请重新输入。' : error.message;
-      } finally { form.elements.password.value = ''; submit.disabled = false; }
+        if (error.status === 400 || error.status === 401) {
+          form.querySelectorAll('input').forEach(input => input.setAttribute('aria-invalid', 'true'));
+          if (dialog.open) form.elements.password.focus();
+        }
+      } finally { form.elements.password.value = ''; submit.disabled = false; form.setAttribute('aria-busy', 'false'); }
     });
   }
   function mount() {
@@ -124,7 +143,7 @@
     const heading = node('div'); heading.append(node('span', 'eyebrow', 'CAMPUS LOST & FOUND'), node('p', 'page-heading', document.body.dataset.pageTitle || '校园首页'));
     sessionArea = node('div', 'session-area'); top.append(heading, sessionArea);
     feedback = node('div', 'feedback'); feedback.hidden = true; feedback.setAttribute('role', 'status'); feedback.setAttribute('aria-live', 'polite');
-    const content = document.querySelector('main'); content.id = 'main-content';
+    const content = document.querySelector('main'); content.id = 'main-content'; content.tabIndex = -1;
     const skip = node('a', 'skip-link', '跳到主要内容'); skip.href = '#main-content';
     work.append(top, feedback, content, node('footer', 'footer', '校园失物招领 · 让每一份善意都有回音'));
     host.append(skip, sidebar, work);
