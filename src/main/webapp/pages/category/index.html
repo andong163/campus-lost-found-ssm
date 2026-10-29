@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>分类管理 - 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <style>
+    .admin { background: #eef2f7; }
+    .admin main { max-width: none; margin: 0; padding: 1rem 1.5rem 2rem; }
+    .admin header { display: flex; align-items: baseline; gap: 1rem; padding: 1rem 1.5rem; background: #fff; border-bottom: 1px solid #dbe2ea; }
+    .admin header h1 { font-size: 1.25rem; margin: 0; }
+    .admin header .session { margin-left: auto; font-size: .85rem; color: #52606d; }
+    .layout { display: grid; grid-template-columns: minmax(16rem, 22rem) 1fr; gap: 1rem; align-items: start; }
+    .panel { background: #fff; border-radius: 8px; padding: 1rem; box-shadow: 0 1px 2px rgba(16, 42, 67, .08); }
+    .panel h2 { font-size: 1rem; margin: 0 0 .75rem; }
+    .hint { color: #7b8794; font-size: .85rem; line-height: 1.6; }
+    .toolbar { display: flex; gap: .5rem; margin-bottom: .75rem; }
+    button { font: inherit; padding: .35rem .7rem; border: 1px solid #cbd2d9; border-radius: 6px; background: #fff; cursor: pointer; }
+    button:hover { background: #f4f7fa; }
+    button.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+    button.primary:hover { background: #1d4ed8; }
+    button.danger { border-color: #f0b4ae; color: #b42318; }
+    button.danger:hover { background: #fef2f1; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    ul.tree, ul.tree ul { list-style: none; margin: 0; padding: 0; }
+    ul.tree ul { padding-left: 1.1rem; border-left: 1px dashed #dbe2ea; margin-left: .45rem; }
+    ul.tree .node { display: block; width: 100%; text-align: left; border: 0; border-radius: 6px; padding: .35rem .5rem; background: transparent; }
+    ul.tree .node:hover { background: #eef4ff; }
+    ul.tree .node.active { background: #2563eb; color: #fff; }
+    ul.tree .node.disabled { color: #9aa5b1; text-decoration: line-through; }
+    ul.tree .node.active.disabled { color: #dbe2ea; }
+    .field { display: grid; gap: .25rem; margin-bottom: .75rem; }
+    .field label { font-size: .85rem; color: #52606d; }
+    .field input, .field select { font: inherit; padding: .4rem .5rem; border: 1px solid #cbd2d9; border-radius: 6px; }
+    .field .row { display: flex; align-items: center; gap: .5rem; }
+    .actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; }
+    #toast { position: fixed; left: 50%; bottom: 2rem; transform: translateX(-50%); background: #1f2937; color: #fff;
+             padding: .6rem 1rem; border-radius: 6px; font-size: .9rem; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    #toast.show { opacity: 1; }
+    #toast.error { background: #b42318; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body class="admin">
+  <header>
+    <h1>分类管理</h1>
+    <span class="session" id="session-info"></span>
+  </header>
+
+  <main>
+    <!-- 正式登录页由认证模块提供，这里的登录框只用于让分类页可以独立演示。 -->
+    <section class="panel" id="login-panel" style="max-width: 24rem; margin: 3rem auto;">
+      <h2>请先登录</h2>
+      <form id="login-form">
+        <div class="field">
+          <label for="login-username">用户名</label>
+          <input id="login-username" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="login-password">密码</label>
+          <input id="login-password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="primary" type="submit">登录</button>
+      </form>
+      <p class="hint">需要管理员或拥有分类权限的账号。登录成功后本页会自动加载分类树。</p>
+    </section>
+
+    <div class="layout" id="workspace" hidden>
+      <section class="panel">
+        <div class="toolbar">
+          <button class="primary" type="button" id="create-root">新增根分类</button>
+          <button type="button" id="refresh">刷新</button>
+        </div>
+        <div id="tree-host"><p class="hint">加载中…</p></div>
+      </section>
+
+      <section class="panel" id="editor" hidden>
+        <h2 id="editor-title">编辑分类</h2>
+        <div class="field">
+          <label for="edit-name">名称</label>
+          <input id="edit-name" maxlength="80">
+        </div>
+        <div class="field">
+          <label for="edit-parent">上级分类</label>
+          <select id="edit-parent"></select>
+        </div>
+        <div class="field">
+          <label for="edit-sort">排序值（升序，0 在最前）</label>
+          <input id="edit-sort" type="number" min="0" step="1">
+        </div>
+        <div class="field">
+          <label>状态</label>
+          <div class="row">
+            <input id="edit-enabled" type="checkbox">
+            <label for="edit-enabled">启用（停用后该分类及其子树不会出现在公开查询里）</label>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="button" id="save-node">保存</button>
+          <button class="danger" type="button" id="delete-node">删除</button>
+        </div>
+        <p class="hint" id="editor-hint"></p>
+      </section>
+
+      <section class="panel" id="creator" hidden>
+        <h2>新增分类</h2>
+        <div class="field">
+          <label for="new-name">名称</label>
+          <input id="new-name" maxlength="80">
+        </div>
+        <div class="field">
+          <label for="new-parent">上级分类</label>
+          <select id="new-parent"></select>
+        </div>
+        <div class="field">
+          <label for="new-sort">排序值</label>
+          <input id="new-sort" type="number" min="0" step="1" value="0">
+        </div>
+        <div class="actions">
+          <button class="primary" type="button" id="create-node">创建</button>
+          <button type="button" id="cancel-create">取消</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast"></div>
+
+  <script>
+    'use strict';
+
+    const state = { nodes: [], byId: new Map(), selected: null };
+    const el = (id) => document.getElementById(id);
+    const loginPanel = el('login-panel');
+    const workspace = el('workspace');
+    const editor = el('editor');
+    const creator = el('creator');
+    const treeHost = el('tree-host');
+
+    /**
+     * 应用可能部署在非根上下文（例如 /cms），这里从页面路径反推上下文根，
+     * 保证请求打到当前应用的接口，而不是容器根目录。
+     */
+    const CONTEXT = window.location.pathname.replace(/\/pages\/.*$/, '');
+
+    /** 统一请求封装：会话 Cookie 同源携带，非 2xx 或业务码非 200 时抛错。 */
+    async function api(path, options = {}) {
+      const init = { method: options.method || 'GET', credentials: 'same-origin' };
+      if (options.body !== undefined) {
+        init.headers = { 'Content-Type': 'application/json' };
+        init.body = JSON.stringify(options.body);
+      }
+      const response = await fetch(CONTEXT + path, init);
+      const text = await response.text();
+      let payload = null;
+      try { payload = text ? JSON.parse(text) : null; } catch (error) { payload = null; }
+      if (!response.ok || (payload && payload.code !== undefined && payload.code !== response.status)) {
+        const message = payload && payload.message ? payload.message : '请求失败（HTTP ' + response.status + '）';
+        const failure = new Error(message);
+        failure.status = response.status;
+        throw failure;
+      }
+      return payload ? payload.data : null;
+    }
+
+    function toast(message, isError = false) {
+      const box = el('toast');
+      box.textContent = message;
+      box.classList.toggle('error', isError);
+      box.classList.add('show');
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => box.classList.remove('show'), 2600);
+    }
+
+    function flatten(nodes, depth = 0, output = []) {
+      for (const node of nodes) {
+        output.push({ node, depth });
+        if (node.children && node.children.length) flatten(node.children, depth + 1, output);
+      }
+      return output;
+    }
+
+    function buildNode(node) {
+      const li = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'node' + (node.enabled ? '' : ' disabled');
+      button.textContent = node.name + (node.enabled ? '' : '（已停用）');
+      button.title = '排序值 ' + node.sortOrder + '，id ' + node.id;
+      if (state.selected && state.selected.id === node.id) button.classList.add('active');
+      button.addEventListener('click', () => selectNode(node));
+      li.appendChild(button);
+      if (node.children && node.children.length) {
+        const ul = document.createElement('ul');
+        for (const child of node.children) ul.appendChild(buildNode(child));
+        li.appendChild(ul);
+      }
+      return li;
+    }
+
+    function renderTree() {
+      treeHost.textContent = '';
+      if (!state.nodes.length) {
+        const empty = document.createElement('p');
+        empty.className = 'hint';
+        empty.textContent = '还没有分类，点击「新增根分类」开始。';
+        treeHost.appendChild(empty);
+        return;
+      }
+      const ul = document.createElement('ul');
+      ul.className = 'tree';
+      for (const node of state.nodes) ul.appendChild(buildNode(node));
+      treeHost.appendChild(ul);
+    }
+
+    /** 父级下拉：扁平化所有分类，排除自身及其后代，避免提交后必然 409。 */
+    function fillParentOptions(select, excludeId) {
+      select.textContent = '';
+      const rootOption = document.createElement('option');
+      rootOption.value = '';
+      rootOption.textContent = '（无，作为根分类）';
+      select.appendChild(rootOption);
+      const excluded = new Set();
+      if (excludeId !== undefined && excludeId !== null) {
+        collectSubtreeIds(state.byId.get(excludeId), excluded);
+      }
+      for (const { node, depth } of flatten(state.nodes)) {
+        if (excluded.has(node.id)) continue;
+        const option = document.createElement('option');
+        option.value = String(node.id);
+        option.textContent = '　'.repeat(depth) + node.name + (node.enabled ? '' : '（已停用）');
+        select.appendChild(option);
+      }
+    }
+
+    function collectSubtreeIds(node, output) {
+      if (!node) return output;
+      output.add(node.id);
+      for (const child of node.children || []) collectSubtreeIds(child, output);
+      return output;
+    }
+
+    function selectNode(node) {
+      state.selected = node;
+      editor.hidden = false;
+      creator.hidden = true;
+      el('editor-title').textContent = '编辑分类：' + node.name;
+      el('edit-name').value = node.name;
+      el('edit-sort').value = String(node.sortOrder);
+      el('edit-enabled').checked = node.enabled;
+      fillParentOptions(el('edit-parent'), node.id);
+      el('edit-parent').value = node.parentId === null ? '' : String(node.parentId);
+      el('editor-hint').textContent = 'id ' + node.id + ' · 创建于 ' + (node.createdAt || '—');
+      renderTree();
+    }
+
+    async function loadTree() {
+      try {
+        const nodes = await api('/api/categories/tree');
+        state.nodes = nodes || [];
+        state.byId = new Map();
+        for (const { node } of flatten(state.nodes)) state.byId.set(node.id, node);
+        if (state.selected) {
+          state.selected = state.byId.get(state.selected.id) || null;
+          if (!state.selected) editor.hidden = true;
+        }
+        loginPanel.hidden = true;
+        workspace.hidden = false;
+        renderTree();
+      } catch (error) {
+        if (error.status === 401) {
+          workspace.hidden = true;
+          loginPanel.hidden = false;
+        } else {
+          toast(error.message, true);
+        }
+      }
+    }
+
+    async function saveNode() {
+      const node = state.selected;
+      if (!node) return;
+      const payload = {
+        name: el('edit-name').value.trim(),
+        parentId: el('edit-parent').value === '' ? null : Number(el('edit-parent').value),
+        sortOrder: Number(el('edit-sort').value),
+        enabled: el('edit-enabled').checked
+      };
+      const button = el('save-node');
+      button.disabled = true;
+      try {
+        if (payload.name !== node.name) {
+          await api('/api/categories/' + node.id, { method: 'PUT', body: { name: payload.name } });
+        }
+        if (payload.parentId !== (node.parentId === undefined ? null : node.parentId)) {
+          await api('/api/categories/' + node.id + '/parent', { method: 'PUT', body: { parentId: payload.parentId } });
+        }
+        if (payload.sortOrder !== node.sortOrder) {
+          await api('/api/categories/' + node.id + '/sort', { method: 'PUT', body: { sortOrder: payload.sortOrder } });
+        }
+        if (payload.enabled !== node.enabled) {
+          await api('/api/categories/' + node.id + '/enabled', { method: 'PUT', body: { enabled: payload.enabled } });
+        }
+        toast('已保存');
+        await loadTree();
+      } catch (error) {
+        toast(error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function deleteNode() {
+      const node = state.selected;
+      if (!node) return;
+      if (!window.confirm('确认删除分类「' + node.name + '」？')) return;
+      try {
+        await api('/api/categories/' + node.id, { method: 'DELETE' });
+        state.selected = null;
+        editor.hidden = true;
+        toast('已删除');
+        await loadTree();
+      } catch (error) {
+        toast(error.message, true);
+      }
+    }
+
+    async function createNode() {
+      const name = el('new-name').value.trim();
+      if (!name) { toast('请填写分类名称', true); return; }
+      const button = el('create-node');
+      button.disabled = true;
+      try {
+        await api('/api/categories', {
+          method: 'POST',
+          body: {
+            name,
+            parentId: el('new-parent').value === '' ? null : Number(el('new-parent').value),
+            sortOrder: Number(el('new-sort').value)
+          }
+        });
+        el('new-name').value = '';
+        creator.hidden = true;
+        toast('已创建');
+        await loadTree();
+      } catch (error) {
+        toast(error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function openCreator() {
+      creator.hidden = false;
+      editor.hidden = true;
+      el('new-name').value = '';
+      el('new-sort').value = '0';
+      fillParentOptions(el('new-parent'), null);
+      el('new-parent').value = '';
+      el('new-name').focus();
+    }
+
+    el('login-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        await api('/api/auth/login', {
+          method: 'POST',
+          body: { username: el('login-username').value.trim(), password: el('login-password').value }
+        });
+        el('login-password').value = '';
+        await loadTree();
+      } catch (error) {
+        toast(error.message, true);
+      }
+    });
+
+    el('refresh').addEventListener('click', () => loadTree());
+    el('create-root').addEventListener('click', openCreator);
+    el('cancel-create').addEventListener('click', () => { creator.hidden = true; });
+    el('create-node').addEventListener('click', createNode);
+    el('save-node').addEventListener('click', saveNode);
+    el('delete-node').addEventListener('click', deleteNode);
+    el('session-info').textContent = '校园失物招领 · 分类管理';
+
+    loadTree();
+  </script>
+</body>
+</html>
