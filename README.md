@@ -8,7 +8,13 @@ GMY R1 已补齐 [公共接入契约](docs/r1-contracts.md)、[机器可读字�
 
 第一轮统一基线在 `develop`，实际 PR 见五人分工登记表。组员在各自分支正常合入最新 `origin/develop` 后继续原轮次开发。
 
-第一轮只有静态建设页 `/cms/pages/index.html`，公共布局和统一 fetch 组件在第二轮完成；该页面不代表完整业务 UI。认证与权限使用郭金滔已接入的真实实现。
+第一轮只有静态建设页。高鸣远第二轮已完成公共布局、真实会话入口、统一 fetch 与分页组件，通过 `feature/gaomingyuan-base` 分支交付，尚未合入 develop。首页 `/cms/pages/index.html` 已按校园失物登记卡方向重做；各业务页面继续由对应成员开发。认证与权限使用郭金滔已接入的真实实现。
+
+## 高鸣远第二轮交付
+
+接入步骤、首页设计依据及验证结果见 [第二轮完成说明](docs/gmy-r2-local.md)。组员维护自己模块的页面和 module.json，不需要共同修改首页。只读分页示例位于 `/cms/pages/examples/shared-components.html`；它供开发接入验证，不加入学生导航。
+
+运行 `./scripts/test-shared-ui.ps1` 检查请求与分页组件，再运行原有 `./scripts/build.ps1` 验证 SSM 和实际 WAR。本轮提交仅包含高鸣远第二轮内容，其他成员后续轮次未在本次标记完成。
 
 ## 技术栈硬性约束
 

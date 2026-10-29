@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="公共布局、会话登录与真实操作记录分页的接入示例。">
+  <title>公共组件接入示例 · 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a">
+  <script defer src="../../assets/js/api.js"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script>
+  <script defer src="../../assets/js/shell.js?v=2d1d783239"></script><script defer src="../../assets/js/examples.js"></script>
+</head>
+<body data-page-title="公共组件接入示例">
+  <div data-cms-shell></div>
+  <main>
+    <p class="eyebrow">GMY R2 / 组员接入示例</p><h1>公共布局与真实分页</h1>
+    <p class="muted">此页供组员验证公共组件，使用已存在的只读操作日志接口；不作为杨程的正式业务页面。需管理员或 audit:view 权限。</p>
+    <div class="example-actions"><button class="button button-primary" type="button" data-login>登录测试账号</button><button class="button button-quiet" id="refresh-records" type="button">刷新列表</button></div>
+    <section class="panel" aria-labelledby="records-title"><h2 id="records-title">操作记录</h2>
+      <p class="panel-state" id="records-state" role="status">请先登录后读取记录。</p>
+      <div class="table-scroll" id="records-table" tabindex="0" role="region" aria-labelledby="records-title" hidden><table><thead><tr><th scope="col">操作时间</th><th scope="col">操作者</th><th scope="col">动作</th><th scope="col">结果</th></tr></thead><tbody id="records-body"></tbody></table></div>
+      <nav id="records-pagination" hidden></nav>
+    </section>
+  </main>
+</body>
+</html>
