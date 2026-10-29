@@ -10,6 +10,7 @@ import com.team.cms.common.api.PageResult;
 import com.team.cms.common.domain.ArticleStatus;
 import com.team.cms.common.exception.BusinessException;
 import com.team.cms.review.ReviewPermissions;
+import com.team.cms.common.security.PermissionCodes;
 import com.team.cms.review.domain.ReviewDecision;
 import com.team.cms.review.dto.ReviewDecisionRequest;
 import com.team.cms.review.dto.ReviewHistoryQuery;
@@ -68,7 +69,9 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional(rollbackFor = Exception.class)
     public void decide(Long itemId, ReviewDecisionRequest request) {
         CurrentUser actor = CurrentUserContext.require();
-        requireReviewPermission(actor);
+        if (!actor.hasRole(AuthConstants.ROLE_ADMIN) && !actor.hasPermission(ReviewPermissions.REVIEW_HANDLE)
+                && !actor.hasPermission(PermissionCodes.REVIEW_DECIDE))
+            throw new BusinessException(HttpStatus.FORBIDDEN,"无审核权限");
         Article article = articleMapper.selectByIdForUpdate(itemId);
         if (article == null) {
             throw new BusinessException(HttpStatus.NOT_FOUND, "信息不存在");
@@ -98,7 +101,7 @@ public class ReviewServiceImpl implements ReviewService {
         record.setComment(comment == null ? "" : comment);
         record.setArticleVersion(request.getVersion());
         record.setCreatedAt(LocalDateTime.now());
-        reviewRecordMapper.insert(record);
+        if (reviewRecordMapper.insert(record) != 1) throw new IllegalStateException("审核记录保存失败");
     }
 
     @Override
@@ -123,7 +126,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     private static boolean isReviewer(CurrentUser actor) {
         return actor.hasRole(AuthConstants.ROLE_ADMIN)
-            || actor.hasPermission(ReviewPermissions.REVIEW_HANDLE);
+            || actor.hasPermission(ReviewPermissions.REVIEW_HANDLE)
+            || actor.hasPermission(PermissionCodes.REVIEW_VIEW)
+            || actor.hasPermission(PermissionCodes.REVIEW_DECIDE);
     }
 
     private static String normalizeComment(String comment) {

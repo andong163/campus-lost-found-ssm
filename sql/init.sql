@@ -179,3 +179,100 @@ CREATE TABLE IF NOT EXISTS sys_operation_log (
 INSERT INTO sys_role(code, name) VALUES
  ('ADMIN', '管理员'), ('EDITOR', '学生'), ('REVIEWER', '审核人员'), ('VIEWER', '只读用户')
 ON DUPLICATE KEY UPDATE code = VALUES(code);
+
+-- 第二轮权限元数据；升级已有环境仍按编号执行迁移。
+-- 郭金滔 GJT R1 权限点种子与角色-权限映射（草案，编号由高鸣远统一分配，暂定 003）
+-- 角色种子已在 init.sql 中，此处只种权限点并建立角色→权限映射。
+-- 幂等：重复执行不产生重复行。
+
+INSERT INTO sys_permission(code, name) VALUES
+  ('user:manage',       '用户管理'),
+  ('role:manage',       '角色管理'),
+  ('permission:manage', '权限管理'),
+  ('article:create',    '发布前创建草稿'),
+  ('article:edit',      '编辑失物/招领文章'),
+  ('article:publish',   '发布文章'),
+  ('review:handle',     '审核处理'),
+  ('claim:handle',      '认领处理'),
+  ('claim:resolve',     '认领结案'),
+  ('audit:view',        '只读审计')
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+-- 角色 → 权限映射
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id
+FROM sys_role r
+JOIN sys_permission p ON p.code IN (
+  'user:manage', 'role:manage', 'permission:manage',
+  'article:create', 'article:edit', 'article:publish',
+  'review:handle', 'claim:handle', 'claim:resolve', 'audit:view'
+)
+WHERE r.code = 'ADMIN'
+ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);
+
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id
+FROM sys_role r
+JOIN sys_permission p ON p.code IN ('article:create', 'article:edit')
+WHERE r.code = 'EDITOR'
+ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);
+
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id
+FROM sys_role r
+JOIN sys_permission p ON p.code IN ('article:publish', 'review:handle', 'claim:handle')
+WHERE r.code = 'REVIEWER'
+ON DUPLICATE KEY UPDATE role_id = VALUES(role_id);
+
+-- VIEWER：无写权限，不映射任何权限点。
+
+-- YYX R2: activate the shared item/review permission codes without rewriting 003.
+-- Idempotent; existing legacy grants remain for modules that still use them.
+INSERT INTO sys_permission(code, name) VALUES
+ ('item:create', '创建本人信息'),
+ ('item:view:own', '查看本人信息'),
+ ('item:edit:own', '编辑本人信息'),
+ ('item:submit', '提交本人信息审核'),
+ ('item:withdraw', '撤回本人待审信息'),
+ ('item:offline:own', '下架本人信息'),
+ ('item:publish', '发布审核通过信息'),
+ ('review:view', '查看信息审核待办'),
+ ('review:decide', '批准或驳回信息')
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r JOIN sys_permission p ON p.code IN
+ ('item:create','item:view:own','item:edit:own','item:submit','item:withdraw','item:offline:own')
+WHERE r.code='EDITOR'
+ON DUPLICATE KEY UPDATE role_id=VALUES(role_id);
+
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r JOIN sys_permission p ON p.code IN
+ ('review:view','review:decide','item:publish')
+WHERE r.code='REVIEWER'
+ON DUPLICATE KEY UPDATE role_id=VALUES(role_id);
+
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r JOIN sys_permission p ON p.code IN
+ ('item:create','item:view:own','item:edit:own','item:submit','item:withdraw',
+  'item:offline:own','item:publish','review:view','review:decide')
+WHERE r.code='ADMIN'
+ON DUPLICATE KEY UPDATE role_id=VALUES(role_id);
+
+-- GMY 第二轮集成：登记完整分类管理权限。先执行 003、004，再执行本脚本。
+-- 仅 ADMIN 默认获得分类管理；学生和审核员不自动获得分类写权限。
+INSERT INTO sys_permission(code, name) VALUES
+ ('category:view', '查看分类管理树'),
+ ('category:add', '新增分类'),
+ ('category:edit', '修改分类名称'),
+ ('category:move', '移动分类'),
+ ('category:sort', '调整分类排序'),
+ ('category:enable', '启停分类'),
+ ('category:delete', '逻辑删除分类')
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r JOIN sys_permission p ON p.code IN
+ ('category:view','category:add','category:edit','category:move','category:sort','category:enable','category:delete')
+WHERE r.code='ADMIN'
+ON DUPLICATE KEY UPDATE role_id=VALUES(role_id);

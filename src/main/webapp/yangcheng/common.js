@@ -25,10 +25,11 @@
     return body ? body.data : null;
   }
 
-  function post(path, data) {
+  async function post(path, data) {
+    const token = await request('/api/auth/csrf');
     return request(path, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': token },
       body: JSON.stringify(data)
     });
   }

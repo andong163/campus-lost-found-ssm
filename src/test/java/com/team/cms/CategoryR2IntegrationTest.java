@@ -54,7 +54,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
     @ContextConfiguration(name = "mvc", classes = SpringMvcConfig.class)})
 @TestPropertySource(properties = {"jdbc.driver=org.h2.Driver",
     "jdbc.url=jdbc:h2:mem:category-r2;MODE=MySQL;DB_CLOSE_DELAY=-1", "jdbc.username=sa", "jdbc.password="})
-@Sql({"/auth-schema-test.sql", "/schema-category.sql"})
+@Sql({"/auth-schema-test.sql", "/article-schema-test.sql", "/schema-category.sql"})
 public class CategoryR2IntegrationTest {
     private static final String PASSWORD = "category-test-password";
     private static final String GUARD_BEAN = "testCategoryReferenceGuard";

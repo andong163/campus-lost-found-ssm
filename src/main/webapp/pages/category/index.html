@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>分类管理 - 校园失物招领</title>
-  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a">
   <style>
     .admin { background: #eef2f7; }
     .admin main { max-width: none; margin: 0; padding: 1rem 1.5rem 2rem; }
@@ -127,6 +127,7 @@
 
   <div id="toast"></div>
 
+  <script src="../../assets/js/api.js?v=e3db3cb9e9"></script>
   <script>
     'use strict';
 
@@ -146,22 +147,7 @@
 
     /** 统一请求封装：会话 Cookie 同源携带，非 2xx 或业务码非 200 时抛错。 */
     async function api(path, options = {}) {
-      const init = { method: options.method || 'GET', credentials: 'same-origin' };
-      if (options.body !== undefined) {
-        init.headers = { 'Content-Type': 'application/json' };
-        init.body = JSON.stringify(options.body);
-      }
-      const response = await fetch(CONTEXT + path, init);
-      const text = await response.text();
-      let payload = null;
-      try { payload = text ? JSON.parse(text) : null; } catch (error) { payload = null; }
-      if (!response.ok || (payload && payload.code !== undefined && payload.code !== response.status)) {
-        const message = payload && payload.message ? payload.message : '请求失败（HTTP ' + response.status + '）';
-        const failure = new Error(message);
-        failure.status = response.status;
-        throw failure;
-      }
-      return payload ? payload.data : null;
+      return Cms.api.request(path, options);
     }
 
     function toast(message, isError = false) {

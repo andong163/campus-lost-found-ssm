@@ -1,4 +1,10 @@
 {
   "module": "items",
-  "entries": []
+  "entries": [
+    {
+      "label": "我的信息",
+      "page": "pages/items/mine.html",
+      "permission": "item:view:own"
+    }
+  ]
 }

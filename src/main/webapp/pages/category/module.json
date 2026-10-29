@@ -1,4 +1,10 @@
 {
   "module": "category",
-  "entries": []
+  "entries": [
+    {
+      "label": "分类管理",
+      "page": "pages/category/index.html",
+      "permission": "category:view"
+    }
+  ]
 }

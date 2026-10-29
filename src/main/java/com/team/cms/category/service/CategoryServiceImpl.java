@@ -198,6 +198,7 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
     }
 
     private void doDelete(Long id) {
+        if (mapper.selectForUpdate(id)==null) throw new BusinessException(HttpStatus.NOT_FOUND,"分类不存在");
         List<Category> all = mapper.selectList(null);
         String name = null;
         for (Category node : all) {
@@ -245,6 +246,10 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
         if (categoryId == null) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "分类不能为空");
         }
+        // 写入物品的事务先锁分类，删除也先锁同一行，阻止校验后分类被并发删除。
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()
+                && mapper.selectForUpdate(categoryId)==null)
+            throw new BusinessException(HttpStatus.NOT_FOUND,"分类不存在");
         List<Category> all = mapper.selectList(null);
         Map<Long, Category> byId = indexById(all);
         Long currentId = categoryId;
