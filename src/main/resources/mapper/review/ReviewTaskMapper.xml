@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.cms.review.mapper.ReviewTaskMapper">
+
+  <select id="selectPending" resultType="com.team.cms.review.dto.ReviewTaskView">
+    SELECT a.id, a.title, a.item_type, a.category_id, c.name AS category_name,
+           a.author_id, u.display_name AS author_name, a.status, a.event_time,
+           a.location, a.updated_at, a.version
+    FROM cms_article a
+    JOIN cms_category c ON c.id = a.category_id
+    JOIN sys_user u ON u.id = a.author_id
+    WHERE a.deleted = 0
+      AND a.status = 'PENDING_REVIEW'
+      <if test="q.keyword != null and q.keyword != ''">
+        AND (a.title LIKE CONCAT('%', #{q.keyword}, '%')
+             OR a.content LIKE CONCAT('%', #{q.keyword}, '%'))
+      </if>
+      <if test="q.itemType != null and q.itemType != ''">
+        AND a.item_type = #{q.itemType}
+      </if>
+      <if test="q.categoryId != null">
+        AND a.category_id = #{q.categoryId}
+      </if>
+      <if test="q.excludeAuthorId != null">
+        AND a.author_id != #{q.excludeAuthorId}
+      </if>
+    ORDER BY a.updated_at ASC, a.id ASC
+  </select>
+</mapper>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>审核工作台 - 校园失物招领</title>
+  <link rel="stylesheet" href="../yangcheng/common.css">
+</head>
+<body>
+<header>
+  <h1>审核工作台</h1>
+  <nav>
+    <a class="active" href="../review/review.html">内容审核</a>
+  </nav>
+</header>
+<main>
+  <div id="message" class="message"></div>
+
+  <section class="panel">
+    <h2>待审核内容</h2>
+    <p class="meta">审核员不能处理本人发布的信息；待办列表已自动排除本人内容。</p>
+    <form id="filters" class="filters">
+      <label>关键字
+        <input id="keyword" maxlength="100" placeholder="标题或描述">
+      </label>
+      <label>类型
+        <select id="itemType">
+          <option value="">全部</option>
+          <option value="LOST">寻物</option>
+          <option value="FOUND">招领</option>
+        </select>
+      </label>
+      <button type="submit">查询</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th><th>标题</th><th>类型</th><th>分类</th><th>作者</th>
+        <th>地点</th><th>更新时间</th><th>版本</th><th>操作</th>
+      </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="pager">
+      <button type="button" id="prev" class="secondary">上一页</button>
+      <span id="pageInfo"></span>
+      <button type="button" id="next" class="secondary">下一页</button>
+    </div>
+  </section>
+</main>
+<script src="../yangcheng/common.js"></script>
+<script>
+(function () {
+  const state = {page: 1, size: 10, total: 0};
+
+  async function load() {
+    YC.setMessage('message', '正在加载……');
+    const params = new URLSearchParams({
+      page: String(state.page),
+      size: String(state.size),
+      keyword: document.getElementById('keyword').value.trim(),
+      itemType: document.getElementById('itemType').value
+    });
+    try {
+      const data = await YC.request('/api/reviews?' + params.toString());
+      state.total = data.total;
+      render(data.records || []);
+      YC.setMessage('message', '');
+    } catch (error) {
+      render([]);
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+    renderPager();
+  }
+
+  function render(records) {
+    const tbody = document.getElementById('rows');
+    tbody.textContent = '';
+    if (!records.length) {
+      const tr = document.createElement('tr');
+      const td = YC.text('td', '暂无待审核内容', 'empty');
+      td.colSpan = 9;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    records.forEach(item => {
+      const actions = document.createElement('td');
+      actions.className = 'actions';
+      actions.appendChild(YC.actionButton('通过', '', () => decide(item, 'APPROVED')));
+      actions.appendChild(YC.actionButton('驳回', 'danger', () => decide(item, 'REJECTED')));
+      tbody.appendChild(YC.row([
+        item.id, item.title, item.itemType === 'LOST' ? '寻物' : '招领',
+        item.categoryName, item.authorName, item.location,
+        YC.formatTime(item.updatedAt), item.version, actions
+      ]));
+    });
+  }
+
+  async function decide(item, decision) {
+    const hint = decision === 'REJECTED' ? '请填写驳回意见（必填）' : '审核意见（可留空）';
+    const comment = window.prompt(hint, '');
+    if (comment === null) return;
+    if (decision === 'REJECTED' && !comment.trim()) {
+      window.alert('驳回必须填写审核意见。');
+      return;
+    }
+    try {
+      await YC.post('/api/reviews/' + item.id + '/decision', {
+        version: item.version,
+        decision: decision,
+        comment: comment.trim()
+      });
+      YC.setMessage('message', '审核处理成功，正在刷新待办。', 'ok');
+      await load();
+    } catch (error) {
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+  }
+
+  function renderPager() {
+    const pages = Math.max(1, Math.ceil(state.total / state.size));
+    document.getElementById('pageInfo').textContent =
+      '第 ' + state.page + ' / ' + pages + ' 页，共 ' + state.total + ' 条';
+    document.getElementById('prev').disabled = state.page <= 1;
+    document.getElementById('next').disabled = state.page >= pages;
+  }
+
+  document.getElementById('filters').addEventListener('submit', event => {
+    event.preventDefault();
+    state.page = 1;
+    load();
+  });
+  document.getElementById('prev').addEventListener('click', () => {
+    if (state.page > 1) { state.page -= 1; load(); }
+  });
+  document.getElementById('next').addEventListener('click', () => {
+    if (state.page * state.size < state.total) { state.page += 1; load(); }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

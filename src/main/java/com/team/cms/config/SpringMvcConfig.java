@@ -51,6 +51,9 @@ public class SpringMvcConfig implements WebMvcConfigurer {
         // Narrow mappings leave unknown /api routes with the unified JSON 404 contract.
         registry.addResourceHandler("/pages/**").addResourceLocations("/pages/");
         registry.addResourceHandler("/assets/**").addResourceLocations("/assets/");
+        // 杨程模块页面在公共布局接入前保持独立目录。
+        registry.addResourceHandler("/review/**", "/claim/**", "/audit/**", "/yangcheng/**")
+            .addResourceLocations("/review/", "/claim/", "/audit/", "/yangcheng/");
     }
     // No wildcard credentialed CORS. The initial WAR serves same-origin API requests.
 }
