@@ -1,5 +1,7 @@
 # 校园失物招领模块接入约定
 
+第一轮的具体 DTO、版本参数、41 个权限码、模块签名和目录以 [GMY R1 公共契约](r1-contracts.md) 及 [机器清单](contracts/r1-contracts.json) 为准；本页保留整体业务规则。Java 常量不是已实现的鉴权服务，不能替代真实权限检查。
+
 ## 全组技术约束
 
 所有模块严格使用 Spring、Spring MVC、MyBatis 的传统 SSM 整合方式，禁止 Spring Boot。不得添加 Boot 父 POM／BOM、`org.springframework.boot` 依赖、任何 Boot starter 或 Boot Maven 插件；不得新增 Boot 启动类、自动配置或可执行 JAR。MyBatis-Plus 按评分要求作为 MyBatis 增强保留，只能使用现有手动配置，不引入 MP Boot starter。

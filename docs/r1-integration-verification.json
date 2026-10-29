@@ -1,0 +1,333 @@
+{
+  "date": "2026-10-22",
+  "scope": "R1 only",
+  "stages": [
+    {
+      "stage": "GMY-R1",
+      "java": [
+        "11.0.32.1"
+      ],
+      "totals": {
+        "tests": 52,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "testSuites": [
+        {
+          "name": "com.team.cms.AdminInitializerTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.AuthFlowTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.CategoryIntegrationTest",
+          "tests": 14,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.ContainerSmokeTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.FoundationContractTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.FrameworkIntegrationTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.LocalDatabaseSupportTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.RequestLogFilterTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.WebContractTest",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.WarDeploymentIT",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "runtimeJarCount": 34,
+      "warSha256": "7c95b28df09595176e4da45f16aac77f32e85064eea12bc9674836a38e3bbd42",
+      "warSmoke": "WAR smoke passed: health=200, missing=404, page=200, css=200, isolated container classpath, startupMs=9947",
+      "negativeArtifactChecksPassed": 6
+    },
+    {
+      "stage": "YYX-R1",
+      "java": [
+        "11.0.32.1"
+      ],
+      "totals": {
+        "tests": 62,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "testSuites": [
+        {
+          "name": "com.team.cms.AdminInitializerTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.article.ArticleDraftHttpTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.article.ArticleDtoTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.article.ArticleMapperTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.AuthFlowTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.CategoryIntegrationTest",
+          "tests": 14,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.ContainerSmokeTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.FoundationContractTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.FrameworkIntegrationTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.LocalDatabaseSupportTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.RequestLogFilterTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.WebContractTest",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.WarDeploymentIT",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "runtimeJarCount": 34,
+      "warSha256": "5f109de60ca0ea31d32ab97044c1429d04a7b92efa91f08c5c667c5d319895ae",
+      "warSmoke": "WAR smoke passed: health=200, missing=404, page=200, css=200, isolated container classpath, startupMs=11832",
+      "negativeArtifactChecksPassed": 6
+    },
+    {
+      "stage": "YC-R1-TOTAL",
+      "java": [
+        "11.0.32.1"
+      ],
+      "totals": {
+        "tests": 74,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "testSuites": [
+        {
+          "name": "com.team.cms.AdminInitializerTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.article.ArticleDraftHttpTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.article.ArticleDtoTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.article.ArticleMapperTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.AuditServiceTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.AuditTemplateTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.AuthFlowTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.CategoryIntegrationTest",
+          "tests": 14,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.ContainerSmokeTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.FoundationContractTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.FrameworkIntegrationTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.LocalDatabaseSupportTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.R1CompatibilityTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.RequestLogFilterTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.WebContractTest",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.team.cms.WarDeploymentIT",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "runtimeJarCount": 34,
+      "warSha256": "cf8481794e6b3fc4285c84ea219e043f0dc7fdf9bd6770acaa165e8ceeee10e9",
+      "warSmoke": "WAR smoke passed: health=200, missing=404, page=200, css=200, isolated container classpath, startupMs=11807",
+      "negativeArtifactChecksPassed": 6
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+@base = http://127.0.0.1:8080/cms
+# 在本机替换账号密码；客户端需保存并沿用 JSESSIONID Cookie。
+@username = your_local_account
+@password = your_local_password
+@categoryId = 1
+@itemId = 1
+@csrf = copy_data_string_from_csrf_response
+
+### 注册默认学生；用户名4~30，昵称2~20，密码8~64
+POST {{base}}/api/auth/register
+Content-Type: application/json
+
+{"username":"{{username}}","displayName":"学生测试","password":"{{password}}"}
+
+### 登录：保存响应 Cookie，重复登录换发会话与令牌
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{"username":"{{username}}","password":"{{password}}"}
+
+### 当前登录身份，未登录401
+GET {{base}}/api/auth/me
+
+### 复制响应 data 字符串到 csrf 变量；不是 data.token
+GET {{base}}/api/auth/csrf
+
+### 游客分类树
+GET {{base}}/api/public/categories
+
+### 新增分类：管理员或 category:add；普通学生403
+POST {{base}}/api/categories
+Content-Type: application/json
+
+{"name":"课程测试分类","parentId":null,"sortOrder":0}
+
+### 管理分类树：管理员或 category:view
+GET {{base}}/api/categories/tree
+
+### 学生新增本人草稿：有效分类、事件时间填写过去时间
+POST {{base}}/api/items
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"title":"丢失蓝色雨伞","content":"在学校图书馆遗失一把蓝色雨伞，手柄带有白色标记。","itemType":"LOST","categoryId":{{categoryId}},"eventTime":"2026-10-20T12:00:00","location":"学校图书馆","contactInfo":"填写本机测试联系方式"}
+
+### 本人草稿详情；其他作者404；缺权限403
+GET {{base}}/api/items/{{itemId}}
+
+### 审计分页：管理员或 audit:view；普通学生403
+GET {{base}}/api/operation-logs?page=1&size=10
+
+### 退出后原会话失效
+POST {{base}}/api/auth/logout
+
+# 尚无审核决定、提审、发布、认领、交接和结案 API；后续按各轮 PR 接入。

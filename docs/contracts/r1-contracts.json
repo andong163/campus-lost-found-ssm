@@ -1,0 +1,727 @@
+{
+  "contractVersion": "R1-INTEGRATED-2",
+  "implementationScope": "Integrated R1 foundation; actual auth/category names preserved. Workflow commands are R2-R4 contracts, not implemented endpoints.",
+  "apiPrefix": "/cms/api",
+  "httpCodes": [
+    200,
+    400,
+    401,
+    403,
+    404,
+    405,
+    409,
+    415,
+    500,
+    503
+  ],
+  "roles": [
+    "ADMIN",
+    "EDITOR",
+    "REVIEWER",
+    "VIEWER"
+  ],
+  "itemTypes": [
+    "LOST",
+    "FOUND"
+  ],
+  "articleStatuses": [
+    "DRAFT",
+    "PENDING_REVIEW",
+    "APPROVED",
+    "PUBLISHED",
+    "REJECTED",
+    "OFFLINE"
+  ],
+  "resolutionStatuses": [
+    "OPEN",
+    "RESOLVED"
+  ],
+  "claimStatuses": [
+    "PENDING",
+    "APPROVED",
+    "REJECTED",
+    "CANCELLED",
+    "COMPLETED"
+  ],
+  "permissions": [
+    {
+      "constant": "USER_VIEW",
+      "code": "user:view",
+      "owner": "郭金滔"
+    },
+    {
+      "constant": "USER_EDIT",
+      "code": "user:edit",
+      "owner": "郭金滔"
+    },
+    {
+      "constant": "USER_DISABLE",
+      "code": "user:disable",
+      "owner": "郭金滔"
+    },
+    {
+      "constant": "USER_ROLE",
+      "code": "user:role",
+      "owner": "郭金滔"
+    },
+    {
+      "constant": "ROLE_VIEW",
+      "code": "role:view",
+      "owner": "郭金滔"
+    },
+    {
+      "constant": "ROLE_EDIT",
+      "code": "role:edit",
+      "owner": "郭金滔"
+    },
+    {
+      "constant": "PERMISSION_VIEW",
+      "code": "permission:view",
+      "owner": "郭金滔"
+    },
+    {
+      "constant": "PERMISSION_EDIT",
+      "code": "permission:edit",
+      "owner": "郭金滔"
+    },
+    {
+      "constant": "CATEGORY_VIEW",
+      "code": "category:view",
+      "owner": "孙睿"
+    },
+    {
+      "constant": "CATEGORY_ADD",
+      "code": "category:add",
+      "owner": "孙睿"
+    },
+    {
+      "constant": "CATEGORY_EDIT",
+      "code": "category:edit",
+      "owner": "孙睿"
+    },
+    {
+      "constant": "CATEGORY_MOVE",
+      "code": "category:move",
+      "owner": "孙睿"
+    },
+    {
+      "constant": "CATEGORY_SORT",
+      "code": "category:sort",
+      "owner": "孙睿"
+    },
+    {
+      "constant": "CATEGORY_ENABLE",
+      "code": "category:enable",
+      "owner": "孙睿"
+    },
+    {
+      "constant": "CATEGORY_DELETE",
+      "code": "category:delete",
+      "owner": "孙睿"
+    },
+    {
+      "constant": "ITEM_CREATE",
+      "code": "item:create",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_VIEW_OWN",
+      "code": "item:view:own",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_VIEW_ANY",
+      "code": "item:view:any",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_EDIT_OWN",
+      "code": "item:edit:own",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_EDIT_ANY",
+      "code": "item:edit:any",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_DELETE_OWN",
+      "code": "item:delete:own",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_DELETE_ANY",
+      "code": "item:delete:any",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_SUBMIT",
+      "code": "item:submit",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_WITHDRAW",
+      "code": "item:withdraw",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_PUBLISH",
+      "code": "item:publish",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_OFFLINE_OWN",
+      "code": "item:offline:own",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_OFFLINE_ANY",
+      "code": "item:offline:any",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_BATCH",
+      "code": "item:batch",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_CONTACT_LOST",
+      "code": "item:contact:lost",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_CONTACT_FOUND",
+      "code": "item:contact:found",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "ITEM_RESOLVE_OWN",
+      "code": "item:resolve:own",
+      "owner": "袁运轩"
+    },
+    {
+      "constant": "REVIEW_VIEW",
+      "code": "review:view",
+      "owner": "杨程"
+    },
+    {
+      "constant": "REVIEW_DECIDE",
+      "code": "review:decide",
+      "owner": "杨程"
+    },
+    {
+      "constant": "CLAIM_CREATE",
+      "code": "claim:create",
+      "owner": "杨程"
+    },
+    {
+      "constant": "CLAIM_VIEW_OWN",
+      "code": "claim:view:own",
+      "owner": "杨程"
+    },
+    {
+      "constant": "CLAIM_VIEW_ANY",
+      "code": "claim:view:any",
+      "owner": "杨程"
+    },
+    {
+      "constant": "CLAIM_REVIEW",
+      "code": "claim:review",
+      "owner": "杨程"
+    },
+    {
+      "constant": "CLAIM_CANCEL_OWN",
+      "code": "claim:cancel:own",
+      "owner": "杨程"
+    },
+    {
+      "constant": "CLAIM_CANCEL_ANY",
+      "code": "claim:cancel:any",
+      "owner": "杨程"
+    },
+    {
+      "constant": "CLAIM_HANDOVER_OWN",
+      "code": "claim:handover:own",
+      "owner": "杨程"
+    },
+    {
+      "constant": "AUDIT_VIEW",
+      "code": "audit:view",
+      "owner": "杨程"
+    }
+  ],
+  "authorization": {
+    "registrationRole": "EDITOR",
+    "implementationOwner": "郭金滔",
+    "defaultGrantsImplemented": false,
+    "batchPublishAll": [
+      "item:batch",
+      "item:publish"
+    ],
+    "batchOfflineAll": [
+      "item:batch",
+      "item:offline:any"
+    ],
+    "batchDeleteAll": [
+      "item:batch",
+      "item:delete:any"
+    ],
+    "roleDoesNotReplaceOwnershipStateOrContactChecks": true,
+    "viewPermissionDoesNotGrantContactAccess": true
+  },
+  "paging": {
+    "pageDefault": 1,
+    "sizeDefault": 10,
+    "sizeMax": 100,
+    "stableTieBreaker": "id"
+  },
+  "batch": {
+    "dto": "BatchIdsRequest",
+    "ids": "1..100 distinct positive int64 values",
+    "atomic": true,
+    "missingOrUnauthorizedOrInvalidState": "whole transaction rolls back"
+  },
+  "version": {
+    "dto": "VersionRequest",
+    "field": "version",
+    "type": "int32",
+    "minimum": 0,
+    "requiredOnSingleRecordWrites": true,
+    "createValue": "server sets 0",
+    "staleResult": 409,
+    "mustBeComparedInConditionalUpdate": true
+  },
+  "time": {
+    "formatExample": "2026-10-19T12:00:00",
+    "zoneConvention": "Asia/Shanghai local time",
+    "storage": "MySQL DATETIME",
+    "jsonNumberAllowed": false
+  },
+  "dtoContracts": {
+    "RegisterRequest": {
+      "username": "required 4..30 ASCII letters digits underscore",
+      "password": "required 8..64 chars; dedicated salted password hash",
+      "displayName": "required 2..20 chars; forged role fields ignored; EDITOR only"
+    },
+    "LoginRequest": {
+      "username": "required",
+      "password": "required; never logged"
+    },
+    "CurrentUser": {
+      "id": "int64",
+      "username": "string",
+      "displayName": "string",
+      "roles": "set of role codes",
+      "permissions": "set of permission codes"
+    },
+    "CategoryCreateRequest": {
+      "name": "required 1..80 chars",
+      "parentId": "null root or positive int64",
+      "sortOrder": "optional nonnegative int32; default 0"
+    },
+    "CategoryOption": {
+      "id": "int64",
+      "name": "string",
+      "children": "array of CategoryOption"
+    },
+    "ItemDraftRequest": {
+      "title": "required 2..100 chars",
+      "content": "required 10..5000 chars plain text",
+      "categoryId": "required positive int64",
+      "itemType": "LOST or FOUND string only",
+      "eventTime": "required local ISO datetime",
+      "location": "required 2..100 chars",
+      "contactInfo": "required 2..100 chars private"
+    },
+    "ItemUpdateRequest": {
+      "base": "ItemDraftRequest plus VersionRequest"
+    },
+    "ReviewDecisionRequest": {
+      "version": "required nonnegative int32",
+      "decision": "APPROVED or REJECTED",
+      "comment": "max 500 chars; nonblank for rejection"
+    },
+    "ClaimCreateRequest": {
+      "claimDescription": "required 1..1000 chars private",
+      "contactInfo": "required 1..100 chars private"
+    },
+    "ClaimReviewRequest": {
+      "version": "claim version, required nonnegative int32",
+      "decision": "APPROVED or REJECTED",
+      "comment": "max 500 chars; reason for rejection"
+    },
+    "HandoverRequest": {
+      "version": "item version, required nonnegative int32",
+      "claimId": "required positive int64 for FOUND",
+      "claimVersion": "required nonnegative int32 for FOUND"
+    },
+    "PublicItemSummary": {
+      "fields": [
+        "id",
+        "title",
+        "itemType",
+        "categoryId",
+        "categoryName",
+        "eventTime",
+        "location",
+        "publishedAt",
+        "resolutionStatus"
+      ]
+    },
+    "PublicItemDetail": {
+      "base": "PublicItemSummary",
+      "additionalFields": [
+        "content"
+      ]
+    },
+    "PrivateItemDetail": {
+      "base": "PublicItemDetail",
+      "additionalFields": [
+        "authorId",
+        "contactInfo",
+        "status",
+        "version",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CreateDraftRequest": {
+      "title": "required 2..100 chars",
+      "content": "required 10..5000 chars plain text",
+      "categoryId": "required positive int64",
+      "itemType": "LOST or FOUND string only",
+      "eventTime": "required local ISO datetime",
+      "location": "required 2..100 chars",
+      "contactInfo": "required 2..100 chars private"
+    }
+  },
+  "serverManagedCreateFields": [
+    "id",
+    "authorId",
+    "applicantId",
+    "reviewerId",
+    "status",
+    "resolutionStatus",
+    "version",
+    "createdAt",
+    "updatedAt",
+    "publishedAt",
+    "resolvedAt",
+    "roles",
+    "permissions"
+  ],
+  "neverPublicFields": [
+    "password",
+    "passwordHash",
+    "contactInfo",
+    "claimDescription",
+    "studentNumber",
+    "roleCodes",
+    "permissionCodes",
+    "roles",
+    "permissions"
+  ],
+  "interfaces": {
+    "CategoryAccessService": {
+      "owner": "孙睿",
+      "package": "com.team.cms.category.service",
+      "methods": [
+        "boolean isBindable(Long categoryId)",
+        "void requireBindable(Long categoryId)",
+        "List<CategoryOption> publicTree()"
+      ],
+      "nullIdStatus": 400,
+      "missingStatus": 404,
+      "disabledAncestorStatus": 409
+    },
+    "ItemWorkflowService": {
+      "owner": "杨程",
+      "package": "com.team.cms.review.service",
+      "commands": [
+        "SUBMIT",
+        "WITHDRAW",
+        "APPROVE",
+        "REJECT",
+        "PUBLISH",
+        "OFFLINE",
+        "EDIT_DRAFT",
+        "DELETE",
+        "RESOLVE"
+      ],
+      "commandInput": [
+        "itemId from path",
+        "version",
+        "command-specific validated data"
+      ],
+      "result": [
+        "id",
+        "status",
+        "resolutionStatus",
+        "version"
+      ],
+      "dependency": "ArticleService -> ItemWorkflowService -> ArticleMapper; never reverse",
+      "implemented": false
+    },
+    "OperationAuditService": {
+      "owner": "杨程",
+      "safeFields": [
+        "operatorId",
+        "operatorName",
+        "module",
+        "action",
+        "targetId",
+        "requestId",
+        "result",
+        "elapsedMs"
+      ],
+      "forbidden": [
+        "requestBody",
+        "password",
+        "content",
+        "contactInfo",
+        "claimDescription"
+      ],
+      "runtimeName": "com.team.cms.audit.service.AuditService / AuditTemplate",
+      "transactionBoundary": "AuditTemplate wraps a transactional service call; success is logged after the business transaction completes. ReviewRecord remains in the business transaction."
+    },
+    "CurrentUserContext": {
+      "owner": "郭金滔",
+      "package": "com.team.cms.auth.security",
+      "methods": [
+        "static CurrentUser get()",
+        "static CurrentUser require()"
+      ],
+      "unauthenticatedStatus": 401,
+      "clientSuppliedActorForbidden": true
+    },
+    "RequirePermission": {
+      "owner": "郭金滔",
+      "package": "com.team.cms.auth.security",
+      "value": "String",
+      "missingPermissionStatus": 403,
+      "ADMIN": "existing role bypass",
+      "multiplePermissions": "R2 proposal; do not rename or invent a replacement annotation in each module"
+    },
+    "ArticleMapper": {
+      "owner": "袁运轩；与杨程协调版本、锁及状态原语",
+      "package": "com.team.cms.article.mapper",
+      "entityEnums": {
+        "status": "ArticleStatus",
+        "itemType": "ItemType",
+        "resolutionStatus": "ResolutionStatus"
+      },
+      "methods": [
+        "Article selectDraftByIdAndAuthor(long id, long authorId)",
+        "Article selectByIdForUpdate(Long id)",
+        "int updateStatusIfVersion(long id, ArticleStatus expectedStatus, ArticleStatus nextStatus, int expectedVersion)",
+        "int updateStatus(Long id, String expectedStatus, String targetStatus, int version, LocalDateTime publishedAt)",
+        "int resolve(Long id, int version, LocalDateTime resolvedAt)"
+      ],
+      "idCompatibility": "Long lock argument accepts prior primitive long callers by boxing; validate nullable IDs before service calls",
+      "helperMethods": [
+        "boolean Article.isFound()",
+        "boolean Article.isLost()"
+      ],
+      "lockOrder": "within the same transaction: article row first, then claim/review rows",
+      "zeroAffectedRows": "service maps missing/state/version conflict according to operation, never unconditional fallback",
+      "workflowImplemented": false,
+      "workflowOwner": "杨程 R2-R4; SQL primitives alone do not authorize transitions or handover"
+    }
+  },
+  "schemaTables": [
+    {
+      "name": "sys_user",
+      "owner": "郭金滔",
+      "fields": [
+        "id",
+        "username",
+        "password_hash",
+        "display_name",
+        "enabled",
+        "created_at",
+        "updated_at",
+        "deleted",
+        "version"
+      ]
+    },
+    {
+      "name": "sys_role",
+      "owner": "郭金滔",
+      "fields": [
+        "id",
+        "code",
+        "name",
+        "created_at",
+        "updated_at",
+        "deleted",
+        "version"
+      ]
+    },
+    {
+      "name": "sys_permission",
+      "owner": "郭金滔",
+      "fields": [
+        "id",
+        "code",
+        "name",
+        "created_at",
+        "updated_at",
+        "deleted",
+        "version"
+      ]
+    },
+    {
+      "name": "sys_user_role",
+      "owner": "郭金滔",
+      "fields": [
+        "user_id",
+        "role_id"
+      ]
+    },
+    {
+      "name": "sys_role_permission",
+      "owner": "郭金滔",
+      "fields": [
+        "role_id",
+        "permission_id"
+      ]
+    },
+    {
+      "name": "cms_category",
+      "owner": "孙睿",
+      "fields": [
+        "id",
+        "name",
+        "parent_id",
+        "sort_order",
+        "enabled",
+        "created_at",
+        "updated_at",
+        "deleted",
+        "version"
+      ]
+    },
+    {
+      "name": "cms_article",
+      "owner": "袁运轩与杨程",
+      "fields": [
+        "id",
+        "title",
+        "content",
+        "author_id",
+        "category_id",
+        "status",
+        "item_type",
+        "event_time",
+        "location",
+        "contact_info",
+        "resolution_status",
+        "resolved_at",
+        "published_at",
+        "created_at",
+        "updated_at",
+        "deleted",
+        "version"
+      ]
+    },
+    {
+      "name": "cms_review_record",
+      "owner": "杨程",
+      "fields": [
+        "id",
+        "article_id",
+        "reviewer_id",
+        "decision",
+        "comment",
+        "article_version",
+        "created_at"
+      ]
+    },
+    {
+      "name": "cms_claim_request",
+      "owner": "杨程",
+      "fields": [
+        "id",
+        "article_id",
+        "applicant_id",
+        "claim_description",
+        "contact_info",
+        "status",
+        "reviewer_id",
+        "review_comment",
+        "cancel_reason",
+        "reviewed_at",
+        "completed_at",
+        "created_at",
+        "updated_at",
+        "version",
+        "active_applicant_id",
+        "approved_article_id"
+      ]
+    },
+    {
+      "name": "sys_operation_log",
+      "owner": "杨程",
+      "fields": [
+        "id",
+        "operator_id",
+        "operator_name",
+        "module",
+        "action",
+        "target_id",
+        "request_id",
+        "result",
+        "elapsed_ms",
+        "created_at"
+      ]
+    }
+  ],
+  "migrations": [
+    {
+      "id": "001",
+      "file": "001-campus-item-columns.sql",
+      "status": "existing immutable"
+    },
+    {
+      "id": "002",
+      "file": "002-claim-request.sql",
+      "status": "existing immutable"
+    },
+    {
+      "id": "003",
+      "owner": "郭金滔",
+      "purpose": "existing auth seed",
+      "status": "existing immutable; not executed by total integration",
+      "file": "003-auth-permission-seed.sql"
+    }
+  ],
+  "sessionContract": {
+    "implementationOwner": "郭金滔",
+    "implemented": true,
+    "cookie": "JSESSIONID",
+    "csrfHeader": "X-CSRF-Token",
+    "csrfBootstrap": "GET /api/auth/csrf after login",
+    "csrfResponseField": "data (string)",
+    "refreshCsrfAfterLogin": true,
+    "invalidateOnLogout": true,
+    "coverage": "POST /api/items only in R1; registration/login/logout/category/global CSRF coverage remains scheduled auth work",
+    "csrfScope": "POST /api/items only; no claim of global R1 CSRF coverage"
+  },
+  "runtimePermissionCompatibility": {
+    "canonicalCatalog": "41 planned codes remain stable; constants do not automatically grant permissions",
+    "r1ActiveCodes": [
+      "article:create",
+      "article:edit",
+      "category:add",
+      "category:view",
+      "audit:view"
+    ],
+    "article:create": "existing EDITOR seed; create own draft only",
+    "article:edit": "existing EDITOR seed; read own draft only, not other users or state commands",
+    "futureMapping": {
+      "item:create": "article:create",
+      "item:view:own": "article:edit"
+    },
+    "migrationPolicy": "Preserve 003 and active permission codes; any future canonical migration needs a new numbered migration and compatible rollout."
+  }
+}

@@ -1,6 +1,14 @@
 # 基于 SSM 的校园失物招领信息管理系统
 
-这是高鸣远负责的基础工程，已按五人分工及新需求从通用 CMS 调整为校园失物招领场景。版本为 0.2.0-SNAPSHOT。当前提供可运行 SSM、公共组件、十表结构与升级工具；注册登录、分类、信息、审核认领、业务日志及页面仍由相应组员接入。
+校园失物招领 SSM 第一轮整合版，版本为 0.2.0-SNAPSHOT。已接入五人的公共基础、注册登录、分类基础、本人草稿和审计基础；审核认领工作流、完整检索、业务页面等继续按第二到第四轮开发。接入与验证见 [第一轮总合并说明](docs/r1-total-integration.md)，请求示例见 [第一轮接口清单](docs/r1-api.http)。
+
+## 高鸣远第一轮交付
+
+GMY R1 已补齐 [公共接入契约](docs/r1-contracts.md)、[机器可读字段与权限码](docs/contracts/r1-contracts.json)、[十表 86 字段清单](docs/database-schema.md)、模块 Mapper 与页面目录，以及可执行的 SSM／WAR 检查。验收结果及组员接入步骤见 [第一轮完成记录](docs/gmy-r1-completion.md)。
+
+第一轮统一基线在 `develop`，实际 PR 见五人分工登记表。组员在各自分支正常合入最新 `origin/develop` 后继续原轮次开发。
+
+第一轮只有静态建设页 `/cms/pages/index.html`，公共布局和统一 fetch 组件在第二轮完成；该页面不代表完整业务 UI。认证与权限使用郭金滔已接入的真实实现。
 
 ## 技术栈硬性约束
 
@@ -42,6 +50,8 @@ if (-not (Test-Path src/main/resources/jdbc-local.properties)) {
 本机旧库已经执行升级；其他成员根据自己的库选择初始化或升级。运行前先阅读 [数据库升级说明](docs/database-upgrade.md)。
 
 访问 `/cms/api/system/health` 检查 Web 链路，访问 `/cms/api/system/readiness` 检查 MySQL、四个角色以及招领和认领结构。健康结果的 application 为 campus-lost-found；这些接口不代表业务系统已经完成，也不提供后台管理页面。
+
+`./scripts/build.ps1` 在构建前检查传统 SSM 和模块目录，构建后检查 WAR 依赖坐标、私密文件、测试运行时及本地工具，并输出 `target/gmy-r1-verification.json`。独立运行 `./scripts/verify-foundation.ps1 -SourceOnly` 可检查源码，`./scripts/test-foundation-checks.ps1` 验证六类污染包确实被拒绝。
 
 可用 CMS_DB_URL、CMS_DB_USERNAME、CMS_DB_PASSWORD 配置连接。外置文件与环境变量遵循文件优先；自定义文件用 JVM `-Dcms.config.file=绝对路径`。本地数据库工具仅允许回环地址和 cms_content，且尊重配置的端口，不操作其他库。
 
