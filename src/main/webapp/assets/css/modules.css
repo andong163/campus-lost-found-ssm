@@ -1,0 +1,14 @@
+.module-page main { max-width: 1240px; }
+.module-page main>form { max-width: 640px; }
+.module-page main>form label { display: grid; gap: var(--space-2); margin: var(--space-4) 0; }
+.module-page main input,.module-page main select,.module-page main textarea {
+  font: inherit; border: 1px solid var(--control-line); border-radius: var(--radius-field);
+  padding: var(--space-3); color: var(--ink); background: var(--surface); max-width: 100%;
+}
+.module-page main textarea { min-height: 128px; width: 100%; }
+.module-page main button { min-height: 44px; padding: var(--space-2) var(--space-4); margin: var(--space-2) var(--space-2) var(--space-2) 0;
+  border: 1px solid var(--control-line); border-radius: var(--radius-control); background: var(--surface); color: var(--ink); }
+.module-page main button:disabled { background: var(--disabled-surface); color: var(--disabled-ink); border-color: var(--disabled-line); }
+.module-page #list article { border-top: 1px solid var(--line); padding: var(--space-5) 0; }
+.module-page #notice.error { color: var(--error-ink); }
+.module-page #notice.success { color: var(--ink); }

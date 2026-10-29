@@ -15,8 +15,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -50,23 +52,19 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
     private final TransactionTemplate transactionTemplate;
     /** 按父级分段的写锁；条目不清理（分类数量级小，R2/R4 收敛锁策略时再评估）。 */
     private final ConcurrentHashMap<Long, ReentrantLock> parentLocks = new ConcurrentHashMap<>();
+    /** 内容模块登记的分类引用检查；尚无实现时为空集合，删除只校验子分类。 */
+    private final ObjectProvider<CategoryReferenceGuard> referenceGuards;
 
-    public CategoryServiceImpl(CategoryMapper mapper, PlatformTransactionManager transactionManager) {
+    public CategoryServiceImpl(CategoryMapper mapper, PlatformTransactionManager transactionManager,
+            ObjectProvider<CategoryReferenceGuard> referenceGuards) {
         this.mapper = mapper;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.referenceGuards = referenceGuards;
     }
 
     @Override
     public CategoryCreateResponse create(CategoryCreateRequest request) {
-        long lockKey = request.getParentId() == null ? ROOT_LOCK_KEY : request.getParentId();
-        ReentrantLock lock = parentLocks.computeIfAbsent(lockKey, key -> new ReentrantLock());
-        lock.lock();
-        try {
-            // 锁必须覆盖事务提交：事务提交在 execute 返回前完成，之后才 unlock。
-            return transactionTemplate.execute(status -> doCreate(request));
-        } finally {
-            lock.unlock();
-        }
+        return inParentLock(request.getParentId(), () -> doCreate(request));
     }
 
     private CategoryCreateResponse doCreate(CategoryCreateRequest request) {
@@ -85,7 +83,7 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
                 throw new BusinessException(HttpStatus.CONFLICT, "父分类已停用");
             }
         }
-        if (hasSiblingName(all, parentId, name)) {
+        if (hasSiblingName(all, parentId, name, null)) {
             throw new BusinessException(HttpStatus.CONFLICT, "同级已存在同名分类");
         }
 
@@ -98,8 +96,131 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
             throw new IllegalStateException("分类新增失败");
         }
         LOG.info("新增分类 id={} name={} parentId={}", entity.getId(), entity.getName(), entity.getParentId());
-        return new CategoryCreateResponse(entity.getId(), entity.getName(), entity.getParentId(),
-                entity.getSortOrder(), enabled(entity));
+        return toResponse(entity);
+    }
+
+    @Override
+    public CategoryCreateResponse rename(Long id, String name) {
+        // 与"同父级下新增/改名"共用一把锁，同级重名判定才不会被并发穿透。
+        return inParentLock(requireCategory(id).getParentId(), () -> doRename(id, name));
+    }
+
+    private CategoryCreateResponse doRename(Long id, String name) {
+        String trimmed = name.trim();
+        List<Category> all = mapper.selectList(null);
+        Map<Long, Category> byId = indexById(all);
+        Category target = byId.get(id);
+        if (target == null) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "分类不存在");
+        }
+        if (hasSiblingName(all, target.getParentId(), trimmed, id)) {
+            throw new BusinessException(HttpStatus.CONFLICT, "同级已存在同名分类");
+        }
+        target.setName(trimmed);
+        updateOrConflict(target);
+        LOG.info("分类改名 id={} name={}", id, trimmed);
+        return toResponse(target);
+    }
+
+    @Override
+    public CategoryCreateResponse move(Long id, Long parentId) {
+        return inParentLock(parentId, () -> doMove(id, parentId));
+    }
+
+    private CategoryCreateResponse doMove(Long id, Long parentId) {
+        List<Category> all = mapper.selectList(null);
+        Map<Long, Category> byId = indexById(all);
+        Category target = byId.get(id);
+        if (target == null) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "分类不存在");
+        }
+        if (parentId != null) {
+            Category parent = byId.get(parentId);
+            if (parent == null) {
+                throw new BusinessException(HttpStatus.NOT_FOUND, "父分类不存在");
+            }
+            if (isSelfOrDescendant(byId, parentId, id)) {
+                throw new BusinessException(HttpStatus.CONFLICT, "不能移动到自身或其子分类下");
+            }
+            if (!chainEnabled(parent, byId)) {
+                throw new BusinessException(HttpStatus.CONFLICT, "父分类已停用");
+            }
+        }
+        if (hasSiblingName(all, parentId, target.getName(), id)) {
+            throw new BusinessException(HttpStatus.CONFLICT, "同级已存在同名分类");
+        }
+        target.setParentId(parentId);
+        updateOrConflict(target);
+        LOG.info("分类移动 id={} parentId={}", id, parentId);
+        return toResponse(target);
+    }
+
+    @Override
+    public CategoryCreateResponse sort(Long id, Integer sortOrder) {
+        return inParentLock(requireCategory(id).getParentId(), () -> doSort(id, sortOrder));
+    }
+
+    private CategoryCreateResponse doSort(Long id, Integer sortOrder) {
+        Category target = mapper.selectById(id);
+        if (target == null) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "分类不存在");
+        }
+        target.setSortOrder(sortOrder);
+        updateOrConflict(target);
+        LOG.info("分类排序 id={} sortOrder={}", id, sortOrder);
+        return toResponse(target);
+    }
+
+    @Override
+    public CategoryCreateResponse toggle(Long id, boolean enabled) {
+        // 锁目标分类自身：与"往该分类下新增子分类"互斥，避免刚停用又挂上子节点。
+        return inParentLock(id, () -> doToggle(id, enabled));
+    }
+
+    private CategoryCreateResponse doToggle(Long id, boolean enabled) {
+        Category target = mapper.selectById(id);
+        if (target == null) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "分类不存在");
+        }
+        target.setEnabled(enabled ? 1 : 0);
+        updateOrConflict(target);
+        LOG.info("分类启停 id={} enabled={}", id, enabled);
+        return toResponse(target);
+    }
+
+    @Override
+    public void delete(Long id) {
+        // 同样锁目标分类自身：与"新增子分类到该分类下"共用锁键，避免删出孤儿。
+        inParentLock(id, () -> {
+            doDelete(id);
+            return null;
+        });
+    }
+
+    private void doDelete(Long id) {
+        if (mapper.selectForUpdate(id)==null) throw new BusinessException(HttpStatus.NOT_FOUND,"分类不存在");
+        List<Category> all = mapper.selectList(null);
+        String name = null;
+        for (Category node : all) {
+            if (node.getId().equals(id)) {
+                name = node.getName();
+            } else if (id.equals(node.getParentId())) {
+                throw new BusinessException(HttpStatus.CONFLICT, "该分类下还有子分类，不能删除");
+            }
+        }
+        if (name == null) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "分类不存在");
+        }
+        for (CategoryReferenceGuard guard : referenceGuards) {
+            String reason = guard.blockingReason(id);
+            if (reason != null) {
+                throw new BusinessException(HttpStatus.CONFLICT, reason);
+            }
+        }
+        if (mapper.deleteById(id) != 1) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "分类不存在");
+        }
+        LOG.info("逻辑删除分类 id={} name={}", id, name);
     }
 
     @Override
@@ -125,6 +246,10 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
         if (categoryId == null) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "分类不能为空");
         }
+        // 写入物品的事务先锁分类，删除也先锁同一行，阻止校验后分类被并发删除。
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()
+                && mapper.selectForUpdate(categoryId)==null)
+            throw new BusinessException(HttpStatus.NOT_FOUND,"分类不存在");
         List<Category> all = mapper.selectList(null);
         Map<Long, Category> byId = indexById(all);
         Long currentId = categoryId;
@@ -200,8 +325,12 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
         return true;
     }
 
-    private boolean hasSiblingName(List<Category> all, Long parentId, String name) {
+    /** 同一父级下是否存在同名分类（trim 后忽略大小写）；改名/移动时用 excludeId 跳过自身。 */
+    private boolean hasSiblingName(List<Category> all, Long parentId, String name, Long excludeId) {
         for (Category node : all) {
+            if (excludeId != null && excludeId.equals(node.getId())) {
+                continue;
+            }
             if (Objects.equals(node.getParentId(), parentId)
                     && node.getName() != null && node.getName().trim().equalsIgnoreCase(name)) {
                 return true;
@@ -238,5 +367,64 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
             }
         }
         return option;
+    }
+
+    /**
+     * 在指定锁键的写锁内执行事务。不用 @Transactional 的原因：注解方式在方法返回时即释放锁，
+     * 而事务在方法返回后才提交，锁会提前放掉。这里的顺序是"加锁 → 开启事务 → 提交 → 解锁"。
+     */
+    private <T> T inParentLock(Long lockKey, Supplier<T> action) {
+        ReentrantLock lock = parentLocks.computeIfAbsent(lockKey == null ? ROOT_LOCK_KEY : lockKey,
+                key -> new ReentrantLock());
+        lock.lock();
+        try {
+            return transactionTemplate.execute(status -> action.get());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /** 读取未删除的分类；不存在抛 404。只用于取锁键或修改单行字段的场景。 */
+    private Category requireCategory(Long id) {
+        Category found = id == null ? null : mapper.selectById(id);
+        if (found == null) {
+            throw new BusinessException(HttpStatus.NOT_FOUND, "分类不存在");
+        }
+        return found;
+    }
+
+    /** 乐观锁写回：BaseEntity.version 由 MyBatis-Plus 自动递增，影响 0 行说明记录已被并发修改。 */
+    private void updateOrConflict(Category entity) {
+        if (mapper.updateById(entity) != 1) {
+            throw new BusinessException(HttpStatus.CONFLICT, "分类已被其他操作修改，请刷新后重试");
+        }
+    }
+
+    private CategoryCreateResponse toResponse(Category node) {
+        return new CategoryCreateResponse(node.getId(), node.getName(), node.getParentId(),
+                node.getSortOrder(), enabled(node));
+    }
+
+    /**
+     * 判断 candidateParentId 是否为 targetId 自身或其后代：沿父链向上回溯，命中 targetId 即成环。
+     * 用 byId.size() 兜底，防止脏数据里的环路导致死循环。
+     */
+    private boolean isSelfOrDescendant(Map<Long, Category> byId, Long candidateParentId, Long targetId) {
+        Long cursor = candidateParentId;
+        int steps = 0;
+        while (cursor != null) {
+            if (cursor.equals(targetId)) {
+                return true;
+            }
+            if (++steps > byId.size()) {
+                return true;
+            }
+            Category node = byId.get(cursor);
+            if (node == null) {
+                return false;
+            }
+            cursor = node.getParentId();
+        }
+        return false;
     }
 }

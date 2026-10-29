@@ -1,0 +1,33 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>信息审核</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script></head><body class="module-page" data-page-title="审核工作台"><div data-cms-shell></div><main>
+<nav><a href="../index.html">首页</a></nav><h1>信息审核与发布</h1><p id="notice" role="status"></p>
+<label>队列<select id="queue"><option value="pending">待审核</option><option value="approved">待发布</option></select></label>
+<div id="list">加载中…</div><p><button id="prev">上一页</button> <span id="page"></span> <button id="next">下一页</button></p>
+</main><script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
+let current=1,total=0;const size=10;
+async function load(){try{const queue=document.querySelector('#queue').value;
+ const data=await api('/reviews/'+queue+'?page='+current+'&size='+size);total=data.total;
+ const box=document.querySelector('#list');box.replaceChildren();if(!data.records.length)
+  box.textContent=queue==='approved'?'暂无待发布信息':'暂无待审信息';
+ for(const item of data.records){const card=document.createElement('article');const title=document.createElement('h2');title.textContent=item.title;
+ const content=document.createElement('p');content.textContent=item.content;const meta=document.createElement('p');
+ meta.textContent=`${item.itemType} · ${item.location} · 分类 ${item.categoryId} · 版本 ${item.version}`;
+ card.append(title,content,meta);
+ if(queue==='pending'){
+  const comment=document.createElement('textarea');comment.placeholder='驳回时请填写意见（最多500字）';comment.maxLength=500;
+  const approve=document.createElement('button');approve.textContent='批准';
+  const reject=document.createElement('button');reject.textContent='驳回';
+  const decide=async(op)=>{approve.disabled=reject.disabled=true;try{
+   await write('/reviews/'+item.id+'/'+op,'POST',{version:item.version,comment:comment.value});show('审核已保存');await load();
+  }catch(e){show(e.message,true);approve.disabled=reject.disabled=false}};
+  approve.onclick=()=>decide('approve');reject.onclick=()=>decide('reject');card.append(comment,approve,reject);
+ }else{const publish=document.createElement('button');publish.textContent='发布';
+  publish.onclick=async()=>{publish.disabled=true;try{await write('/reviews/'+item.id+'/publish','POST',{version:item.version});show('发布成功');await load()}
+   catch(e){show(e.message,true);publish.disabled=false}};card.append(publish)}
+ box.append(card)}
+ document.querySelector('#page').textContent=`第 ${current} 页，共 ${total} 条`;
+ document.querySelector('#prev').disabled=current<=1;document.querySelector('#next').disabled=current*size>=total;
+ }catch(e){document.querySelector('#list').textContent='';show(e.message,true)}}
+document.querySelector('#prev').onclick=()=>{current--;load()};document.querySelector('#next').onclick=()=>{current++;load()};load();
+document.querySelector('#queue').onchange=()=>{current=1;load()};
+</script></body></html>
