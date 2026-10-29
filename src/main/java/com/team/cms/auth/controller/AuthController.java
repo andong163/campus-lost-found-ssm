@@ -10,8 +10,8 @@ import com.team.cms.auth.security.CsrfTokenService;
 import com.team.cms.auth.service.AuthService;
 import com.team.cms.common.api.Result;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 身份接口：注册、登录、退出、当前用户查询。基础地址 /cms/api。 */
+/** 身份接口：注册、登录、退出、当前用户查询与写请求令牌。基础地址 /cms/api。 */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -36,7 +36,7 @@ public class AuthController {
         return Result.ok(authService.register(request));
     }
 
-    /** 登录成功销毁旧会话并换发新会话标识（防会话固定），身份写入会话属性。 */
+    /** 登录成功销毁旧会话并换发新会话标识（防会话固定），同时换发写请求令牌。 */
     @PostMapping("/login")
     public Result<CurrentUserResponse> login(@Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
@@ -46,6 +46,7 @@ public class AuthController {
             oldSession.invalidate();
         }
         HttpSession session = httpRequest.getSession(true);
+        // 登录时写入身份快照；之后每次请求由拦截器按主键重新装载并覆盖，旧权限不会滞留。
         session.setAttribute(AuthConstants.SESSION_USER, user);
         csrfTokenService.issue(session);
         return Result.ok(CurrentUserResponse.from(user));
