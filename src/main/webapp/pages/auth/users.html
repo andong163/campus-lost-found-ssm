@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>用户管理 - 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/modules.css">
+  <link rel="stylesheet" href="../../assets/css/auth.css">
+  <script defer src="../../assets/js/api.js"></script>
+  <script defer src="../../assets/js/pagination.js"></script>
+  <script defer src="../../assets/js/shell.js"></script>
+  <script defer src="../../assets/js/auth/users.js"></script>
+</head>
+<body class="module-page" data-page-title="用户管理">
+  <div data-cms-shell></div>
+  <main>
+    <section class="cms-card" id="denied" hidden>
+      <h2>没有访问权限</h2>
+      <p class="cms-hint">用户管理需要「用户管理」权限。入口隐藏不构成接口授权，服务端仍会返回 403。</p>
+      <p class="cms-hint"><a href="./login.html">去登录</a></p>
+    </section>
+
+    <div id="workspace" hidden>
+      <section class="cms-card">
+        <h2>筛选</h2>
+        <form id="filter-form" class="cms-grid" novalidate>
+          <div class="cms-field">
+            <label for="f-username">用户名</label>
+            <input id="f-username" name="username" maxlength="50" placeholder="支持部分匹配">
+          </div>
+          <div class="cms-field">
+            <label for="f-display">昵称</label>
+            <input id="f-display" name="displayName" maxlength="80" placeholder="支持部分匹配">
+          </div>
+          <div class="cms-field">
+            <label for="f-role">角色</label>
+            <select id="f-role" name="roleCode">
+              <option value="">全部</option>
+            </select>
+          </div>
+          <div class="cms-field">
+            <label for="f-enabled">状态</label>
+            <select id="f-enabled" name="enabled">
+              <option value="">全部</option>
+              <option value="1">启用</option>
+              <option value="0">停用</option>
+            </select>
+          </div>
+          <div class="cms-actions" style="grid-column:1/-1;">
+            <button type="submit" class="cms-btn-primary">查询</button>
+            <button type="reset" class="cms-btn-ghost">重置</button>
+          </div>
+        </form>
+      </section>
+
+      <div class="cms-split">
+        <section class="cms-card">
+          <h2>用户列表</h2>
+          <div class="cms-alert" id="alert" role="alert"></div>
+          <div style="overflow-x:auto;">
+            <table class="cms-table">
+              <thead>
+                <tr>
+                  <th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+          <p class="cms-hint" id="empty" hidden>没有符合条件的用户。</p>
+          <div id="pager"></div>
+        </section>
+
+        <section class="cms-card" id="detail" hidden>
+          <h2>用户详情</h2>
+          <dl class="cms-hint" style="margin:0;">
+            <div>用户名：<strong id="d-username">—</strong></div>
+            <div>昵称：<span id="d-display">—</span></div>
+            <div>状态：<span id="d-enabled">—</span></div>
+            <div>角色：<span id="d-roles">—</span></div>
+            <div>有效权限：<span id="d-permissions">—</span></div>
+            <div>创建时间：<span id="d-created">—</span></div>
+          </dl>
+          <div class="cms-actions">
+            <button type="button" class="cms-btn-ghost" id="d-close">关闭</button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="role-modal" hidden>
+      <section class="cms-card" role="dialog" aria-modal="true" aria-labelledby="role-modal-title">
+        <h2 id="role-modal-title">分配角色</h2>
+        <p class="cms-hint" id="role-modal-target"></p>
+        <div class="cms-checkboxes" id="role-options"></div>
+        <p class="cms-hint" id="role-manual-hint" hidden>
+          当前账号没有角色管理权限，无法列出角色清单，请直接填写角色代码（多个用逗号分隔）。
+        </p>
+        <div class="cms-field" id="role-manual" hidden>
+          <label for="role-codes">角色代码</label>
+          <input id="role-codes" placeholder="例如 EDITOR,REVIEWER">
+        </div>
+        <div class="cms-actions">
+          <button type="button" class="cms-btn-primary" id="role-save">保存</button>
+          <button type="button" class="cms-btn-ghost" id="role-cancel">取消</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
