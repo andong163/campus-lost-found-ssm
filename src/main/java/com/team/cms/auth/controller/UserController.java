@@ -5,10 +5,12 @@ import com.team.cms.auth.dto.UpdateUserStatusRequest;
 import com.team.cms.auth.dto.UserDetailResponse;
 import com.team.cms.auth.dto.UserQuery;
 import com.team.cms.auth.dto.UserSummaryResponse;
+import com.team.cms.auth.security.CsrfTokenService;
 import com.team.cms.auth.security.RequirePermission;
 import com.team.cms.auth.service.UserAdminService;
 import com.team.cms.common.api.PageResult;
 import com.team.cms.common.api.Result;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -18,14 +20,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 用户管理接口：分页、详情、启停、角色分配。全部要求 user:manage 权限。 */
+/** 用户管理接口：分页、详情、启停、角色分配。全部要求 user:manage 权限；写操作另需 CSRF 令牌。 */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
     private final UserAdminService userAdminService;
+    private final CsrfTokenService csrfTokenService;
 
-    public UserController(UserAdminService userAdminService) {
+    public UserController(UserAdminService userAdminService, CsrfTokenService csrfTokenService) {
         this.userAdminService = userAdminService;
+        this.csrfTokenService = csrfTokenService;
     }
 
     @GetMapping
@@ -43,7 +47,8 @@ public class UserController {
     @PutMapping("/{id}/status")
     @RequirePermission("user:manage")
     public Result<Void> updateStatus(@PathVariable Long id,
-            @Valid @RequestBody UpdateUserStatusRequest request) {
+            @Valid @RequestBody UpdateUserStatusRequest request, HttpServletRequest httpRequest) {
+        csrfTokenService.requireValid(httpRequest);
         userAdminService.updateStatus(id, Boolean.TRUE.equals(request.getEnabled()));
         return Result.ok(null);
     }
@@ -51,7 +56,8 @@ public class UserController {
     @PutMapping("/{id}/roles")
     @RequirePermission("user:manage")
     public Result<Void> assignRoles(@PathVariable Long id,
-            @Valid @RequestBody AssignRolesRequest request) {
+            @Valid @RequestBody AssignRolesRequest request, HttpServletRequest httpRequest) {
+        csrfTokenService.requireValid(httpRequest);
         userAdminService.assignRoles(id, request.getRoleCodes());
         return Result.ok(null);
     }
