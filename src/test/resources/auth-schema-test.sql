@@ -61,6 +61,11 @@ INSERT INTO sys_permission(code, name) VALUES
   ('user:manage', '用户管理'), ('role:manage', '角色管理'), ('permission:manage', '权限管理'),
   ('article:create', '发布前创建草稿'), ('article:edit', '编辑失物/招领文章'),
   ('article:publish', '发布文章'), ('review:handle', '审核处理'),
+  ('item:create', '创建本人信息'), ('item:view:own', '查看本人信息'),
+  ('item:edit:own', '编辑本人信息'), ('item:submit', '提交审核'),
+  ('item:withdraw', '撤回审核'), ('item:offline:own', '下架本人信息'),
+  ('item:publish', '发布审核通过信息'), ('review:view', '查看审核待办'),
+  ('review:decide', '决定信息审核'),
   ('claim:handle', '认领处理'), ('claim:resolve', '认领结案'), ('audit:view', '只读审计');
 
 INSERT INTO sys_role_permission(role_id, permission_id)
@@ -68,8 +73,10 @@ SELECT r.id, p.id FROM sys_role r, sys_permission p WHERE r.code = 'ADMIN';
 
 INSERT INTO sys_role_permission(role_id, permission_id)
 SELECT r.id, p.id FROM sys_role r, sys_permission p
-WHERE r.code = 'EDITOR' AND p.code IN ('article:create', 'article:edit');
+WHERE r.code = 'EDITOR' AND p.code IN ('article:create', 'article:edit',
+  'item:create', 'item:view:own', 'item:edit:own', 'item:submit', 'item:withdraw', 'item:offline:own');
 
 INSERT INTO sys_role_permission(role_id, permission_id)
 SELECT r.id, p.id FROM sys_role r, sys_permission p
-WHERE r.code = 'REVIEWER' AND p.code IN ('article:publish', 'review:handle', 'claim:handle');
+WHERE r.code = 'REVIEWER' AND p.code IN ('article:publish', 'review:handle', 'claim:handle',
+  'item:publish', 'review:view', 'review:decide');

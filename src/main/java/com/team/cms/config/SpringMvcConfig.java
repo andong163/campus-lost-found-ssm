@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.team.cms.auth.AuthConstants;
 import com.team.cms.auth.web.AuthInterceptor;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -38,10 +39,11 @@ public class SpringMvcConfig implements WebMvcConfigurer {
             }
         }
     }
-    // 登录拦截器：保护 /api/**，白名单为注册、登录与系统健康接口。
-    @Bean public AuthInterceptor authInterceptor() { return new AuthInterceptor(); }
+    // 根容器声明的登录拦截器：保护 /api/**，白名单为注册、登录与系统健康接口。
+    @Autowired private AuthInterceptor authInterceptor;
+
     @Override public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(authInterceptor())
+        registry.addInterceptor(authInterceptor)
             .addPathPatterns("/api/**")
             .excludePathPatterns(AuthConstants.PUBLIC_PATHS);
     }

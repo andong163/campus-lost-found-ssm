@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>角色权限 - 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/modules.css">
+  <link rel="stylesheet" href="../../assets/css/auth.css">
+  <script defer src="../../assets/js/api.js"></script>
+  <script defer src="../../assets/js/pagination.js"></script>
+  <script defer src="../../assets/js/shell.js"></script>
+  <script defer src="../../assets/js/auth/roles.js"></script>
+</head>
+<body class="module-page" data-page-title="角色权限">
+  <div data-cms-shell></div>
+  <main>
+    <section class="cms-card" id="denied" hidden>
+      <h2>没有访问权限</h2>
+      <p class="cms-hint">角色权限管理需要「角色管理」权限。入口隐藏不构成接口授权，服务端仍会返回 403。</p>
+      <p class="cms-hint"><a href="./login.html">去登录</a></p>
+    </section>
+
+    <div id="workspace" hidden>
+      <div class="cms-split">
+        <section class="cms-card">
+          <h2>角色列表</h2>
+          <div class="cms-alert" id="alert" role="alert"></div>
+          <div style="overflow-x:auto;">
+            <table class="cms-table">
+              <thead>
+                <tr><th>代码</th><th>名称</th><th>权限数</th><th>操作</th></tr>
+              </thead>
+              <tbody id="role-rows"></tbody>
+            </table>
+          </div>
+
+          <h2 style="margin-top:1.4rem;">新建角色</h2>
+          <form id="create-form" class="cms-grid" novalidate>
+            <div class="cms-field">
+              <label for="new-code">角色代码</label>
+              <input id="new-code" maxlength="40" placeholder="大写字母或下划线，例如 LIBRARIAN">
+            </div>
+            <div class="cms-field">
+              <label for="new-name">角色名称</label>
+              <input id="new-name" maxlength="80" placeholder="例如 图书管理员">
+            </div>
+            <div class="cms-actions" style="grid-column:1/-1;">
+              <button type="submit" class="cms-btn-primary" id="create-submit">创建</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="cms-card" id="editor" hidden>
+          <h2 id="editor-title">维护权限</h2>
+          <div class="cms-field" style="margin-bottom:1rem;">
+            <label for="edit-name">角色名称</label>
+            <input id="edit-name" maxlength="80">
+          </div>
+          <p class="cms-hint" id="editor-hint"></p>
+          <div id="permission-groups"></div>
+          <div class="cms-actions">
+            <button type="button" class="cms-btn-primary" id="save-permissions">保存权限</button>
+            <button type="button" class="cms-btn-ghost" id="save-name">仅改名称</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

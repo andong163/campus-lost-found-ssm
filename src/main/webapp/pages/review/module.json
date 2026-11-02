@@ -1,0 +1,10 @@
+{
+  "module": "review",
+  "entries": [
+    {
+      "label": "审核工作台",
+      "page": "pages/review/pending.html",
+      "permission": "review:view"
+    }
+  ]
+}

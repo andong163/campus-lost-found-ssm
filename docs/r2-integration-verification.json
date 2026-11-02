@@ -1,0 +1,133 @@
+{
+  "date": "2026-10-29",
+  "scope": "five-member round two integration",
+  "branches": {
+    "develop": "662ce6ea9204d9133ed344c9abdf8a57fdbbddde",
+    "feature/gaomingyuan-base": "db41d6b34dc1e852919b09b139a3cb96207acca2",
+    "feature/guojintao-auth": "1edd3be7fa6f2b3e6f89df558efdd5cd920c9ea3",
+    "feature/sunrui-category": "508ecc9ccccf6fa179306771d93e39787ebbab97",
+    "feature/yangcheng-review-claim": "047674ae083e9a394eabfb0d51c745d1b0d19175",
+    "feature/yuanyunxuan-article": "192209c67b9d8a25bf12d545e2bd27547a2ab1b7"
+  },
+  "tests": {
+    "surefire-reports": {
+      "tests": 106,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "failsafe-reports": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "javascriptTests": {
+    "tests": 16,
+    "failures": 0
+  },
+  "negativeWarFixtures": 6,
+  "ssmSourceAndWarGuard": "passed, 34 runtime jars",
+  "homeVisibleCopyPreserved": true,
+  "homeStylesPreserved": true,
+  "javascriptSyntax": "all inline and external scripts passed",
+  "mysql": {
+    "database": "isolated real MySQL",
+    "checks": [
+      {
+        "check": "login r2student",
+        "status": 200
+      },
+      {
+        "check": "GET /api/auth/csrf",
+        "status": 200
+      },
+      {
+        "check": "login r2reviewer",
+        "status": 200
+      },
+      {
+        "check": "GET /api/auth/csrf",
+        "status": 200
+      },
+      {
+        "check": "login r2admin",
+        "status": 200
+      },
+      {
+        "check": "GET /api/auth/csrf",
+        "status": 200
+      },
+      {
+        "check": "POST /api/categories",
+        "status": 200
+      },
+      {
+        "check": "POST /api/items",
+        "status": 200
+      },
+      {
+        "check": "student cannot manage categories",
+        "status": 403
+      },
+      {
+        "check": "PUT /api/items/1",
+        "status": 200
+      },
+      {
+        "check": "stale edit rejected",
+        "status": 409
+      },
+      {
+        "check": "POST /api/items/1/submit",
+        "status": 200
+      },
+      {
+        "check": "reject requires comment",
+        "status": 400
+      },
+      {
+        "check": "POST /api/reviews/1/reject",
+        "status": 200
+      },
+      {
+        "check": "PUT /api/items/1",
+        "status": 200
+      },
+      {
+        "check": "POST /api/items/1/submit",
+        "status": 200
+      },
+      {
+        "check": "legacy decision requires csrf",
+        "status": 403
+      },
+      {
+        "check": "POST /api/reviews/1/decision",
+        "status": 200
+      },
+      {
+        "check": "GET /api/items/1/mine",
+        "status": 200
+      },
+      {
+        "check": "GET /api/items/1/reviews",
+        "status": 200
+      },
+      {
+        "check": "actual MySQL reference blocks category deletion",
+        "status": 409
+      },
+      {
+        "check": "POST /api/items",
+        "status": 200
+      }
+    ],
+    "approvedItemId": 1,
+    "browserDraftId": 2,
+    "categoryId": 2
+  },
+  "warSha256": "1a0b701b7469ce90ffb650c5a97286a44b41357092d995f181da0910a3f7de96",
+  "warMatchesAllFrontendSources": true
+}

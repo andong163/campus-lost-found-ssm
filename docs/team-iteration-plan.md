@@ -408,7 +408,7 @@ git pull --ff-only origin develop
 | SR R1 | 孙睿 | [#1](https://github.com/andong163/campus-lost-found-ssm/pull/1)、补丁 [#2](https://github.com/andong163/campus-lost-found-ssm/pull/2) | 9077f8c、502b329 | 已合入；分类与权限随74项总基线回归通过；R2～R4 保持待执行 |
 | YYX R1 | 袁运轩 | [#3](https://github.com/andong163/campus-lost-found-ssm/pull/3) | 1a3caeb，develop 整合6fa833d | 已合入；公共基线接入62项通过 |
 | YC R1 | 杨程 | [#5](https://github.com/andong163/campus-lost-found-ssm/pull/5) | 见 PR 实际合并提交 | 审计与数据契约验收通过；第一轮总基线74项、6项打包反例通过 |
-| GMY R2 | 高鸣远 | 待填写 | 待填写 | 待执行 |
+| GMY R2 | 高鸣远 | 待发起 | 未合并；见 feature/gaomingyuan-base | 公共布局、请求、会话与分页完成，交付个人功能分支；75项Java、16项JS及6项打包反例通过；见 gmy-r2-local.md |
 | GJT R2 | 郭金滔 | 待填写 | 待填写 | 待执行 |
 | SR R2 | 孙睿 | 待填写 | 待填写 | 待执行 |
 | YC R2 | 杨程 | 待填写 | 待填写 | 待执行 |

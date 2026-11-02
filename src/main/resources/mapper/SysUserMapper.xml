@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.cms.auth.mapper.SysUserMapper">
+  <select id="selectUserPage" resultType="com.team.cms.auth.entity.SysUser">
+    SELECT u.id, u.username, u.password_hash, u.display_name, u.enabled,
+           u.created_at, u.updated_at, u.deleted, u.version
+    FROM sys_user u
+    <where>
+      u.deleted = 0
+      <if test="q.username != null and q.username != ''">
+        AND u.username LIKE CONCAT('%', #{q.username}, '%')
+      </if>
+      <if test="q.displayName != null and q.displayName != ''">
+        AND u.display_name LIKE CONCAT('%', #{q.displayName}, '%')
+      </if>
+      <if test="q.enabled != null">
+        AND u.enabled = #{q.enabled}
+      </if>
+      <if test="q.roleCode != null and q.roleCode != ''">
+        AND EXISTS (
+          SELECT 1 FROM sys_user_role ur
+          JOIN sys_role r ON r.id = ur.role_id
+          WHERE ur.user_id = u.id AND r.code = #{q.roleCode} AND r.deleted = 0
+        )
+      </if>
+    </where>
+    ORDER BY u.id DESC
+  </select>
+</mapper>

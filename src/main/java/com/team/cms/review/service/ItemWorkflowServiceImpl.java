@@ -222,7 +222,7 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
     }
 
     private static void requirePublishPermission(CurrentUser actor) {
-        if (actor.hasRole(AuthConstants.ROLE_ADMIN) || actor.hasPermission(ARTICLE_PUBLISH)) {
+        if (actor.hasRole(AuthConstants.ROLE_ADMIN) || actor.hasPermission(ARTICLE_PUBLISH) || actor.hasPermission(com.team.cms.common.security.PermissionCodes.ITEM_PUBLISH)) {
             return;
         }
         throw new BusinessException(HttpStatus.FORBIDDEN, "无发布权限");

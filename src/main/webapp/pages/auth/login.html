@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>登录 / 注册 - 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/modules.css">
+  <link rel="stylesheet" href="../../assets/css/auth.css">
+  <script defer src="../../assets/js/api.js"></script>
+  <script defer src="../../assets/js/pagination.js"></script>
+  <script defer src="../../assets/js/shell.js"></script>
+  <script defer src="../../assets/js/auth/login.js"></script>
+</head>
+<body class="module-page" data-page-title="登录 / 注册">
+  <div data-cms-shell></div>
+  <main>
+    <div class="cms-auth-wrap">
+      <section class="cms-card">
+        <h2>校园失物招领</h2>
+        <p class="cms-hint" style="margin:0 0 1rem;">登录后即可登记寻物与招领信息；新注册账号默认是「学生」角色。</p>
+
+        <div class="cms-tabs" role="tablist" aria-label="登录或注册">
+          <button type="button" id="tab-login" role="tab" aria-selected="true" aria-controls="form-login">登录</button>
+          <button type="button" id="tab-register" role="tab" aria-selected="false" aria-controls="form-register">注册</button>
+        </div>
+
+        <div class="cms-alert" id="alert" role="alert"></div>
+
+        <form id="form-login" autocomplete="on" novalidate>
+          <div class="cms-field" style="margin-bottom:.75rem;">
+            <label for="login-username">用户名</label>
+            <input id="login-username" name="username" autocomplete="username" required>
+          </div>
+          <div class="cms-field" style="margin-bottom:.9rem;">
+            <label for="login-password">密码</label>
+            <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+          </div>
+          <div class="cms-actions">
+            <button type="submit" class="cms-btn-primary" id="login-submit">登录</button>
+          </div>
+        </form>
+
+        <form id="form-register" autocomplete="on" hidden novalidate>
+          <div class="cms-field" style="margin-bottom:.75rem;">
+            <label for="reg-username">用户名</label>
+            <input id="reg-username" name="username" autocomplete="username" required>
+            <span class="cms-hint">4~30 个字符，仅限字母、数字和下划线。</span>
+          </div>
+          <div class="cms-field" style="margin-bottom:.75rem;">
+            <label for="reg-display">昵称</label>
+            <input id="reg-display" name="displayName" required>
+            <span class="cms-hint">2~20 个字符，用于页面显示。</span>
+          </div>
+          <div class="cms-field" style="margin-bottom:.75rem;">
+            <label for="reg-password">密码</label>
+            <input id="reg-password" name="password" type="password" autocomplete="new-password" required>
+            <span class="cms-hint">8~64 个字符。</span>
+          </div>
+          <div class="cms-field" style="margin-bottom:.9rem;">
+            <label for="reg-confirm">确认密码</label>
+            <input id="reg-confirm" name="confirm" type="password" autocomplete="new-password" required>
+          </div>
+          <div class="cms-actions">
+            <button type="submit" class="cms-btn-primary" id="register-submit">注册并登录</button>
+          </div>
+          <p class="cms-hint" style="margin:.9rem 0 0;">注册请求只提交用户名、昵称和密码，角色由服务端固定为「学生」。</p>
+        </form>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

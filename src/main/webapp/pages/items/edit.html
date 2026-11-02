@@ -1,0 +1,27 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>编辑信息</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script></head><body class="module-page" data-page-title="编辑信息"><div data-cms-shell></div><main>
+<nav><a id="back" href="mine.html">返回详情</a></nav><h1>编辑信息</h1><p id="notice" role="status"></p>
+<form id="form"><label>标题<input name="title" minlength="2" maxlength="100" required></label>
+<label>正文<textarea name="content" minlength="10" maxlength="5000" required></textarea></label>
+<label>类型<select name="itemType"><option value="LOST">寻物</option><option value="FOUND">招领</option></select></label>
+<label>分类<select name="categoryId" required></select></label>
+<label>事发时间<input name="eventTime" type="datetime-local" required></label>
+<label>地点<input name="location" minlength="2" maxlength="100" required></label>
+<label>联系方式<input name="contactInfo" minlength="2" maxlength="100" required></label>
+<button type="submit">保存修改</button></form></main><script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
+const id=new URLSearchParams(location.search).get('id');let version;
+document.querySelector('#back').href='detail.html?id='+encodeURIComponent(id);
+async function init(){try{const item=await api('/items/'+encodeURIComponent(id)+'/mine');version=item.version;
+ if(!['DRAFT','REJECTED'].includes(item.status))throw new Error('当前状态不可编辑，请先撤回或下架转草稿');
+ const form=document.querySelector('#form');for(const key of ['title','content','itemType','location','contactInfo'])form.elements[key].value=item[key];
+ form.elements.eventTime.value=item.eventTime.slice(0,16);
+ const tree=await api('/public/categories');const select=form.elements.categoryId;
+ const add=(nodes)=>{for(const c of nodes){const option=document.createElement('option');option.value=c.id;option.textContent=c.name;select.append(option);if(c.children)add(c.children)}};add(tree);
+ select.value=item.categoryId;
+ }catch(e){show(e.message,true);document.querySelector('#form').hidden=true}}
+document.querySelector('#form').onsubmit=async e=>{e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;
+ const values=Object.fromEntries(new FormData(e.target));values.categoryId=Number(values.categoryId);values.version=version;
+ values.eventTime=values.eventTime+':00';
+ try{await write('/items/'+id,'PUT',values);show('保存成功');location.href='detail.html?id='+encodeURIComponent(id)}
+ catch(error){show(error.message,true);button.disabled=false}};init();
+</script></body></html>

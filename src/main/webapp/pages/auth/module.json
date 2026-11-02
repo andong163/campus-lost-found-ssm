@@ -1,0 +1,7 @@
+{
+  "module": "auth",
+  "entries": [
+    { "label": "用户管理", "page": "pages/auth/users.html", "permission": "user:manage" },
+    { "label": "角色权限", "page": "pages/auth/roles.html", "permission": "role:manage" }
+  ]
+}

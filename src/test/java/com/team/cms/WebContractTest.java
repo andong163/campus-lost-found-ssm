@@ -129,4 +129,18 @@ public class WebContractTest {
         assertTrue(css.getContentType().startsWith("text/css"));
         assertCode(mvc.perform(get("/api/not-found")).andReturn().getResponse(), 404);
     }
+    @Test public void nestedSharedUiAndModuleManifestsStayPublicWhileBusinessApisStayProtected() throws Exception {
+        for (String path : new String[]{"/pages/examples/shared-components.html", "/assets/js/api.js", "/assets/js/shell.js", "/assets/js/pagination.js"}) {
+            assertEquals(path, 200, mvc.perform(get(path)).andReturn().getResponse().getStatus());
+        }
+        for (String module : new String[]{"auth", "category", "items", "review", "claims", "audit"}) {
+            MockHttpServletResponse response = mvc.perform(get("/pages/" + module + "/module.json")).andReturn().getResponse();
+            assertEquals(200, response.getStatus());
+            JsonNode manifest = json.readTree(response.getContentAsByteArray());
+            assertEquals(module, manifest.get("module").asText());
+            assertTrue(manifest.get("entries").isArray());
+        }
+        assertCode(mvc.perform(get("/api/operation-logs")).andReturn().getResponse(), 401);
+        assertCode(mvc.perform(get("/api/auth/me")).andReturn().getResponse(), 401);
+    }
 }

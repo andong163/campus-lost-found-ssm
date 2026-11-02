@@ -3,14 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>校园失物招领</title>
-  <link rel="stylesheet" href="../assets/css/base.css">
+  <meta name="description" content="校园失物招领：登录校园账号，查看物品分类，了解妥善保管、核实信息与安全交接提示。">
+  <title>校园首页 · 校园失物招领</title>
+  <link rel="stylesheet" href="../assets/css/base.css?v=c7d00d325a">
+  <script defer src="../assets/js/api.js?v=e3db3cb9e9"></script>
+  <script defer src="../assets/js/pagination.js?v=258dff3de7"></script>
+  <script defer src="../assets/js/shell.js?v=2d1d783239"></script>
+  <script defer src="../assets/js/home.js"></script>
 </head>
-<body>
+<body data-page-title="校园首页">
+  <div data-cms-shell></div>
   <main>
-    <h1>校园失物招领</h1>
-    <p>记录寻物与招领信息，让物品早日回到主人身边。</p>
-    <p>网站正在建设，信息登记、查询和认领服务将在完成测试后开放。</p>
+    <section class="hero" aria-labelledby="home-title">
+      <div class="hero-copy"><span class="hero-note">校园里的每一份善意，都值得回应</span>
+        <h1 id="home-title">让遗失的物品，<br>重新找到归处。</h1>
+        <p><span class="keep-together">一张校园卡，</span><span class="keep-together">一本笔记，</span><span class="keep-together">一把雨伞。</span><br>在这里，为失而复得<span class="keep-together">多留一份可能。</span></p>
+        <button class="button button-primary" type="button" data-login>登录校园账号 <span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="hero-art" aria-hidden="true"><div class="orbit"><div class="found-card"><div class="found-icon">↶</div><strong>失而复得</strong><span>GOOD THINGS FIND THEIR WAY HOME</span></div></div></div>
+    </section>
+    <div class="section-heading"><h2>让善意，从你我开始</h2><span>登记与认领服务将陆续开放</span></div>
+    <section class="info-grid" aria-label="招领提示">
+      <article class="info-card"><span class="step-number">01 / 妥善保管</span><h3>拾到物品，先留好线索</h3><p>记录拾到的时间和地点，妥善保管物品，避免公开他人的个人信息。</p></article>
+      <article class="info-card"><span class="step-number">02 / 核实信息</span><h3>提供特征，确认归属</h3><p>认领时准备能说明物品归属的细节，耐心核实，给双方多一份安心。</p></article>
+      <article class="info-card"><span class="step-number">03 / 安全交接</span><h3>当面确认，说声谢谢</h3><p>选择校园公共场所交接。确认物品无误后，让这份善意好好抵达。</p></article>
+    </section>
+    <section class="category-panel" aria-labelledby="category-title"><div><h2 id="category-title">校园物品分类</h2><p>从物品特征开始，保留准确的寻找线索。</p></div><div class="category-tags" id="public-categories" aria-live="polite"><span class="empty-text">正在读取分类…</span></div></section>
   </main>
 </body>
 </html>
