@@ -11,6 +11,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 @Mapper
 public interface ArticleMapper extends BaseMapper<Article> {
+    IPage<Article> selectPublic(Page<Article> page, @Param("query") com.team.cms.article.dto.PublicArticleQuery query,
+            @Param("categoryIds") java.util.List<Long> categoryIds);
+    Article selectPublicDetail(@Param("id") long id, @Param("categoryIds") java.util.List<Long> categoryIds);
+    int logicalDeleteIfVersion(@Param("id") long id, @Param("version") int version);
+    IPage<Article> selectManage(Page<Article> page, @Param("query") com.team.cms.article.dto.ManageArticleQuery query);
     @org.apache.ibatis.annotations.Select("SELECT COUNT(*) FROM cms_article WHERE category_id=#{categoryId} AND deleted=0")
     long countCategoryReferences(@Param("categoryId") Long categoryId);
     IPage<Article> selectMine(Page<Article> page, @Param("authorId") long authorId,

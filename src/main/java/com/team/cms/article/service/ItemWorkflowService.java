@@ -2,6 +2,7 @@ package com.team.cms.article.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.team.cms.article.dto.PrivateArticleDetail;
+import com.team.cms.article.dto.ManageArticleQuery;
 import com.team.cms.article.entity.Article;
 import com.team.cms.article.mapper.ArticleMapper;
 import com.team.cms.auth.AuthConstants;
@@ -63,6 +64,11 @@ public class ItemWorkflowService {
     @Transactional(readOnly=true) public PageResult<PrivateArticleDetail> approvedQueue(int page, int size) {
         requirePermission(PermissionCodes.ITEM_PUBLISH);
         Page<Article> result=new Page<>(page,size); articles.selectApprovedQueue(result); return result(result);
+    }
+    @Transactional(readOnly=true) public PageResult<PrivateArticleDetail> manage(ManageArticleQuery query) {
+        requirePermission(PermissionCodes.ITEM_VIEW_ANY);
+        Page<Article> page=new Page<>(query.getPage(),query.getSize());
+        articles.selectManage(page,query); return result(page);
     }
     private PrivateArticleDetail detail(long id) {
         return PrivateArticleDetail.fromAuthorizedArticle(articles.selectById(id));
