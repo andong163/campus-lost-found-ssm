@@ -1,0 +1,88 @@
+@base = http://127.0.0.1:8088/cms
+# 本文件供 ApiFox/IDEA 人工核对；自动化主流程见 scripts/test-gmy-r3.ps1。
+# 使用专用测试库。三种角色维持独立会话，Cookie/令牌只放客户端本地变量，不提交真实值。
+@adminCookie = fill_local_admin_JSESSIONID
+@studentCookie = fill_local_student_JSESSIONID
+@reviewerCookie = fill_local_reviewer_JSESSIONID
+@studentCsrf = fill_student_csrf_data_string
+@reviewerCsrf = fill_reviewer_csrf_data_string
+@categoryId = 1
+@itemId = 1
+@version = 0
+
+### 1. 公开健康与真实库就绪检查
+GET {{base}}/api/system/readiness
+
+### 2. 匿名有效分类树
+GET {{base}}/api/public/categories
+
+### 3. 管理员建分类（200；重复同级名称409）
+POST {{base}}/api/categories
+Cookie: JSESSIONID={{adminCookie}}
+Content-Type: application/json
+
+{"name":"手工验收分类","sortOrder":0}
+
+### 4. 学生获取令牌，复制响应 data 字符串
+GET {{base}}/api/auth/csrf
+Cookie: JSESSIONID={{studentCookie}}
+
+### 5. 学生创建草稿，记录 data.id 和 version（缺令牌403）
+POST {{base}}/api/items
+Cookie: JSESSIONID={{studentCookie}}
+X-CSRF-Token: {{studentCsrf}}
+Content-Type: application/json
+
+{"title":"手工验收雨伞","content":"这是专用测试库中的验收雨伞，手柄有蓝色标记。","itemType":"LOST","categoryId":{{categoryId}},"eventTime":"2026-10-28T12:00:00","location":"测试图书馆","contactInfo":"测试交接方式"}
+
+### 6. 学生修改：使用当前版本；再次使用旧版本应409
+PUT {{base}}/api/items/{{itemId}}
+Cookie: JSESSIONID={{studentCookie}}
+X-CSRF-Token: {{studentCsrf}}
+Content-Type: application/json
+
+{"version":{{version}},"title":"手工验收蓝柄雨伞","content":"这是专用测试库中的验收雨伞，手柄有蓝色标记。","itemType":"LOST","categoryId":{{categoryId}},"eventTime":"2026-10-28T12:00:00","location":"测试图书馆一层","contactInfo":"测试交接方式"}
+
+### 7. 提审后更新 version；待审直接编辑409
+POST {{base}}/api/items/{{itemId}}/submit
+Cookie: JSESSIONID={{studentCookie}}
+X-CSRF-Token: {{studentCsrf}}
+Content-Type: application/json
+
+{"version":{{version}}}
+
+### 8. 审核员待办
+GET {{base}}/api/reviews/pending?page=1&size=10
+Cookie: JSESSIONID={{reviewerCookie}}
+
+### 9. 驳回，作者修改后重提；每次读取并使用最新 version
+POST {{base}}/api/reviews/{{itemId}}/reject
+Cookie: JSESSIONID={{reviewerCookie}}
+X-CSRF-Token: {{reviewerCsrf}}
+Content-Type: application/json
+
+{"version":{{version}},"comment":"请补充位置"}
+
+### 10. 原审核入口批准，批准只到 APPROVED
+POST {{base}}/api/reviews/{{itemId}}/decision
+Cookie: JSESSIONID={{reviewerCookie}}
+X-CSRF-Token: {{reviewerCsrf}}
+Content-Type: application/json
+
+{"version":{{version}},"decision":"APPROVED","comment":"信息完整"}
+
+### 11. 作者读取审核意见
+GET {{base}}/api/items/{{itemId}}/reviews
+Cookie: JSESSIONID={{studentCookie}}
+
+### 12. 有真实物品引用时，管理员删分类409
+DELETE {{base}}/api/categories/{{categoryId}}
+Cookie: JSESSIONID={{adminCookie}}
+
+### 13. 退出后旧会话读取 me 应401
+POST {{base}}/api/auth/logout
+Cookie: JSESSIONID={{studentCookie}}
+
+### 14. 退出验证
+GET {{base}}/api/auth/me
+Cookie: JSESSIONID={{studentCookie}}
