@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>认领处理 - 校园失物招领</title>
+  <link rel="stylesheet" href="../yangcheng/common.css">
+</head>
+<body>
+<header>
+  <h1>认领处理</h1>
+  <nav>
+    <a href="../review/review.html">内容审核</a>
+    <a class="active" href="../claim/manage.html">认领处理</a>
+    <a href="../claim/handover.html">交接结案</a>
+    <a href="../claim/mine.html">我的认领</a>
+    <a href="../audit/logs.html">操作日志</a>
+  </nav>
+</header>
+<main>
+  <div id="message" class="message"></div>
+
+  <section class="panel">
+    <h2>认领申请队列</h2>
+    <p class="meta">批准表示证据核实通过，物品仍保持“未结案”；实际交接由发布者在“交接结案”确认。</p>
+    <form id="filters" class="filters">
+      <label>状态
+        <select id="status">
+          <option value="PENDING">待核实</option>
+          <option value="">全部</option>
+          <option value="APPROVED">已通过</option>
+          <option value="REJECTED">已驳回</option>
+          <option value="CANCELLED">已撤销</option>
+          <option value="COMPLETED">已完成</option>
+        </select>
+      </label>
+      <button type="submit">查询</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th><th>物品</th><th>申请人</th><th>认领说明</th><th>联系方式</th>
+        <th>状态</th><th>提交时间</th><th>处理意见</th><th>操作</th>
+      </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="pager">
+      <button type="button" id="prev" class="secondary">上一页</button>
+      <span id="pageInfo"></span>
+      <button type="button" id="next" class="secondary">下一页</button>
+    </div>
+  </section>
+</main>
+<script src="../yangcheng/common.js"></script>
+<script>
+(function () {
+  const state = {page: 1, size: 10, total: 0};
+
+  async function load() {
+    YC.setMessage('message', '正在加载……');
+    const params = new URLSearchParams({
+      page: String(state.page),
+      size: String(state.size),
+      status: document.getElementById('status').value
+    });
+    try {
+      const data = await YC.request('/api/claims?' + params.toString());
+      state.total = data.total;
+      render(data.records || []);
+      YC.setMessage('message', '');
+    } catch (error) {
+      render([]);
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+    renderPager();
+  }
+
+  function render(records) {
+    const tbody = document.getElementById('rows');
+    tbody.textContent = '';
+    if (!records.length) {
+      const tr = document.createElement('tr');
+      const td = YC.text('td', '暂无认领申请', 'empty');
+      td.colSpan = 9;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    records.forEach(claim => {
+      const actions = document.createElement('td');
+      actions.className = 'actions';
+      if (claim.status === 'PENDING') {
+        actions.appendChild(YC.actionButton('通过', '', () => decide(claim, 'APPROVED')));
+        actions.appendChild(YC.actionButton('驳回', 'danger', () => decide(claim, 'REJECTED')));
+      }
+
+      const statusCell = YC.text('td');
+      statusCell.appendChild(YC.text('span', claim.status, 'status ' + claim.status));
+
+      const reviewCell = YC.text('td');
+      reviewCell.appendChild(YC.text('div', claim.reviewComment || '—'));
+      if (claim.cancelReason) {
+        reviewCell.appendChild(YC.text('div', '撤销/关闭：' + claim.cancelReason, 'meta'));
+      }
+
+      tbody.appendChild(YC.row([
+        claim.id, claim.articleTitle, claim.applicantName, claim.claimDescription,
+        claim.contactInfo, statusCell, YC.formatTime(claim.createdAt), reviewCell, actions
+      ]));
+    });
+  }
+
+  async function decide(claim, decision) {
+    const hint = decision === 'REJECTED' ? '请填写驳回理由（必填）' : '核实意见（可留空）';
+    const comment = window.prompt(hint, '');
+    if (comment === null) return;
+    if (decision === 'REJECTED' && !comment.trim()) {
+      window.alert('驳回必须填写理由。');
+      return;
+    }
+    try {
+      await YC.post('/api/claims/' + claim.id + '/decision', {
+        version: claim.version,
+        decision: decision,
+        comment: comment.trim()
+      });
+      YC.setMessage('message', '认领处理成功，正在刷新。', 'ok');
+      await load();
+    } catch (error) {
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+  }
+
+  function renderPager() {
+    const pages = Math.max(1, Math.ceil(state.total / state.size));
+    document.getElementById('pageInfo').textContent =
+      '第 ' + state.page + ' / ' + pages + ' 页，共 ' + state.total + ' 条';
+    document.getElementById('prev').disabled = state.page <= 1;
+    document.getElementById('next').disabled = state.page >= pages;
+  }
+
+  document.getElementById('filters').addEventListener('submit', event => {
+    event.preventDefault();
+    state.page = 1;
+    load();
+  });
+  document.getElementById('prev').addEventListener('click', () => {
+    if (state.page > 1) { state.page -= 1; load(); }
+  });
+  document.getElementById('next').addEventListener('click', () => {
+    if (state.page * state.size < state.total) { state.page += 1; load(); }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
