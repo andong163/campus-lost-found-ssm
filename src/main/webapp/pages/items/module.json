@@ -5,6 +5,11 @@
       "label": "我的信息",
       "page": "pages/items/mine.html",
       "permission": "item:view:own"
+    },
+    {
+      "label": "信息管理",
+      "page": "pages/items/manage.html",
+      "permission": "item:view:any"
     }
   ]
 }

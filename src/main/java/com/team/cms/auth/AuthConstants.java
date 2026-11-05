@@ -24,6 +24,7 @@ public final class AuthConstants {
         "/api/auth/register",
         "/api/auth/login",
         "/api/public/categories",
+        "/api/public/items", "/api/public/items/**",
         "/api/system/**"
     };
 }
