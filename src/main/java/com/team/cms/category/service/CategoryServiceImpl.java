@@ -7,12 +7,17 @@ import com.team.cms.category.dto.CategoryTreeNode;
 import com.team.cms.category.entity.Category;
 import com.team.cms.category.mapper.CategoryMapper;
 import com.team.cms.common.exception.BusinessException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -274,6 +279,98 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
         } catch (BusinessException error) {
             return false;
         }
+    }
+
+    /**
+     * 批量判定：一次加载全部分类，内存里逐条回溯父链，并用 memo 缓存中间结论。
+     * 列表场景下，20 条内容的批量判定从 20 次全表读取降到 1 次（R3 的 SQL 次数证据由此产生）。
+     */
+    @Override
+    public Set<Long> bindableIds(Collection<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return Set.of();
+        }
+        Map<Long, Category> byId = indexById(mapper.selectList(null));
+        Map<Long, Boolean> memo = new HashMap<>();
+        Set<Long> result = new HashSet<>();
+        for (Long categoryId : categoryIds) {
+            if (categoryId != null && bindable(categoryId, byId, memo)) {
+                result.add(categoryId);
+            }
+        }
+        return result;
+    }
+
+    /** 沿父链向上判定并缓存结论；批量调用时同一条祖先链只走一次。 */
+    private boolean bindable(Long categoryId, Map<Long, Category> byId, Map<Long, Boolean> memo) {
+        Boolean cached = memo.get(categoryId);
+        if (cached != null) {
+            return cached;
+        }
+        List<Long> path = new ArrayList<>();
+        Long currentId = categoryId;
+        Boolean verdict = null;
+        while (currentId != null) {
+            Boolean known = memo.get(currentId);
+            if (known != null) {
+                verdict = known;
+                break;
+            }
+            Category current = byId.get(currentId);
+            if (current == null) {
+                verdict = false;
+                break;
+            }
+            if (!enabled(current)) {
+                verdict = false;
+                break;
+            }
+            path.add(currentId);
+            currentId = current.getParentId();
+        }
+        if (verdict == null) {
+            verdict = true;
+        }
+        for (Long id : path) {
+            memo.put(id, verdict);
+        }
+        return verdict;
+    }
+
+    /**
+     * 公开可见子树：rootId 自身可见才继续，BFS 收集后代时停用节点整棵跳过。
+     * 与 publicTree 共用"一次全表加载 + 内存遍历"的范式，不引入递归 CTE。
+     */
+    @Override
+    public List<Long> publicSubtreeIds(Long rootId) {
+        if (rootId == null) {
+            return List.of();
+        }
+        List<Category> all = orderedAll();
+        Map<Long, Category> byId = indexById(all);
+        Category root = byId.get(rootId);
+        if (root == null || !chainEnabled(root, byId)) {
+            return List.of();
+        }
+        Map<Long, List<Category>> children = groupByParent(all);
+        List<Long> result = new ArrayList<>();
+        Deque<Long> queue = new ArrayDeque<>();
+        queue.add(rootId);
+        while (!queue.isEmpty()) {
+            Long currentId = queue.poll();
+            result.add(currentId);
+            List<Category> kids = children.get(currentId);
+            if (kids == null) {
+                continue;
+            }
+            for (Category kid : kids) {
+                // 停用节点连同其整棵子树一并剔除，与 publicTree 的隐藏规则保持一致。
+                if (enabled(kid)) {
+                    queue.add(kid.getId());
+                }
+            }
+        }
+        return result;
     }
 
     @Override
