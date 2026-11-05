@@ -15,6 +15,8 @@ import com.team.cms.common.domain.ItemType;
 import com.team.cms.common.domain.ResolutionStatus;
 import com.team.cms.common.exception.BusinessException;
 import java.time.LocalDateTime;
+import java.util.UUID;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,6 +81,7 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
             locked.put(id, article);
         }
         for (Article article : locked.values()) {
+            long started = System.nanoTime();
             int version = versions.get(article.getId());
             if ("publish".equals(action)) publish(article.getId(), version);
             else if ("offline".equals(action)) offline(article.getId(), version, null);
@@ -87,7 +90,7 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
                 if (articleMapper.logicalDeleteIfVersion(article.getId(), version) != 1)
                     throw conflict("信息版本已变化，请刷新后重试");
             }
-            if ("delete".equals(action)) logAction(actor, "DELETE", article.getId());
+            if ("delete".equals(action)) logAction(actor, "DELETE", article.getId(), started);
         }
     }
 
@@ -132,6 +135,7 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void publish(Long itemId, int version) {
+        long started = System.nanoTime();
         CurrentUser actor = CurrentUserContext.require();
         requirePublishPermission(actor);
         Article article = lock(itemId);
@@ -145,12 +149,13 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
             throw conflict("存在已通过的认领，不能重新发布");
         }
         changeStatus(article, version, ArticleStatus.PUBLISHED, LocalDateTime.now());
-        logAction(actor, "PUBLISH", itemId);
+        logAction(actor, "PUBLISH", itemId, started);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void offline(Long itemId, int version, String reason) {
+        long started = System.nanoTime();
         CurrentUser actor = CurrentUserContext.require();
         Article article = lock(itemId);
         if (!article.getAuthorId().equals(actor.getId())) {
@@ -164,7 +169,7 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
         String closeReason = safeReason(reason);
         changeStatus(article, version, ArticleStatus.OFFLINE, null);
         claimRequestMapper.closePendingByItem(itemId, closeReason);
-        logAction(actor, "OFFLINE", itemId);
+        logAction(actor, "OFFLINE", itemId, started);
     }
 
     @Override
@@ -316,6 +321,7 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long itemId, int version) {
+        long started = System.nanoTime();
         CurrentUser actor = CurrentUserContext.require();
         Article article = lock(itemId);
         boolean own = article.getAuthorId().equals(actor.getId());
@@ -327,14 +333,17 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
         assertDeletable(itemId);
         if (articleMapper.logicalDeleteIfVersion(itemId, version) != 1)
             throw conflict("信息版本已变化，请刷新后重试");
-        logAction(actor, "DELETE", itemId);
+        logAction(actor, "DELETE", itemId, started);
     }
 
-    private void logAction(CurrentUser actor, String action, Long itemId) {
+    private void logAction(CurrentUser actor, String action, Long itemId, long started) {
         OperationLog log = new OperationLog();
         log.setOperatorId(actor.getId()); log.setOperatorName(actor.getDisplayName());
         log.setModule("article"); log.setAction(action); log.setTargetId(itemId);
-        log.setRequestId("-"); log.setResult("SUCCESS"); log.setElapsedMs(0L);
+        String requestId = MDC.get("requestId");
+        log.setRequestId(StringUtils.hasText(requestId) ? requestId : UUID.randomUUID().toString());
+        log.setResult("SUCCESS");
+        log.setElapsedMs(Math.max(0L, (System.nanoTime() - started) / 1_000_000L));
         log.setCreatedAt(LocalDateTime.now());
         if (operationLogs.insert(log) != 1) throw new IllegalStateException("业务日志保存失败");
     }
