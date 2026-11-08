@@ -7,47 +7,53 @@ import java.util.*;
 public final class MySqlCampusUpgrade {
     public static void main(String[] args) {
         try (Connection connection = LocalDatabaseSupport.load().connect(false)) {
-            if (LocalDatabaseSupport.scalar(connection, "SELECT GET_LOCK('cms_content:campus-upgrade',10)") != 1) {
-                throw new IllegalStateException("Another schema upgrade is running");
-            }
-            try {
-                LocalDatabaseSupport.verifyBaseline(connection);
-                Set<String> expected = Set.of("item_type", "event_time", "location", "contact_info", "resolution_status", "resolved_at");
-                Set<String> existing = LocalDatabaseSupport.columns(connection, "cms_article");
-                if (!existing.containsAll(Set.of("id", "title", "content", "author_id", "category_id", "status"))) {
-                    throw new IllegalStateException("The original CMS baseline must be installed first");
-                }
-                long present = expected.stream().filter(existing::contains).count();
-                if (present != 0 && present != expected.size()) {
-                    throw new IllegalStateException("Partial item schema detected; review it manually before migration");
-                }
-                if (present == 0) {
-                    if (LocalDatabaseSupport.scalar(connection, "SELECT COUNT(*) FROM cms_article") != 0) {
-                        throw new IllegalStateException("Existing articles need a reviewed data conversion; no automatic backfill is performed");
-                    }
-                    LocalDatabaseSupport.script(connection, "sql/migrations/001-campus-item-columns.sql");
-                    System.out.println("Item columns and constraints added to empty CMS table.");
-                } else { System.out.println("Item columns already present; ALTER skipped."); }
-                LocalDatabaseSupport.script(connection, "sql/migrations/002-claim-request.sql");
-                for (String migration : List.of("003-auth-permission-seed.sql",
-                        "004-item-review-permissions.sql", "005-r2-category-permissions.sql",
-                        "006-r3-item-claim-permissions.sql")) {
-                    LocalDatabaseSupport.script(connection, "sql/migrations/" + migration);
-                }
-                try (Statement update = connection.createStatement()) {
-                    update.executeUpdate("UPDATE sys_role SET name='学生',updated_at=CURRENT_TIMESTAMP,version=version+1 " +
-                        "WHERE code='EDITOR' AND name='编辑人员'");
-                    update.executeUpdate("UPDATE sys_role SET name='只读用户',updated_at=CURRENT_TIMESTAMP,version=version+1 " +
-                        "WHERE code='VIEWER' AND name='普通用户'");
-                }
-                LocalDatabaseSupport.verifyCampusSchema(connection);
-                verifyClaimConstraints(connection);
-                System.out.println("Campus upgrade verified: schema, duplicate claim rejection, exclusive approval and rollback.");
-            } finally { LocalDatabaseSupport.scalar(connection, "SELECT RELEASE_LOCK('cms_content:campus-upgrade')"); }
+            upgrade(connection);
         } catch (Exception error) {
             LocalDatabaseSupport.safeFailure(error); System.exit(1);
         }
     }
+
+    /** CLI 仍只接受本机业务库；验收工具可传入经所有权校验的隔离连接复验同一升级逻辑。 */
+    public static void upgrade(Connection connection) throws SQLException {
+        if (LocalDatabaseSupport.scalar(connection, "SELECT GET_LOCK('cms_content:campus-upgrade',10)") != 1) {
+            throw new IllegalStateException("Another schema upgrade is running");
+        }
+        try {
+            LocalDatabaseSupport.verifyBaseline(connection);
+            Set<String> expected = Set.of("item_type", "event_time", "location", "contact_info", "resolution_status", "resolved_at");
+            Set<String> existing = LocalDatabaseSupport.columns(connection, "cms_article");
+            if (!existing.containsAll(Set.of("id", "title", "content", "author_id", "category_id", "status"))) {
+                throw new IllegalStateException("The original CMS baseline must be installed first");
+            }
+            long present = expected.stream().filter(existing::contains).count();
+            if (present != 0 && present != expected.size()) {
+                throw new IllegalStateException("Partial item schema detected; review it manually before migration");
+            }
+            if (present == 0) {
+                if (LocalDatabaseSupport.scalar(connection, "SELECT COUNT(*) FROM cms_article") != 0) {
+                    throw new IllegalStateException("Existing articles need a reviewed data conversion; no automatic backfill is performed");
+                }
+                LocalDatabaseSupport.script(connection, "sql/migrations/001-campus-item-columns.sql");
+                System.out.println("Item columns and constraints added to empty CMS table.");
+            } else { System.out.println("Item columns already present; ALTER skipped."); }
+            LocalDatabaseSupport.script(connection, "sql/migrations/002-claim-request.sql");
+            for (String migration : List.of("003-auth-permission-seed.sql",
+                    "004-item-review-permissions.sql", "005-r2-category-permissions.sql",
+                    "006-r3-item-claim-permissions.sql")) {
+                LocalDatabaseSupport.script(connection, "sql/migrations/" + migration);
+            }
+            try (Statement update = connection.createStatement()) {
+                update.executeUpdate("UPDATE sys_role SET name='学生',updated_at=CURRENT_TIMESTAMP,version=version+1 " +
+                    "WHERE code='EDITOR' AND name='编辑人员'");
+                update.executeUpdate("UPDATE sys_role SET name='只读用户',updated_at=CURRENT_TIMESTAMP,version=version+1 " +
+                    "WHERE code='VIEWER' AND name='普通用户'");
+            }
+            LocalDatabaseSupport.verifyCampusSchema(connection);
+            verifyClaimConstraints(connection);
+            System.out.println("Campus upgrade verified: schema, duplicate claim rejection, exclusive approval and rollback.");
+        } finally { LocalDatabaseSupport.scalar(connection, "SELECT RELEASE_LOCK('cms_content:campus-upgrade')"); }
+    }
+
     public static void verifyClaimConstraints(Connection connection) throws SQLException {
         String marker = "probe_" + UUID.randomUUID().toString().replace("-", "").substring(0, 18);
         boolean previousAutoCommit = connection.getAutoCommit();

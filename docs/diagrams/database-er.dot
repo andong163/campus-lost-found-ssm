@@ -1,0 +1,29 @@
+digraph ER {
+graph [bgcolor="white",pad="0.35",nodesep="0.4",ranksep="0.6",fontname="Microsoft YaHei",fontsize=19,labelloc=t];
+node [shape=box,style="rounded,filled",fillcolor="#F3F6F8",color="#71828D",fontname="Microsoft YaHei",fontsize=13,margin="0.24,0.16"];
+edge [color="#536E7D",arrowsize=0.7,fontname="Microsoft YaHei",fontsize=11];
+rankdir=LR; label="校园失物招领 十表 E R 关联"; node [shape=plain,style=""];
+sys_user [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="227" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="227" BGCOLOR="#E6EEF3"><B>sys_user</B><BR/>用户</TD></TR><TR><TD WIDTH="227" ALIGN="LEFT">id PK</TD></TR><TR><TD WIDTH="227" ALIGN="LEFT">username UNIQUE</TD></TR><TR><TD WIDTH="227" ALIGN="LEFT">display_name enabled version</TD></TR></TABLE></FONT>>];
+sys_role [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="175" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="175" BGCOLOR="#E6EEF3"><B>sys_role</B><BR/>角色</TD></TR><TR><TD WIDTH="175" ALIGN="LEFT">id PK</TD></TR><TR><TD WIDTH="175" ALIGN="LEFT">code UNIQUE</TD></TR><TR><TD WIDTH="175" ALIGN="LEFT">name deleted version</TD></TR></TABLE></FONT>>];
+sys_permission [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="138" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="138" BGCOLOR="#E6EEF3"><B>sys_permission</B><BR/>权限</TD></TR><TR><TD WIDTH="138" ALIGN="LEFT">id PK</TD></TR><TR><TD WIDTH="138" ALIGN="LEFT">code UNIQUE</TD></TR><TR><TD WIDTH="138" ALIGN="LEFT">name</TD></TR></TABLE></FONT>>];
+sys_user_role [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="125" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="125" BGCOLOR="#E6EEF3"><B>sys_user_role</B><BR/>用户角色关联</TD></TR><TR><TD WIDTH="125" ALIGN="LEFT">user_id PK FK</TD></TR><TR><TD WIDTH="125" ALIGN="LEFT">role_id PK FK</TD></TR></TABLE></FONT>>];
+sys_role_permission [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="169" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="169" BGCOLOR="#E6EEF3"><B>sys_role_permission</B><BR/>角色权限关联</TD></TR><TR><TD WIDTH="169" ALIGN="LEFT">role_id PK FK</TD></TR><TR><TD WIDTH="169" ALIGN="LEFT">permission_id PK FK</TD></TR></TABLE></FONT>>];
+cms_category [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="197" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="197" BGCOLOR="#E6EEF3"><B>cms_category</B><BR/>多级分类</TD></TR><TR><TD WIDTH="197" ALIGN="LEFT">id PK</TD></TR><TR><TD WIDTH="197" ALIGN="LEFT">parent_id FK NULL</TD></TR><TR><TD WIDTH="197" ALIGN="LEFT">name enabled sort_order</TD></TR></TABLE></FONT>>];
+cms_article [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="220" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="220" BGCOLOR="#E6EEF3"><B>cms_article</B><BR/>寻物招领信息</TD></TR><TR><TD WIDTH="220" ALIGN="LEFT">id PK</TD></TR><TR><TD WIDTH="220" ALIGN="LEFT">author_id FK category_id FK</TD></TR><TR><TD WIDTH="220" ALIGN="LEFT">item_type status version</TD></TR><TR><TD WIDTH="220" ALIGN="LEFT">resolution_status resolved_at</TD></TR></TABLE></FONT>>];
+cms_review_record [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="208" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="208" BGCOLOR="#E6EEF3"><B>cms_review_record</B><BR/>审核记录</TD></TR><TR><TD WIDTH="208" ALIGN="LEFT">id PK</TD></TR><TR><TD WIDTH="208" ALIGN="LEFT">article_id FK reviewer_id FK</TD></TR><TR><TD WIDTH="208" ALIGN="LEFT">decision article_version</TD></TR></TABLE></FONT>>];
+cms_claim_request [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="241" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="241" BGCOLOR="#E6EEF3"><B>cms_claim_request</B><BR/>认领申请</TD></TR><TR><TD WIDTH="241" ALIGN="LEFT">id PK</TD></TR><TR><TD WIDTH="241" ALIGN="LEFT">article_id FK applicant_id FK</TD></TR><TR><TD WIDTH="241" ALIGN="LEFT">reviewer_id FK NULL</TD></TR><TR><TD WIDTH="241" ALIGN="LEFT">status completed_at version</TD></TR><TR><TD WIDTH="241" ALIGN="LEFT">active_applicant_id GENERATED</TD></TR><TR><TD WIDTH="241" ALIGN="LEFT">approved_article_id GENERATED</TD></TR></TABLE></FONT>>];
+sys_operation_log [label=<<FONT POINT-SIZE="11"><TABLE WIDTH="219" BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="10"><TR><TD WIDTH="219" BGCOLOR="#E6EEF3"><B>sys_operation_log</B><BR/>操作日志快照</TD></TR><TR><TD WIDTH="219" ALIGN="LEFT">id PK</TD></TR><TR><TD WIDTH="219" ALIGN="LEFT">operator_id operator_name</TD></TR><TR><TD WIDTH="219" ALIGN="LEFT">module action target_id</TD></TR><TR><TD WIDTH="219" ALIGN="LEFT">request_id result elapsed_ms</TD></TR></TABLE></FONT>>];
+sys_user -> sys_user_role [label="user_id",fontsize=10];
+sys_role -> sys_user_role [label="role_id",fontsize=10];
+sys_role -> sys_role_permission [label="role_id",fontsize=10];
+sys_permission -> sys_role_permission [label="permission_id",fontsize=10];
+cms_category -> cms_category [label="parent_id",fontsize=10];
+sys_user -> cms_article [label="author_id",fontsize=10];
+cms_category -> cms_article [label="category_id",fontsize=10];
+cms_article -> cms_review_record [label="article_id",fontsize=10];
+sys_user -> cms_review_record [label="reviewer_id",fontsize=10];
+cms_article -> cms_claim_request [label="article_id",fontsize=10];
+sys_user -> cms_claim_request [label="applicant_id",fontsize=10];
+sys_user -> cms_claim_request [label="reviewer_id",fontsize=10];
+lognote [shape=note,label="关系箭头为父表到外键表 一对多\n分类 parent 与核实人允许为空\n日志保存快照 不建立操作者外键",width="3.25"]; sys_operation_log -> lognote [style=dotted,arrowhead=none];
+}

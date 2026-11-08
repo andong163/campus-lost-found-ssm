@@ -1,0 +1,24 @@
+digraph Architecture {
+graph [bgcolor="white",pad="0.35",nodesep="0.4",ranksep="0.6",fontname="Microsoft YaHei",fontsize=19,labelloc=t];
+node [shape=box,style="rounded,filled",fillcolor="#F3F6F8",color="#71828D",fontname="Microsoft YaHei",fontsize=13,margin="0.24,0.16"];
+edge [color="#536E7D",arrowsize=0.7,fontname="Microsoft YaHei",fontsize=11];
+label="校园失物招领 传统 SSM 架构"; rankdir=TB;
+browser [label="学生与管理人员页面\n静态 HTML CSS JavaScript",width="2.89"];
+api [label="ApiFox 与自动 HTTP 验收\n同一真实接口",width="2.78"];
+filter [label="WebAppInitializer 与 DispatcherServlet\nUTF8 requestId 请求日志",width="4.01"];
+subgraph cluster_mvc { label="Spring MVC 子容器"; color="#AFC3CF";
+controller [label="Controller 与 DTO\n参数校验 权限 AOP 统一异常",width="3.02"];
+}
+subgraph cluster_root { label="Spring 根容器"; color="#AFC3CF";
+service [label="业务 Service 与声明式事务\n所有权 状态版本 回避与原子性",width="3.12"];
+rules [label="共享身份与业务规则\nCurrentUser CategoryAccess ClaimReadPolicy",width="4.61"];
+mapper [label="MyBatis Mapper 与 XML\nMyBatis Plus 手动工厂 分页 乐观锁 自动填充",width="4.32"];
+datasource [label="Druid 数据源与事务管理器\n外置本机账号配置",width="2.83"];
+ service -> rules [style=dashed,label="复用"];
+}
+db [shape=cylinder,fillcolor="#E5F0E8",label="MySQL 8 十张业务与关联表\n外键 检查约束 唯一索引 行锁",width="3.0"];
+browser -> filter; api -> filter; filter -> controller; controller -> service;
+service -> mapper; mapper -> datasource; datasource -> db;
+war [shape=note,fillcolor="white",label="交付 WAR 部署到外部 Tomcat 9\nJDK 11 javax.servlet\n无 Spring Boot 测试工具不进入 WAR",width="3.73"];
+{rank=same; browser; api;} db -> war [style=invis];
+}

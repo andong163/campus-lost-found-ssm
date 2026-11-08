@@ -1,0 +1,16 @@
+flowchart TB
+  Draft[DRAFT 本人登记] --> Review[PENDING_REVIEW 审核]
+  Review --> Rejected[REJECTED 驳回]
+  Rejected --> Review
+  Review --> Approved[APPROVED]
+  Approved --> Published[PUBLISHED 授权发布]
+  Published --> Type{LOST 或 FOUND}
+  Type -->|FOUND| Apply[PENDING 他人认领]
+  Apply --> Verified[APPROVED 核实通过]
+  Verified --> Confirm[发布者确认实际交接]
+  Confirm --> Transaction[同事务 申请COMPLETED 物品RESOLVED 写入时间 关闭其他待申请]
+  Transaction -.失败.-> Rollback[全部回滚 保留原状态及版本]
+  Type -->|LOST| Owner[作者确认已找回]
+  Owner --> Resolved[物品RESOLVED 写入时间]
+  Transaction --> History[结案历史 禁止重复确认与新认领]
+  Resolved --> History
