@@ -18,6 +18,10 @@
 
     var Cms = global.Cms = global.Cms || {};
     var TREE_PATH = '/api/public/categories';
+    var script = global.document.currentScript;
+    var appRoot = Cms.api && Cms.api.root
+        ? Cms.api.root : new URL('../../', script.src).href;
+    var defaultBase = new URL(appRoot).pathname.replace(/\/$/, '');
 
     function flatten(nodes, depth, out) {
         (nodes || []).forEach(function (node) {
@@ -59,7 +63,8 @@
          */
         mount: function (host, options) {
             var settings = options || {};
-            var base = settings.contextPath || '';
+            var base = typeof settings.contextPath === 'string'
+                ? settings.contextPath.replace(/\/$/, '') : defaultBase;
             var select = document.createElement('select');
             select.className = 'cms-category-select';
             if (settings.name) {
@@ -107,6 +112,8 @@
                             select.appendChild(option);
                         });
                         select.value = current;
+                        select.disabled = false;
+                        select.removeAttribute('title');
                         if (typeof settings.onChange === 'function') {
                             settings.onChange(picker.getValue());
                         }

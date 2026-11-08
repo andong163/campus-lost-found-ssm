@@ -83,9 +83,36 @@ public final class GmyR3Fixture {
                     .replaceFirst("(?m)^USE cms_content;","");
                 if (init.matches("(?is).*\\b(?:USE|CREATE\\s+DATABASE)\\s+cms_content\\b.*"))
                     throw new IllegalStateException("初始化脚本仍包含业务库切换语句，拒绝执行");
+                boolean previousBaseline = Boolean.getBoolean("cms.gmyR3.previousBaseline");
+                if (previousBaseline) {
+                    int markerIndex = init.indexOf("-- 006-r3-item-claim-permissions.sql：");
+                    if (markerIndex < 0) throw new IllegalStateException("缺少第二轮种子边界");
+                    init = init.substring(0, markerIndex);
+                }
                 script(db,init);
-                for (String name : List.of("003-auth-permission-seed.sql","004-item-review-permissions.sql","005-r2-category-permissions.sql"))
+                if (previousBaseline) try (Statement sql = db.createStatement()) {
+                    sql.executeUpdate("INSERT INTO sys_role(code,name) VALUES('GMY_R3_CUSTOM','迁移保留测试角色')");
+                    sql.executeUpdate("INSERT INTO sys_role_permission(role_id,permission_id) SELECT r.id,p.id FROM sys_role r JOIN sys_permission p ON p.code='audit:view' WHERE r.code='GMY_R3_CUSTOM'");
+                }
+                for (String name : List.of("003-auth-permission-seed.sql","004-item-review-permissions.sql","005-r2-category-permissions.sql","006-r3-item-claim-permissions.sql"))
                     script(db,Files.readString(root.resolve("sql/migrations/"+name),StandardCharsets.UTF_8));
+                script(db,Files.readString(root.resolve("sql/migrations/006-r3-item-claim-permissions.sql"),StandardCharsets.UTF_8));
+                String codes = "('item:view:any','item:batch','item:offline:any','item:delete:any','item:delete:own','claim:create','claim:cancel:own','claim:handover:own')";
+                Map<String,Object> migration = new LinkedHashMap<>();
+                migration.put("mode", previousBaseline ? "round2-upgrade" : "fresh-init");
+                migration.put("permissionCount", count(db,"SELECT COUNT(*) FROM sys_permission WHERE code IN " + codes));
+                for (String role : List.of("ADMIN","EDITOR","REVIEWER","VIEWER")) {
+                    long granted = count(db,"SELECT COUNT(*) FROM sys_role_permission rp JOIN sys_role r ON r.id=rp.role_id JOIN sys_permission p ON p.id=rp.permission_id WHERE r.code='"+role+"' AND p.code IN " + codes);
+                    long expected = role.equals("ADMIN") ? 8 : role.equals("EDITOR") ? 4 : 0;
+                    if (granted != expected) throw new IllegalStateException("第三轮默认角色授权不符");
+                    migration.put(role + "NewGrants", granted);
+                }
+                if (!migration.get("permissionCount").equals(8L)) throw new IllegalStateException("第三轮权限登记不完整");
+                if (previousBaseline && count(db,"SELECT COUNT(*) FROM sys_role_permission rp JOIN sys_role r ON r.id=rp.role_id JOIN sys_permission p ON p.id=rp.permission_id WHERE r.code='GMY_R3_CUSTOM' AND p.code='audit:view'") != 1)
+                    throw new IllegalStateException("升级改变了自定义角色原授权");
+                migration.put("repeatedMigrationPassed", true);
+                migration.put("customGrantPreserved", previousBaseline);
+                JSON.writerWithDefaultPrettyPrinter().writeValue(run.resolve("migration-results.json").toFile(),migration);
                 try (Statement sql=db.createStatement()) {
                     sql.execute("CREATE TABLE gmy_r3_fixture_guard(owner VARCHAR(64) PRIMARY KEY, token VARCHAR(36) NOT NULL)");
                 }
@@ -126,6 +153,11 @@ public final class GmyR3Fixture {
             }
             Files.deleteIfExists(run.resolve("fixture-jdbc.properties"));
             throw failure;
+        }
+    }
+    private static long count(Connection db, String sql) throws SQLException {
+        try (Statement statement = db.createStatement(); ResultSet rows = statement.executeQuery(sql)) {
+            rows.next(); return rows.getLong(1);
         }
     }
     private static void cleanup(Path run,Properties local) throws Exception {

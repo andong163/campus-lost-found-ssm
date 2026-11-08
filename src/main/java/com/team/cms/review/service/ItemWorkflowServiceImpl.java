@@ -158,7 +158,8 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
         long started = System.nanoTime();
         CurrentUser actor = CurrentUserContext.require();
         Article article = lock(itemId);
-        if (!article.getAuthorId().equals(actor.getId())) {
+        if (!article.getAuthorId().equals(actor.getId()) && !actor.hasPermission(
+                com.team.cms.common.security.PermissionCodes.ITEM_OFFLINE_ANY)) {
             requirePublishPermission(actor);
         }
         requireStatus(article, ArticleStatus.PUBLISHED);
@@ -188,6 +189,10 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
     @Transactional(rollbackFor = Exception.class)
     public void resolve(Long itemId, int version, Long expectedClaimId) {
         CurrentUser actor = CurrentUserContext.require();
+        if (!actor.hasRole(AuthConstants.ROLE_ADMIN) && !actor.hasPermission(
+                com.team.cms.common.security.PermissionCodes.CLAIM_HANDOVER_OWN)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "无交接确认权限");
+        }
         Article article = lock(itemId);
         requireAuthor(article, actor);
         if (article.getResolutionStatus() == ResolutionStatus.RESOLVED) {

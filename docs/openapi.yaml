@@ -3,7 +3,7 @@
   "info" : {
     "title" : "校园失物招领 SSM 主接口",
     "version" : "0.3.0-gmy-r3",
-    "description" : "汇总第二轮总基线的实际 Controller/DTO。公开物品检索、批量、认领和交接尚未交付，不在本清单中。角色/所有权及兼容路由说明见 docs/api-contracts-current.md。错误响应列为统一错误契约，不表示每个接口都会产生所有错误。"
+    "description" : "汇总第三轮集成源码的实际 Controller/DTO，含公开检索、批量管理与认领。已存在的交接/结案入口仅记录实现，不代表第四轮已验收。角色/所有权及兼容路由说明见 docs/api-contracts-current.md。错误响应列为统一错误契约，不表示每个接口都会产生所有错误。"
   },
   "servers" : [ {
     "url" : "http://127.0.0.1:8088/cms"
@@ -16,7 +16,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.AuthController#csrf",
         "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -62,7 +62,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.AuthController#login",
         "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ ],
         "requestBody" : {
           "required" : true,
@@ -116,7 +116,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.AuthController#logout",
         "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -162,7 +162,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.AuthController#me",
         "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -208,7 +208,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.AuthController#register",
         "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ ],
         "requestBody" : {
           "required" : true,
@@ -262,7 +262,7 @@
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#create",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：category:add，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：category:add，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -319,7 +319,7 @@
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#tree",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：category:view，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：category:view，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -366,7 +366,7 @@
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#delete",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：category:delete，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：category:delete，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -420,7 +420,7 @@
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#rename",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：category:edit，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：category:edit，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -486,7 +486,7 @@
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#toggle",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：category:enable，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：category:enable，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -552,7 +552,7 @@
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#move",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：category:move，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：category:move，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -618,7 +618,7 @@
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#sort",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：category:sort，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：category:sort，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -677,7 +677,404 @@
         }
       }
     },
+    "/api/claims" : {
+      "get" : {
+        "summary" : "queue",
+        "operationId" : "ClaimController_queue",
+        "tags" : [ "杨程" ],
+        "x-controller" : "com.team.cms.claim.controller.ClaimController#queue",
+        "x-csrf-enforced" : false,
+        "description" : "所需权限：claim:handle，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "claim:handle",
+        "parameters" : [ {
+          "name" : "itemId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64",
+            "minimum" : 1
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1,
+            "maximum" : 100
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "^(PENDING|APPROVED|REJECTED|CANCELLED|COMPLETED)?$"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_common_api_PageResult_com_team_cms_claim_dto_ClaimView__"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/claims/mine" : {
+      "get" : {
+        "summary" : "mine",
+        "operationId" : "ClaimController_mine",
+        "tags" : [ "杨程" ],
+        "x-controller" : "com.team.cms.claim.controller.ClaimController#mine",
+        "x-csrf-enforced" : false,
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "itemId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64",
+            "minimum" : 1
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1,
+            "maximum" : 100
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "^(PENDING|APPROVED|REJECTED|CANCELLED|COMPLETED)?$"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_common_api_PageResult_com_team_cms_claim_dto_ClaimView__"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/claims/{claimId}/cancel" : {
+      "post" : {
+        "summary" : "cancel",
+        "operationId" : "ClaimController_cancel",
+        "tags" : [ "杨程" ],
+        "x-controller" : "com.team.cms.claim.controller.ClaimController#cancel",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：claim:cancel:own，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "claim:cancel:own",
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_claim_dto_ClaimCancelRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "claimId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Void_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/claims/{claimId}/decision" : {
+      "post" : {
+        "summary" : "decide",
+        "operationId" : "ClaimController_decide",
+        "tags" : [ "杨程" ],
+        "x-controller" : "com.team.cms.claim.controller.ClaimController#decide",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：claim:handle，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "claim:handle",
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_claim_dto_ClaimDecisionRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "claimId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Void_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/api/items" : {
+      "get" : {
+        "summary" : "manage",
+        "operationId" : "ArticleManagementController_manage",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleManagementController#manage",
+        "x-csrf-enforced" : false,
+        "description" : "所需权限：item:view:any，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "item:view:any",
+        "parameters" : [ {
+          "name" : "authorId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64",
+            "minimum" : 1
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1,
+            "maximum" : 100
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "PENDING_REVIEW", "APPROVED", "PUBLISHED", "REJECTED", "OFFLINE" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_common_api_PageResult_com_team_cms_article_dto_PrivateArticleDetail__"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      },
       "post" : {
         "summary" : "createMyDraft",
         "operationId" : "ArticleDraftController_createMyDraft",
@@ -743,6 +1140,204 @@
         }
       }
     },
+    "/api/items/batch-delete" : {
+      "post" : {
+        "summary" : "batchDelete",
+        "operationId" : "ArticleManagementController_batchDelete",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleManagementController#batchDelete",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：item:batch，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "item:batch",
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_article_dto_BatchArticleRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Integer_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/items/batch-offline" : {
+      "post" : {
+        "summary" : "batchOffline",
+        "operationId" : "ArticleManagementController_batchOffline",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleManagementController#batchOffline",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：item:batch，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "item:batch",
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_article_dto_BatchArticleRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Integer_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/items/batch-publish" : {
+      "post" : {
+        "summary" : "batchPublish",
+        "operationId" : "ArticleManagementController_batchPublish",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleManagementController#batchPublish",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：item:batch，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "item:batch",
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_article_dto_BatchArticleRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Integer_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/api/items/mine" : {
       "get" : {
         "summary" : "mine",
@@ -750,7 +1345,7 @@
         "tags" : [ "袁运轩" ],
         "x-controller" : "com.team.cms.article.controller.ArticleDraftController#mine",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -819,13 +1414,84 @@
       }
     },
     "/api/items/{id}" : {
+      "delete" : {
+        "summary" : "delete",
+        "operationId" : "ArticleManagementController_delete",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleManagementController#delete",
+        "x-csrf-enforced" : true,
+        "description" : "身份/所有权要求见当前接口约定。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_common_api_VersionRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Void_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      },
       "get" : {
         "summary" : "getMyDraft",
         "operationId" : "ArticleDraftController_getMyDraft",
         "tags" : [ "袁运轩" ],
         "x-controller" : "com.team.cms.article.controller.ArticleDraftController#getMyDraft",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -1020,6 +1686,80 @@
         }
       }
     },
+    "/api/items/{id}/manage-offline" : {
+      "post" : {
+        "summary" : "offline",
+        "operationId" : "ArticleManagementController_offline",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleManagementController#offline",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：item:offline:any，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "item:offline:any",
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_common_api_VersionRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Void_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/api/items/{id}/mine" : {
       "get" : {
         "summary" : "detail",
@@ -1027,7 +1767,7 @@
         "tags" : [ "袁运轩" ],
         "x-controller" : "com.team.cms.article.controller.ArticleDraftController#detail",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -1150,6 +1890,80 @@
         }
       }
     },
+    "/api/items/{id}/publish" : {
+      "post" : {
+        "summary" : "publish",
+        "operationId" : "ArticleManagementController_publish",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleManagementController#publish",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：item:publish，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "item:publish",
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_common_api_VersionRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Void_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/api/items/{id}/reviews" : {
       "get" : {
         "summary" : "reviews",
@@ -1157,7 +1971,7 @@
         "tags" : [ "袁运轩" ],
         "x-controller" : "com.team.cms.article.controller.ArticleDraftController#reviews",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -1354,6 +2168,317 @@
         }
       }
     },
+    "/api/items/{itemId}/claims" : {
+      "get" : {
+        "summary" : "forItem",
+        "operationId" : "ClaimController_forItem",
+        "tags" : [ "杨程" ],
+        "x-controller" : "com.team.cms.claim.controller.ClaimController#forItem",
+        "x-csrf-enforced" : false,
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "itemId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_util_List_com_team_cms_claim_dto_ClaimView__"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      },
+      "post" : {
+        "summary" : "apply",
+        "operationId" : "ClaimController_apply",
+        "tags" : [ "杨程" ],
+        "x-controller" : "com.team.cms.claim.controller.ClaimController#apply",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：claim:create，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "claim:create",
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_claim_dto_ClaimCreateRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "itemId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_claim_dto_ClaimView_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/items/{itemId}/found-contact" : {
+      "get" : {
+        "summary" : "foundContact",
+        "operationId" : "ClaimController_foundContact",
+        "tags" : [ "杨程" ],
+        "x-controller" : "com.team.cms.claim.controller.ClaimController#foundContact",
+        "x-csrf-enforced" : false,
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "itemId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_claim_dto_FoundContactView_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/items/{itemId}/handover" : {
+      "get" : {
+        "summary" : "handover",
+        "operationId" : "ClaimController_handover",
+        "tags" : [ "杨程" ],
+        "x-controller" : "com.team.cms.claim.controller.ClaimController#handover",
+        "x-csrf-enforced" : false,
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "itemId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_claim_dto_HandoverView_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/items/{itemId}/resolve" : {
+      "post" : {
+        "summary" : "resolve",
+        "operationId" : "ClaimController_resolve",
+        "tags" : [ "杨程" ],
+        "x-controller" : "com.team.cms.claim.controller.ClaimController#resolve",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：claim:handover:own，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "claim:handover:own",
+        "requestBody" : {
+          "required" : true,
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/com_team_cms_claim_dto_ResolveRequest"
+              }
+            }
+          }
+        },
+        "parameters" : [ {
+          "name" : "itemId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Void_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/api/items/{itemId}/review-records" : {
       "get" : {
         "summary" : "records",
@@ -1361,7 +2486,7 @@
         "tags" : [ "杨程" ],
         "x-controller" : "com.team.cms.review.controller.ReviewController#records",
         "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -1416,7 +2541,7 @@
         "tags" : [ "杨程" ],
         "x-controller" : "com.team.cms.audit.controller.OperationLogController#page",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：audit:view，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：audit:view，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -1540,7 +2665,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.PermissionController#list",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：role:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：role:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -1587,7 +2712,7 @@
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.PublicCategoryController#tree",
         "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ ],
         "responses" : {
           "200" : {
@@ -1624,6 +2749,219 @@
         }
       }
     },
+    "/api/public/items" : {
+      "get" : {
+        "summary" : "list",
+        "operationId" : "PublicArticleController_list",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.PublicArticleController#list",
+        "x-csrf-enforced" : false,
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ ],
+        "parameters" : [ {
+          "name" : "categoryId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "name" : "direction",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "from",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          }
+        }, {
+          "name" : "itemType",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "LOST", "FOUND" ]
+          }
+        }, {
+          "name" : "keyword",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "keywordPattern",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "location",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "locationPattern",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "name" : "resolutionStatus",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "OPEN", "RESOLVED" ]
+          }
+        }, {
+          "name" : "size",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1,
+            "maximum" : 100
+          }
+        }, {
+          "name" : "sortBy",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "sortColumn",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "sortDirection",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "to",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_common_api_PageResult_com_team_cms_article_dto_PublicArticleView__"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/public/items/{id}" : {
+      "get" : {
+        "summary" : "detail",
+        "operationId" : "PublicArticleController_detail",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.PublicArticleController#detail",
+        "x-csrf-enforced" : false,
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_article_dto_PublicArticleView_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/api/reviews" : {
       "get" : {
         "summary" : "pending",
@@ -1631,7 +2969,7 @@
         "tags" : [ "杨程" ],
         "x-controller" : "com.team.cms.review.controller.ReviewController#pending",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：review:handle，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：review:handle，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -1724,7 +3062,7 @@
         "tags" : [ "杨程" ],
         "x-controller" : "com.team.cms.review.controller.ReviewController#approved",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：item:publish，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：item:publish，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -1791,7 +3129,7 @@
         "tags" : [ "杨程" ],
         "x-controller" : "com.team.cms.review.controller.ReviewController#history",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：review:handle，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：review:handle，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -1875,7 +3213,7 @@
         "tags" : [ "杨程" ],
         "x-controller" : "com.team.cms.review.controller.ReviewController#pendingItems",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：review:view，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：review:view，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2238,7 +3576,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.RoleController#list",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：role:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：role:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2282,8 +3620,8 @@
         "operationId" : "RoleController_create",
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.RoleController#create",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：role:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：role:manage，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2298,6 +3636,15 @@
             }
           }
         },
+        "parameters" : [ {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
         "responses" : {
           "200" : {
             "description" : "成功，HTTP 与 Result.code 均为 200",
@@ -2340,7 +3687,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.RoleController#detail",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：role:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：role:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2393,8 +3740,8 @@
         "operationId" : "RoleController_update",
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.RoleController#update",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：role:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：role:manage，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2417,6 +3764,14 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -2459,8 +3814,8 @@
         "operationId" : "RoleController_assignPermissions",
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.RoleController#assignPermissions",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：role:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：role:manage，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2483,6 +3838,14 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -2526,7 +3889,7 @@
         "tags" : [ "高鸣远" ],
         "x-controller" : "com.team.cms.system.controller.SystemHealthController#health",
         "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ ],
         "responses" : {
           "200" : {
@@ -2570,7 +3933,7 @@
         "tags" : [ "高鸣远" ],
         "x-controller" : "com.team.cms.system.controller.SystemHealthController#readiness",
         "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ ],
         "responses" : {
           "200" : {
@@ -2614,7 +3977,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.UserController#page",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：user:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：user:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2710,7 +4073,7 @@
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.UserController#detail",
         "x-csrf-enforced" : false,
-        "description" : "所需权限：user:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "description" : "所需权限：user:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2765,8 +4128,8 @@
         "operationId" : "UserController_assignRoles",
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.UserController#assignRoles",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：user:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：user:manage，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2789,6 +4152,14 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -2831,8 +4202,8 @@
         "operationId" : "UserController_updateStatus",
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.UserController#updateStatus",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：user:manage，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：user:manage，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -2855,6 +4226,14 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -2908,6 +4287,31 @@
             "nullable" : true
           }
         }
+      },
+      "com_team_cms_article_dto_BatchArticleRequest" : {
+        "type" : "object",
+        "properties" : {
+          "distinct" : {
+            "type" : "boolean"
+          },
+          "ids" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int64"
+            },
+            "minItems" : 1,
+            "maxItems" : 100
+          },
+          "versions" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int32"
+            }
+          }
+        },
+        "required" : [ "ids" ]
       },
       "com_team_cms_article_dto_CreateDraftRequest" : {
         "type" : "object",
@@ -2991,6 +4395,31 @@
           }
         },
         "required" : [ "categoryId", "contactInfo", "content", "eventTime", "itemType", "location", "title", "version" ]
+      },
+      "com_team_cms_article_dto_ManageArticleQuery" : {
+        "type" : "object",
+        "properties" : {
+          "authorId" : {
+            "type" : "integer",
+            "format" : "int64",
+            "minimum" : 1
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1,
+            "maximum" : 100
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "PENDING_REVIEW", "APPROVED", "PUBLISHED", "REJECTED", "OFFLINE" ]
+          }
+        }
       },
       "com_team_cms_article_dto_MyArticleQuery" : {
         "type" : "object",
@@ -3077,6 +4506,110 @@
           }
         },
         "description" : "授权后的私有视图，含联系方式；禁止用于公开列表或公开详情。"
+      },
+      "com_team_cms_article_dto_PublicArticleQuery" : {
+        "type" : "object",
+        "properties" : {
+          "categoryId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "direction" : {
+            "type" : "string"
+          },
+          "from" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          },
+          "itemType" : {
+            "type" : "string",
+            "enum" : [ "LOST", "FOUND" ]
+          },
+          "keyword" : {
+            "type" : "string"
+          },
+          "keywordPattern" : {
+            "type" : "string"
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "locationPattern" : {
+            "type" : "string"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          },
+          "resolutionStatus" : {
+            "type" : "string",
+            "enum" : [ "OPEN", "RESOLVED" ]
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1,
+            "maximum" : 100
+          },
+          "sortBy" : {
+            "type" : "string"
+          },
+          "sortColumn" : {
+            "type" : "string"
+          },
+          "sortDirection" : {
+            "type" : "string"
+          },
+          "to" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          }
+        }
+      },
+      "com_team_cms_article_dto_PublicArticleView" : {
+        "type" : "object",
+        "properties" : {
+          "categoryId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "categoryName" : {
+            "type" : "string"
+          },
+          "categoryPath" : {
+            "type" : "string"
+          },
+          "content" : {
+            "type" : "string"
+          },
+          "eventTime" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "itemType" : {
+            "type" : "string",
+            "enum" : [ "LOST", "FOUND" ]
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "publishedAt" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          },
+          "resolutionStatus" : {
+            "type" : "string",
+            "enum" : [ "OPEN", "RESOLVED" ]
+          },
+          "title" : {
+            "type" : "string"
+          }
+        }
       },
       "com_team_cms_audit_dto_OperationLogQuery" : {
         "type" : "object",
@@ -3552,6 +5085,208 @@
           }
         }
       },
+      "com_team_cms_claim_dto_ClaimCancelRequest" : {
+        "type" : "object",
+        "properties" : {
+          "reason" : {
+            "type" : "string",
+            "minLength" : 2,
+            "maxLength" : 500
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "reason", "version" ]
+      },
+      "com_team_cms_claim_dto_ClaimCreateRequest" : {
+        "type" : "object",
+        "properties" : {
+          "claimDescription" : {
+            "type" : "string",
+            "minLength" : 10,
+            "maxLength" : 1000
+          },
+          "contactInfo" : {
+            "type" : "string",
+            "minLength" : 2,
+            "maxLength" : 100
+          }
+        },
+        "required" : [ "claimDescription", "contactInfo" ]
+      },
+      "com_team_cms_claim_dto_ClaimDecisionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "comment" : {
+            "type" : "string",
+            "minLength" : 0,
+            "maxLength" : 500
+          },
+          "decision" : {
+            "type" : "string",
+            "enum" : [ "APPROVED", "REJECTED" ]
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "decision", "version" ]
+      },
+      "com_team_cms_claim_dto_ClaimQuery" : {
+        "type" : "object",
+        "properties" : {
+          "itemId" : {
+            "type" : "integer",
+            "format" : "int64",
+            "minimum" : 1
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1,
+            "maximum" : 100
+          },
+          "status" : {
+            "type" : "string",
+            "pattern" : "^(PENDING|APPROVED|REJECTED|CANCELLED|COMPLETED)?$"
+          }
+        }
+      },
+      "com_team_cms_claim_dto_ClaimView" : {
+        "type" : "object",
+        "properties" : {
+          "applicantId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "applicantName" : {
+            "type" : "string"
+          },
+          "articleId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "articleTitle" : {
+            "type" : "string"
+          },
+          "cancelReason" : {
+            "type" : "string"
+          },
+          "claimDescription" : {
+            "type" : "string"
+          },
+          "completedAt" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          },
+          "contactInfo" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "itemType" : {
+            "type" : "string"
+          },
+          "reviewComment" : {
+            "type" : "string"
+          },
+          "reviewedAt" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          },
+          "reviewerId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "reviewerName" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "com_team_cms_claim_dto_FoundContactView" : {
+        "type" : "object",
+        "properties" : {
+          "contactInfo" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_claim_dto_HandoverView" : {
+        "type" : "object",
+        "properties" : {
+          "approvedApplicantName" : {
+            "type" : "string"
+          },
+          "approvedClaimId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "itemId" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "itemType" : {
+            "type" : "string"
+          },
+          "resolutionStatus" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "com_team_cms_claim_dto_ResolveRequest" : {
+        "type" : "object",
+        "properties" : {
+          "claimId" : {
+            "type" : "integer",
+            "format" : "int64",
+            "minimum" : 1
+          },
+          "reason" : {
+            "type" : "string",
+            "minLength" : 0,
+            "maxLength" : 500
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "version" ]
+      },
       "com_team_cms_common_api_PageQuery" : {
         "type" : "object",
         "properties" : {
@@ -3579,6 +5314,29 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/com_team_cms_article_dto_PrivateArticleDetail"
+            }
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "com_team_cms_common_api_PageResult_com_team_cms_article_dto_PublicArticleView_" : {
+        "type" : "object",
+        "properties" : {
+          "page" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "records" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/com_team_cms_article_dto_PublicArticleView"
             }
           },
           "size" : {
@@ -3625,6 +5383,29 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/com_team_cms_auth_dto_UserSummaryResponse"
+            }
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "com_team_cms_common_api_PageResult_com_team_cms_claim_dto_ClaimView_" : {
+        "type" : "object",
+        "properties" : {
+          "page" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "records" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/com_team_cms_claim_dto_ClaimView"
             }
           },
           "size" : {
@@ -3698,6 +5479,21 @@
           }
         }
       },
+      "com_team_cms_common_api_Result_com_team_cms_article_dto_PublicArticleView_" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_article_dto_PublicArticleView"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "com_team_cms_common_api_Result_com_team_cms_auth_dto_CurrentUserResponse_" : {
         "type" : "object",
         "properties" : {
@@ -3758,6 +5554,51 @@
           }
         }
       },
+      "com_team_cms_common_api_Result_com_team_cms_claim_dto_ClaimView_" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_claim_dto_ClaimView"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_common_api_Result_com_team_cms_claim_dto_FoundContactView_" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_claim_dto_FoundContactView"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_common_api_Result_com_team_cms_claim_dto_HandoverView_" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_claim_dto_HandoverView"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "com_team_cms_common_api_Result_com_team_cms_common_api_PageResult_com_team_cms_article_dto_PrivateArticleDetail__" : {
         "type" : "object",
         "properties" : {
@@ -3767,6 +5608,21 @@
           },
           "data" : {
             "$ref" : "#/components/schemas/com_team_cms_common_api_PageResult_com_team_cms_article_dto_PrivateArticleDetail_"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_common_api_Result_com_team_cms_common_api_PageResult_com_team_cms_article_dto_PublicArticleView__" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_common_api_PageResult_com_team_cms_article_dto_PublicArticleView_"
           },
           "message" : {
             "type" : "string"
@@ -3803,6 +5659,21 @@
           }
         }
       },
+      "com_team_cms_common_api_Result_com_team_cms_common_api_PageResult_com_team_cms_claim_dto_ClaimView__" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_common_api_PageResult_com_team_cms_claim_dto_ClaimView_"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "com_team_cms_common_api_Result_com_team_cms_common_api_PageResult_com_team_cms_review_dto_ReviewRecordView__" : {
         "type" : "object",
         "properties" : {
@@ -3827,6 +5698,22 @@
           },
           "data" : {
             "$ref" : "#/components/schemas/com_team_cms_common_api_PageResult_com_team_cms_review_dto_ReviewTaskView_"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_common_api_Result_java_lang_Integer_" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "type" : "integer",
+            "format" : "int32"
           },
           "message" : {
             "type" : "string"
@@ -3944,6 +5831,24 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/com_team_cms_category_dto_CategoryTreeNode"
+            }
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_common_api_Result_java_util_List_com_team_cms_claim_dto_ClaimView__" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/com_team_cms_claim_dto_ClaimView"
             }
           },
           "message" : {

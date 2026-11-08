@@ -14,10 +14,12 @@ public class GmyR3ApiCatalogTest {
         ObjectMapper json=new ObjectMapper();
         JsonNode saved=json.readTree(Path.of("docs/openapi.json").toFile());
         JsonNode actual=json.readTree(json.writeValueAsBytes(new GmyR3ApiCatalog().document()));
-        // New member routes may be delivered as fragments first. Existing documented routes may not silently disappear.
+        // 集成基线要求新旧接口均已汇总，不能仅验证第二轮接口仍然存在。
+        assertEquals("Refresh the main catalog after integration", saved.path("paths").size(), actual.path("paths").size());
         Iterator<Map.Entry<String,JsonNode>> paths=saved.path("paths").fields();
         while(paths.hasNext()) {
             var path=paths.next(); Iterator<Map.Entry<String,JsonNode>> methods=path.getValue().fields();
+            assertEquals(path.getKey()+" HTTP operations", path.getValue().size(), actual.path("paths").path(path.getKey()).size());
             while(methods.hasNext()) {
                 var method=methods.next(); JsonNode live=actual.path("paths").path(path.getKey()).path(method.getKey());
                 assertFalse("Documented route missing: "+path.getKey(),live.isMissingNode());

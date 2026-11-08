@@ -11,7 +11,7 @@ import javax.validation.constraints.*;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.web.bind.annotation.*;
 
-/** 从实际 Controller/DTO 汇总主接口；不把规划中的第三、四轮接口写成已实现。 */
+/** 从当前 Controller/DTO 汇总接口；CSRF 仅标注已接入服务端校验的方法。 */
 public final class GmyR3ApiCatalog {
     private final Map<String,Object> schemas=new TreeMap<>();
     private final Map<String,Object> paths=new TreeMap<>();
@@ -69,8 +69,21 @@ public final class GmyR3ApiCatalog {
         if (raw.getSimpleName().equals("PrivateArticleDetail")) definition.put("description","授权后的私有视图，含联系方式；禁止用于公开列表或公开详情。");
         return map("$ref","#/components/schemas/"+key);
     }
-    public static boolean csrfEnforced(String method,String path) {
-        return !method.equals("GET") && (path.startsWith("/api/items") || path.matches("/api/reviews/[^/]+/(decision|approve|reject|publish)"));
+    // 显式记录已核验的入口，避免仅因 URL 前缀相同就将新接口误标为受保护。
+    private static final Set<String> CSRF_CHECKED_METHODS = Set.of(
+        "ArticleDraftController#createMyDraft", "ArticleDraftController#edit",
+        "ArticleDraftController#submit", "ArticleDraftController#withdraw",
+        "ArticleDraftController#offline", "ArticleDraftController#toDraft",
+        "ArticleManagementController#publish", "ArticleManagementController#offline",
+        "ArticleManagementController#delete", "ArticleManagementController#batchPublish",
+        "ArticleManagementController#batchOffline", "ArticleManagementController#batchDelete",
+        "ReviewController#decide", "ReviewController#approve", "ReviewController#reject",
+        "ReviewController#publish", "ClaimController#apply", "ClaimController#decide",
+        "ClaimController#cancel", "ClaimController#resolve",
+        "UserController#updateStatus", "UserController#assignRoles",
+        "RoleController#create", "RoleController#update", "RoleController#assignPermissions");
+    public static boolean csrfEnforced(Method method) {
+        return CSRF_CHECKED_METHODS.contains(method.getDeclaringClass().getSimpleName()+"#"+method.getName());
     }
     public static Set<Class<?>> controllers() throws Exception {
         Set<Class<?>> classes=new TreeSet<>(Comparator.comparing(Class::getName));
@@ -98,10 +111,10 @@ public final class GmyR3ApiCatalog {
                             || path.equals("/api/auth/login") || path.equals("/api/auth/register");
                         String owner=type.getName().contains(".auth.")?"郭金滔":type.getName().contains(".category.")?"孙睿":type.getName().contains(".article.")?"袁运轩":type.getName().contains(".system.")?"高鸣远":"杨程";
                         Map<String,Object> operation=map("summary",method.getName(),"operationId",type.getSimpleName()+"_"+method.getName(),
-                            "tags",List.of(owner),"x-controller",type.getName()+"#"+method.getName(),"x-csrf-enforced",csrfEnforced(http,path));
+                            "tags",List.of(owner),"x-controller",type.getName()+"#"+method.getName(),"x-csrf-enforced",csrfEnforced(method));
                         RequirePermission permission=method.getAnnotation(RequirePermission.class);
                         operation.put("description",(permission==null?"身份/所有权要求见当前接口约定。":"所需权限："+permission.value()+"，或 ADMIN。")+
-                            (csrfEnforced(http,path)?" 写请求要求同会话 X-CSRF-Token。":" 当前未在此接口执行 CSRF 令牌检查；覆盖扩展由身份模块第三轮完成。"));
+                            (csrfEnforced(method)?" 写请求要求同会话 X-CSRF-Token。":" 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。"));
                         operation.put("security",publicRoute?List.of():List.of(map("SessionCookie",List.of())));
                         if (permission!=null) operation.put("x-permission",permission.value());
                         List<Object> parameters=new ArrayList<>(); java.util.regex.Matcher ids=java.util.regex.Pattern.compile("\\{([^}]+)\\}").matcher(path);
@@ -115,7 +128,7 @@ public final class GmyR3ApiCatalog {
                                     parameters.add(map("name",property.getKey(),"in","query","required",false,"schema",property.getValue()));
                             }
                         }
-                        if (csrfEnforced(http,path)) parameters.add(map("name","X-CSRF-Token","in","header","required",true,"schema",map("type","string"),"description","登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"));
+                        if (csrfEnforced(method)) parameters.add(map("name","X-CSRF-Token","in","header","required",true,"schema",map("type","string"),"description","登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"));
                         if (!parameters.isEmpty()) operation.put("parameters",parameters);
                         Map<String,Object> responses=map("200",map("description","成功，HTTP 与 Result.code 均为 200","content",map("application/json",map("schema",schema(method.getGenericReturnType(),Map.of())))));
                         for (String error:List.of("400","401","403","404","409","500","503")) responses.put(error,map("$ref","#/components/responses/Error"));
@@ -127,7 +140,7 @@ public final class GmyR3ApiCatalog {
         }
         schemas.put("ErrorResult",map("type","object","required",List.of("code","message","data"),"properties",map("code",map("type","integer"),"message",map("type","string"),"data",map("nullable",true))));
         return map("openapi","3.0.3","info",map("title","校园失物招领 SSM 主接口","version","0.3.0-gmy-r3",
-            "description","汇总第二轮总基线的实际 Controller/DTO。公开物品检索、批量、认领和交接尚未交付，不在本清单中。角色/所有权及兼容路由说明见 docs/api-contracts-current.md。错误响应列为统一错误契约，不表示每个接口都会产生所有错误。"),
+            "description","汇总第三轮集成源码的实际 Controller/DTO，含公开检索、批量管理与认领。已存在的交接/结案入口仅记录实现，不代表第四轮已验收。角色/所有权及兼容路由说明见 docs/api-contracts-current.md。错误响应列为统一错误契约，不表示每个接口都会产生所有错误。"),
             "servers",List.of(map("url","http://127.0.0.1:8088/cms")),"paths",paths,"components",map("schemas",schemas,
                 "securitySchemes",map("SessionCookie",map("type","apiKey","in","cookie","name","JSESSIONID")),
                 "responses",map("Error",map("description","统一安全错误，HTTP 状态与 code 一致；无 SQL、堆栈或口令","content",map("application/json",map("schema",map("$ref","#/components/schemas/ErrorResult")))))));

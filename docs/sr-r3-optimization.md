@@ -38,8 +38,8 @@
 ## 四、分类选择组件用法
 
 ```html
-<script src="/assets/js/base.js"></script>
-<script src="/assets/js/category-select.js"></script>
+<script src="/cms/assets/js/api.js"></script>
+<script src="/cms/assets/js/category-select.js"></script>
 <div id="category-host"></div>
 <script>
     var picker = Cms.CategorySelect.mount(document.getElementById('category-host'), {
@@ -58,14 +58,14 @@
 </script>
 ```
 
-组件只从 `/api/public/categories` 取数：这棵树本身已剔除停用节点及其子树，所以选出来的值一定是可绑定的，页面不需要再判一次。
+组件从应用内 `/api/public/categories` 取数，默认从 Cms.api.root 或组件脚本位置识别 `/cms` 等部署根路径。公开树已剔除停用节点及其子树；写入时服务端仍须重新验证分类，防止分类在选择后被停用。加载失败后可用 picker.reload() 重试，成功时恢复选择框。
 
 `docs/api.http` 与 `src/main/webapp/pages/items/edit.html` 里现有的手写递归下拉，可以在后续替换成这个组件，替换时保持提交范围独立，不与物品模块的改动混在一起。
 
 ## 五、验证方式
 
 ```powershell
-.\scripts\build.ps1 -Test
+.\scripts\build.ps1
 ```
 
 或只跑本轮相关用例：
@@ -80,4 +80,4 @@ mvn -B -ntp test -Dtest=CategoryR3IntegrationTest
 
 - 列表页要判断一批分类能否绑定时，调用 `bindableIds`，不要循环 `isBindable`。
 - 按分类筛选公开内容时，用 `publicSubtreeIds(rootId)` 拿到可见子树 id，再拼 `IN`；返回空列表表示该分类不可见，直接返回空结果，不要退化成「全量」。
-- 组件的 `contextPath` 选项留给部署在非根路径的场景；当前项目按根路径部署，默认值即可。
+- 当前项目按 `/cms` 部署，默认值会识别该路径；`contextPath` 可显式覆盖，例如 `/campus`，传空字符串则明确请求站点根路径。

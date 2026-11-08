@@ -72,7 +72,7 @@ public abstract class ReviewTestSupport {
             Collections.singleton(role), Collections.emptySet()));
     }
 
-    protected void asAuthor() { as(1L, "张同学"); }
+    protected void asAuthor() { as(1L, "张同学", "claim:handover:own"); }
     protected void asApplicant() { as(2L, "李同学"); }
     protected void asReviewer() {
         as(3L, "王审核", ReviewPermissions.REVIEW_HANDLE, "article:publish");
