@@ -2,6 +2,7 @@ package com.team.cms;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.team.cms.auth.AuthConstants;
 import com.team.cms.auth.service.AuthService;
 import com.team.cms.common.web.RequestLogFilter;
 import com.team.cms.config.SpringConfig;
@@ -11,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * 郭金滔 GJT R2 验收测试：用户分页与启停、角色分配、权限维护，
  * 以及「停用/改角色对既有会话立即生效」「最后一个管理员保护」「响应不含密码哈希」。
+ * <p>GJT R3 追加：本模块写接口缺失或错误 CSRF 令牌时拒绝。</p>
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -82,6 +85,14 @@ public class UserRoleAdminTest {
         return login(ADMIN, ADMIN_PASSWORD);
     }
 
+    /** 登录后取会话内的写请求令牌，等价于页面调用 GET /api/auth/csrf。 */
+    private String csrf(MockHttpSession session) throws Exception {
+        MvcResult result = mvc.perform(get("/api/auth/csrf").session(session)).andReturn();
+        assertEquals("应能取得写请求令牌: " + result.getResponse().getContentAsString(),
+            200, result.getResponse().getStatus());
+        return body(result).get("data").asText();
+    }
+
     @Test public void studentCannotManageUsersOrRoles() throws Exception {
         register("stu10", "学生甲");
         MockHttpSession session = login("stu10", USER_PASSWORD);
@@ -124,6 +135,7 @@ public class UserRoleAdminTest {
 
         MockHttpSession admin = adminSession();
         assertEquals(200, mvc.perform(put("/api/users/" + studentId + "/status").session(admin)
+            .header(AuthConstants.CSRF_HEADER, csrf(admin))
             .contentType(MediaType.APPLICATION_JSON).content("{\"enabled\":false}"))
             .andReturn().getResponse().getStatus());
 
@@ -145,7 +157,9 @@ public class UserRoleAdminTest {
                 .getResponse().getStatus());
 
         MockHttpSession admin = adminSession();
+        String token = csrf(admin);
         assertEquals(200, mvc.perform(put("/api/users/" + studentId + "/roles").session(admin)
+            .header(AuthConstants.CSRF_HEADER, token)
             .contentType(MediaType.APPLICATION_JSON).content("{\"roleCodes\":[\"ADMIN\"]}"))
             .andReturn().getResponse().getStatus());
         assertEquals("授予 ADMIN 后同一会话应立即通过", 200,
@@ -153,6 +167,7 @@ public class UserRoleAdminTest {
                 .getResponse().getStatus());
 
         assertEquals(200, mvc.perform(put("/api/users/" + studentId + "/roles").session(admin)
+            .header(AuthConstants.CSRF_HEADER, token)
             .contentType(MediaType.APPLICATION_JSON).content("{\"roleCodes\":[\"EDITOR\"]}"))
             .andReturn().getResponse().getStatus());
         assertEquals("撤销后同一会话应立即被拒绝", 403,
@@ -162,19 +177,23 @@ public class UserRoleAdminTest {
 
     @Test public void cannotDisableOrDemoteLastEnabledAdmin() throws Exception {
         MockHttpSession admin = adminSession();
+        String token = csrf(admin);
         long adminId = body(mvc.perform(get("/api/auth/me").session(admin)).andReturn())
             .get("data").get("id").asLong();
 
         assertEquals(409, mvc.perform(put("/api/users/" + adminId + "/status").session(admin)
+            .header(AuthConstants.CSRF_HEADER, token)
             .contentType(MediaType.APPLICATION_JSON).content("{\"enabled\":false}"))
             .andReturn().getResponse().getStatus());
         assertEquals(409, mvc.perform(put("/api/users/" + adminId + "/roles").session(admin)
+            .header(AuthConstants.CSRF_HEADER, token)
             .contentType(MediaType.APPLICATION_JSON).content("{\"roleCodes\":[\"EDITOR\"]}"))
             .andReturn().getResponse().getStatus());
     }
 
     @Test public void adminMaintainsRolesAndPermissions() throws Exception {
         MockHttpSession admin = adminSession();
+        String token = csrf(admin);
 
         MvcResult roles = mvc.perform(get("/api/roles").session(admin)).andReturn();
         assertEquals(200, roles.getResponse().getStatus());
@@ -185,12 +204,14 @@ public class UserRoleAdminTest {
         assertTrue(body(permissions).get("data").toString().contains("user:manage"));
 
         MvcResult created = mvc.perform(post("/api/roles").session(admin)
+            .header(AuthConstants.CSRF_HEADER, token)
             .contentType(MediaType.APPLICATION_JSON).content("{\"code\":\"HELPER\",\"name\":\"协助人员\"}"))
             .andReturn();
         assertEquals(200, created.getResponse().getStatus());
         long roleId = body(created).get("data").get("id").asLong();
 
         assertEquals(200, mvc.perform(put("/api/roles/" + roleId + "/permissions").session(admin)
+            .header(AuthConstants.CSRF_HEADER, token)
             .contentType(MediaType.APPLICATION_JSON).content("{\"permissionCodes\":[\"article:create\"]}"))
             .andReturn().getResponse().getStatus());
         MvcResult detail = mvc.perform(get("/api/roles/" + roleId).session(admin)).andReturn();
@@ -199,15 +220,18 @@ public class UserRoleAdminTest {
             body(detail).get("data").get("permissions").toString().contains("article:create"));
 
         assertEquals("重复角色代码应冲突", 409, mvc.perform(post("/api/roles").session(admin)
+            .header(AuthConstants.CSRF_HEADER, token)
             .contentType(MediaType.APPLICATION_JSON).content("{\"code\":\"HELPER\",\"name\":\"重复角色\"}"))
             .andReturn().getResponse().getStatus());
         assertEquals("无效权限代码应 400", 400, mvc.perform(put("/api/roles/" + roleId + "/permissions")
-            .session(admin).contentType(MediaType.APPLICATION_JSON)
+            .session(admin).header(AuthConstants.CSRF_HEADER, token)
+            .contentType(MediaType.APPLICATION_JSON)
             .content("{\"permissionCodes\":[\"not:exist\"]}")).andReturn().getResponse().getStatus());
     }
 
     @Test public void adminRoleCannotLoseManagePermissions() throws Exception {
         MockHttpSession admin = adminSession();
+        String token = csrf(admin);
         MvcResult roles = mvc.perform(get("/api/roles").session(admin)).andReturn();
         long adminRoleId = -1;
         for (JsonNode node : body(roles).get("data")) {
@@ -218,6 +242,7 @@ public class UserRoleAdminTest {
         assertTrue("应能定位 ADMIN 角色", adminRoleId > 0);
         assertEquals("不得移除管理员角色的用户/角色管理权限", 409,
             mvc.perform(put("/api/roles/" + adminRoleId + "/permissions").session(admin)
+                .header(AuthConstants.CSRF_HEADER, token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"permissionCodes\":[\"article:create\"]}"))
                 .andReturn().getResponse().getStatus());
@@ -227,12 +252,62 @@ public class UserRoleAdminTest {
         JsonNode student = register("stu14", "学生戊");
         long studentId = student.get("id").asLong();
         MockHttpSession admin = adminSession();
+        String token = csrf(admin);
         assertEquals(400, mvc.perform(put("/api/users/" + studentId + "/roles").session(admin)
+            .header(AuthConstants.CSRF_HEADER, token)
             .contentType(MediaType.APPLICATION_JSON).content("{\"roleCodes\":[\"NOPE\"]}"))
             .andReturn().getResponse().getStatus());
         assertEquals(404, mvc.perform(get("/api/users/999999").session(admin)).andReturn()
             .getResponse().getStatus());
         assertEquals(404, mvc.perform(get("/api/roles/999999").session(admin)).andReturn()
             .getResponse().getStatus());
+    }
+
+    /** GJT R3：身份模块的页面与静态资源必须能直接被访问，登录态由页面脚本自行处理。 */
+    @Test public void authPagesAndAssetsAreServed() throws Exception {
+        java.util.List<String> resources = java.util.Arrays.asList(
+            "/pages/auth/login.html", "/pages/auth/users.html", "/pages/auth/roles.html",
+            "/pages/auth/module.json", "/assets/css/auth.css",
+            "/assets/js/auth/login.js", "/assets/js/auth/users.js", "/assets/js/auth/roles.js",
+            "/assets/js/api.js", "/assets/js/shell.js", "/assets/js/pagination.js");
+        for (String resource : resources) {
+            MockHttpServletResponse response = mvc.perform(get(resource)).andReturn().getResponse();
+            assertEquals("静态资源应可直接访问: " + resource, 200, response.getStatus());
+            assertTrue("响应不应为空: " + resource, response.getContentAsByteArray().length > 0);
+        }
+    }
+
+    /** GJT R3：写接口必须校验 CSRF 令牌，缺失、错误或他人会话的令牌都拒绝。 */
+    @Test public void writeRequestsRequireCsrfToken() throws Exception {
+        JsonNode student = register("stu15", "学生己");
+        long studentId = student.get("id").asLong();
+        MockHttpSession admin = adminSession();
+        MockHttpSession other = adminSession();
+        String payload = "{\"enabled\":false}";
+
+        assertEquals("缺失令牌应拒绝", 403, mvc.perform(put("/api/users/" + studentId + "/status")
+            .session(admin).contentType(MediaType.APPLICATION_JSON).content(payload))
+            .andReturn().getResponse().getStatus());
+        assertEquals("错误令牌应拒绝", 403, mvc.perform(put("/api/users/" + studentId + "/status")
+            .session(admin).header(AuthConstants.CSRF_HEADER, "wrong-token")
+            .contentType(MediaType.APPLICATION_JSON).content(payload))
+            .andReturn().getResponse().getStatus());
+        assertEquals("他人会话的令牌应拒绝", 403,
+            mvc.perform(put("/api/users/" + studentId + "/status").session(admin)
+                .header(AuthConstants.CSRF_HEADER, csrf(other))
+                .contentType(MediaType.APPLICATION_JSON).content(payload))
+                .andReturn().getResponse().getStatus());
+        assertEquals("正确令牌应通过", 200, mvc.perform(put("/api/users/" + studentId + "/status")
+            .session(admin).header(AuthConstants.CSRF_HEADER, csrf(admin))
+            .contentType(MediaType.APPLICATION_JSON).content(payload))
+            .andReturn().getResponse().getStatus());
+
+        assertEquals("角色写接口缺失令牌应拒绝", 403, mvc.perform(post("/api/roles").session(admin)
+            .contentType(MediaType.APPLICATION_JSON).content("{\"code\":\"CSRFX\",\"name\":\"令牌测试\"}"))
+            .andReturn().getResponse().getStatus());
+        assertEquals("角色写接口带令牌应通过", 200, mvc.perform(post("/api/roles").session(admin)
+            .header(AuthConstants.CSRF_HEADER, csrf(admin))
+            .contentType(MediaType.APPLICATION_JSON).content("{\"code\":\"CSRFX\",\"name\":\"令牌测试\"}"))
+            .andReturn().getResponse().getStatus());
     }
 }

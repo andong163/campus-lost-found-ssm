@@ -1,0 +1,74 @@
+/*
+ * 身份模块页面样式。
+ * 外层布局、导航、登录状态和反馈区域由高鸣远的 base.css / modules.css / shell.js 提供，
+ * 这里只声明本模块自己的表单、表格与权限勾选样式，避免和公共样式互相覆盖。
+ */
+:root {
+  --cms-accent: #2563eb;
+  --cms-accent-weak: #dbeafe;
+  --cms-danger: #b91c1c;
+  --cms-danger-weak: #fee2e2;
+  --cms-ok: #047857;
+  --cms-ok-weak: #d1fae5;
+  --cms-border: #d0d7de;
+  --cms-muted: #6b7280;
+}
+
+.cms-card {
+  background: #fff; border: 1px solid var(--cms-border); border-radius: .6rem;
+  padding: 1.1rem 1.25rem; margin-bottom: 1rem;
+}
+.cms-card h2 { margin: 0 0 .8rem; font-size: 1.05rem; }
+.cms-muted { color: var(--cms-muted); font-size: .88rem; }
+
+.cms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .75rem 1rem; }
+.cms-field { display: flex; flex-direction: column; gap: .3rem; }
+.cms-field label { font-size: .85rem; color: #4b5563; }
+.cms-field input, .cms-field select {
+  padding: .45rem .55rem; border: 1px solid var(--cms-border); border-radius: .35rem;
+  font: inherit; background: #fff; color: inherit;
+}
+.cms-actions { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .9rem; }
+
+.cms-card button { font: inherit; cursor: pointer; border-radius: .35rem; border: 1px solid transparent; padding: .4rem .8rem; }
+.cms-card button[disabled] { opacity: .55; cursor: not-allowed; }
+.cms-card .cms-btn-primary { background: var(--cms-accent); color: #fff; }
+.cms-card .cms-btn-ghost { background: transparent; border-color: var(--cms-border); color: #374151; }
+.cms-card .cms-btn-danger { background: var(--cms-danger-weak); color: var(--cms-danger); border-color: #fca5a5; }
+
+table.cms-table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+table.cms-table th, table.cms-table td { padding: .5rem .55rem; border-bottom: 1px solid #eef1f5; text-align: left; }
+table.cms-table th { color: var(--cms-muted); font-weight: 600; font-size: .82rem; }
+table.cms-table tbody tr:hover { background: #f9fbfd; }
+table.cms-table td.actions { white-space: nowrap; }
+table.cms-table td.actions button { padding: .28rem .55rem; font-size: .82rem; }
+
+.cms-tag { display: inline-block; padding: .05rem .45rem; margin: 0 .25rem .25rem 0; border-radius: .3rem; background: #eef2f7; font-size: .8rem; }
+.cms-tag.is-on { background: var(--cms-ok-weak); color: var(--cms-ok); }
+.cms-tag.is-off { background: var(--cms-danger-weak); color: var(--cms-danger); }
+
+.cms-checkboxes { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+.cms-checkboxes label { display: flex; align-items: center; gap: .35rem; font-size: .9rem; }
+.cms-permission-group { margin-bottom: .85rem; }
+.cms-permission-group h3 { margin: 0 0 .4rem; font-size: .88rem; color: var(--cms-muted); font-weight: 600; }
+
+.cms-alert { border-radius: .45rem; padding: .6rem .8rem; margin-bottom: 1rem; font-size: .9rem; display: none; }
+.cms-alert.is-visible { display: block; }
+.cms-alert.is-error { background: var(--cms-danger-weak); color: var(--cms-danger); border: 1px solid #fca5a5; }
+.cms-alert.is-ok { background: var(--cms-ok-weak); color: var(--cms-ok); border: 1px solid #6ee7b7; }
+
+.cms-auth-wrap { max-width: 26rem; margin: 2rem auto; }
+.cms-tabs { display: flex; gap: .5rem; margin-bottom: 1rem; }
+.cms-tabs button { background: #eef2f7; border-color: transparent; color: #374151; }
+.cms-tabs button[aria-selected="true"] { background: var(--cms-accent); color: #fff; }
+.cms-hint { font-size: .82rem; color: var(--cms-muted); line-height: 1.6; }
+.cms-split { display: grid; grid-template-columns: minmax(18rem, 1fr) minmax(16rem, 20rem); gap: 1rem; align-items: start; }
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, .45); display: flex;
+  align-items: center; justify-content: center; padding: 1rem; z-index: 40;
+}
+.modal-backdrop[hidden] { display: none; }
+.modal-backdrop .cms-card { margin: 0; max-width: 32rem; width: 100%; max-height: 90vh; overflow: auto; }
+@media (max-width: 60rem) {
+  .cms-split { grid-template-columns: 1fr; }
+}
