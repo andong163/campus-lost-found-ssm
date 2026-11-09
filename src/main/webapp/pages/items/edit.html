@@ -1,12 +1,21 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>编辑信息</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script></head><body class="module-page" data-page-title="编辑信息"><div data-cms-shell></div><main>
+<title>编辑信息</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script><style>
+#form .item-location-field { display: grid; gap: var(--space-2); margin: var(--space-4) 0; min-width: 0; }
+#form .item-location-field label { display: block; margin: 0; }
+#form .item-location-field input { width: 100%; min-width: 0; }
+#form .item-location-field .muted { margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
+</style></head><body class="module-page" data-page-title="编辑信息"><div data-cms-shell></div><main>
 <nav><a id="back" href="mine.html">返回详情</a></nav><h1>编辑信息</h1><p id="notice" role="status"></p>
 <form id="form"><label>标题<input name="title" minlength="2" maxlength="100" required></label>
 <label>正文<textarea name="content" minlength="10" maxlength="5000" required></textarea></label>
 <label>类型<select name="itemType"><option value="LOST">寻物</option><option value="FOUND">招领</option></select></label>
 <label>分类<select name="categoryId" required></select></label>
 <label>事发时间<input name="eventTime" type="datetime-local" required></label>
-<label>地点<input name="location" minlength="2" maxlength="100" required></label>
+<div class="item-location-field">
+<label for="item-location">地点</label>
+<input id="item-location" name="location" minlength="2" maxlength="100" required aria-describedby="item-location-hint">
+<p id="item-location-hint" class="muted">请填写建筑名称及具体位置，如：第一教学楼302教室、图书馆二楼、三号宿舍楼入口。</p>
+</div>
 <label>联系方式<input name="contactInfo" minlength="2" maxlength="100" required></label>
 <button type="submit">保存修改</button></form></main><script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
 const id=new URLSearchParams(location.search).get('id');let version;

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>认领处理 - 校园失物招领</title>
+  <link rel="stylesheet" href="../assets/css/base.css"><link rel="stylesheet" href="../assets/css/modules.css">
+</head>
+<body class="module-page" data-page-title="认领处理">
+<div data-cms-shell></div>
+<main><h1>认领处理</h1>
+  <div id="message" class="message"></div>
+
+  <section class="panel">
+    <h2>认领申请队列</h2>
+    <p class="meta">批准表示证据核实通过，物品仍保持“未结案”；实际交接由发布者在本人信息详情确认。</p>
+    <form id="filters" class="filters">
+      <label>状态
+        <select id="status">
+          <option value="PENDING">待核实</option>
+          <option value="">全部</option>
+          <option value="APPROVED">已通过</option>
+          <option value="REJECTED">已驳回</option>
+          <option value="CANCELLED">已撤销</option>
+          <option value="COMPLETED">已完成</option>
+        </select>
+      </label>
+      <button type="submit">查询</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th><th>物品</th><th>申请人</th><th>认领说明</th><th>联系方式</th>
+        <th>状态</th><th>提交时间</th><th>处理意见</th><th>操作</th>
+      </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="claim-pager"></div>
+  </section>
+</main>
+<script src="../assets/js/api.js"></script><script src="../assets/js/pagination.js"></script><script src="../assets/js/shell.js"></script><script src="../yangcheng/common.js"></script><script src="../assets/js/r4-claim-ui.js?v=85168d556a"></script>
+<script>
+(function () {
+  const state = {page: 1, size: 10, total: 0};
+
+  async function load() {
+    YC.setMessage('message', '正在加载……');
+    const params = new URLSearchParams({
+      page: String(state.page),
+      size: String(state.size),
+      status: document.getElementById('status').value
+    });
+    try {
+      const data = await YC.request('/api/claims?' + params.toString());
+      state.total = data.total;
+      render(data.records || []);
+      YC.setMessage('message', '');
+    } catch (error) {
+      render([]);
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+    renderPager();
+  }
+
+  function render(records) {
+    const tbody = document.getElementById('rows');
+    tbody.textContent = '';
+    if (!records.length) {
+      const tr = document.createElement('tr');
+      const td = YC.text('td', '暂无认领申请', 'empty');
+      td.colSpan = 9;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    records.forEach(claim => {
+      const actions = document.createElement('td');
+      actions.className = 'actions';
+      if (claim.status === 'PENDING') {
+        actions.appendChild(YC.actionButton('通过', '', () => decide(claim, 'APPROVED')));
+        actions.appendChild(YC.actionButton('驳回', 'danger', () => decide(claim, 'REJECTED')));
+      }
+
+      const statusCell = YC.text('td');
+      statusCell.appendChild(YC.text('span', claim.status, 'status ' + claim.status));
+
+      const reviewCell = YC.text('td');
+      reviewCell.appendChild(YC.text('div', claim.reviewComment || '—'));
+      if (claim.cancelReason) {
+        reviewCell.appendChild(YC.text('div', '撤销/关闭：' + claim.cancelReason, 'meta'));
+      }
+
+      tbody.appendChild(YC.row([
+        claim.id, claim.articleTitle, claim.applicantName, claim.claimDescription,
+        claim.contactInfo, statusCell, YC.formatTime(claim.createdAt), reviewCell, actions
+      ]));
+    });
+  }
+
+  async function decide(claim, decision) {
+    const hint = decision === 'REJECTED' ? '请填写驳回理由（必填）' : '核实意见（可留空）';
+    const comment = window.prompt(hint, '');
+    if (comment === null) return;
+    if (decision === 'REJECTED' && !comment.trim()) {
+      window.alert('驳回必须填写理由。');
+      return;
+    }
+    try {
+      await YC.post('/api/claims/' + claim.id + '/decision', {
+        version: claim.version,
+        decision: decision,
+        comment: comment.trim()
+      });
+      YC.setMessage('message', '认领处理成功，正在刷新。', 'ok');
+      await load();
+    } catch (error) {
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+  }
+
+  const pager = new Cms.Pagination(document.getElementById('claim-pager'), async value => {
+    state.page=value.page; state.size=value.size; await load();
+  });
+  function renderPager() { pager.render(state); }
+
+
+  document.getElementById('filters').addEventListener('submit', event => {
+    event.preventDefault();
+    state.page = 1;
+    load();
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

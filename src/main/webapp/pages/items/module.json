@@ -2,6 +2,10 @@
   "module": "items",
   "entries": [
     {
+      "label": "寻物招领",
+      "page": "pages/items/public.html"
+    },
+    {
       "label": "我的信息",
       "page": "pages/items/mine.html",
       "permission": "item:view:own"

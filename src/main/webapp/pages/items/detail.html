@@ -1,14 +1,15 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>信息详情</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script></head><body class="module-page" data-page-title="信息详情"><div data-cms-shell></div><main>
+<title>信息详情</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script><script defer src="../../assets/js/r4-detail.js?v=afbf0d0a91"></script></head><body class="module-page" data-page-title="信息详情" data-r4-detail="owner"><div data-cms-shell></div><main>
 <nav><a href="mine.html">返回我的信息</a></nav><h1 id="title">加载中…</h1><p id="notice" role="status"></p>
 <p id="state"></p><p id="content"></p><p id="meta"></p><section><h2>审核意见</h2><div id="reviews">加载中…</div></section>
-<div id="actions"></div></main><script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
+<section id="r4-history" aria-live="polite"></section><section id="r4-contact"><button id="r4-contact-button" type="button">查看联系方式</button><p id="r4-contact-value" aria-live="polite"></p></section><div id="r4-resolve"></div><div id="actions"></div></main><script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
 const id=new URLSearchParams(location.search).get('id');let item;
-async function load(){try{item=await api('/items/'+encodeURIComponent(id)+'/mine');
+async function load(){try{item=await api('/items/'+encodeURIComponent(id)+'/r4-detail');
  document.querySelector('#title').textContent=item.title;
  document.querySelector('#state').textContent='状态：'+(statusText[item.status]||item.status)+' · 版本 '+item.version;
  document.querySelector('#content').textContent=item.content;
- document.querySelector('#meta').textContent=`${item.itemType} · ${item.location} · ${item.eventTime} · 联系方式：${item.contactInfo}`;
+ document.querySelector('#meta').textContent=`${item.itemType} · ${item.location} · ${item.eventTime}`;
+ window.dispatchEvent(new CustomEvent("cms:r4item",{detail:item}));
  const reviews=await api('/items/'+encodeURIComponent(id)+'/reviews');const box=document.querySelector('#reviews');box.replaceChildren();
  if(!reviews.length)box.textContent='暂无审核记录';for(const r of reviews){const p=document.createElement('p');p.textContent=`${r.decision}：${r.comment||'无意见'}`;box.append(p)}
  const actions=document.querySelector('#actions');actions.replaceChildren();
