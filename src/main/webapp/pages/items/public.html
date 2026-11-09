@@ -1,0 +1,103 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>寻物招领</title><link rel="stylesheet" href="../../assets/css/base.css"><link rel="stylesheet" href="../../assets/css/modules.css"><link rel="stylesheet" href="../../assets/css/select.css?v=5caa79bb46"><link rel="stylesheet" href="../../assets/css/public-filters.css?v=635d5407c0"><script defer src="../../assets/js/select.js?v=f06d199703"></script><script defer src="../../assets/js/api.js"></script><script defer src="../../assets/js/shell.js"></script><script defer src="../../assets/js/public-items-layout.js?v=64bfa1c3d2"></script></head><body class="module-page public-items-page" data-page-title="寻物招领"><div data-cms-shell></div><main><form id="filter" class="public-filters" aria-label="筛选寻物招领信息">
+  <div class="filter-primary">
+  <div class="filter-fields">
+    <div class="filter-field filter-keyword">
+      <label for="filter-keyword">关键词</label>
+      <input id="filter-keyword" name="keyword" type="search" placeholder="搜索标题或物品描述">
+    </div>
+    <div class="filter-field">
+      <label for="filter-type">信息类型</label>
+      <select id="filter-type" name="itemType" data-cms-select>
+        <option value="">全部类型</option><option value="LOST">寻物</option><option value="FOUND">招领</option>
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="filter-category">物品分类</label>
+      <select id="filter-category" name="categoryId" data-cms-select><option value="">全部分类</option></select>
+    </div>
+    <div class="filter-field">
+      <label for="filter-location">地点关键词（选填）</label>
+      <input id="filter-location" name="location" placeholder="如：教学楼、图书馆、食堂、宿舍">
+    </div>
+    <div class="filter-actions">
+      <button class="filter-submit" type="submit">查询</button>
+      <button id="advanced-toggle" class="filter-more" type="button" aria-expanded="false" aria-controls="advanced-filters">
+        <span class="filter-disclosure" aria-hidden="true">▸</span><span>更多筛选</span>
+        <span id="advanced-badge" class="advanced-badge" aria-hidden="true" hidden>已启用</span>
+        <span id="advanced-indicator" class="advanced-indicator public-sr-only" aria-live="polite" hidden></span>
+      </button>
+    </div>
+  </div>
+  </div>
+  <details id="advanced-filters" class="advanced-filters">
+    <summary hidden>更多筛选</summary>
+    <div class="advanced-fields">
+      <fieldset class="filter-date-range">
+        <legend>丢失／拾获日期（选填）</legend>
+        <p id="date-range-help" class="filter-help">按物品丢失或拾获的事发日期筛选，与发布时间、认领期限无关。</p>
+        <div class="filter-dates">
+          <div class="filter-field">
+            <label for="filter-from">起始日期</label>
+            <input id="filter-from" name="from" type="date" aria-describedby="date-range-help date-range-error">
+          </div>
+          <div class="filter-field">
+            <label for="filter-to">截止日期</label>
+            <input id="filter-to" name="to" type="date" aria-describedby="date-range-help date-range-error">
+          </div>
+        </div>
+        <p id="date-range-error" class="filter-date-error" role="alert" hidden></p>
+      </fieldset>
+      <div class="filter-field filter-status">
+        <label for="filter-resolution">处理状态</label>
+        <select id="filter-resolution" name="resolutionStatus" data-cms-select>
+          <option value="">全部处理状态</option><option value="OPEN">未结案</option><option value="RESOLVED">已结案</option>
+        </select>
+      </div>
+      <div class="filter-sort" role="group" aria-label="排序设置">
+        <div class="filter-field">
+          <label for="filter-sort">排序依据</label>
+          <select id="filter-sort" name="sortBy" data-cms-select>
+            <option value="publishedAt">发布时间</option><option value="eventTime">事发时间</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label for="filter-direction">排序方向</label>
+          <select id="filter-direction" name="direction" data-cms-select>
+            <option value="desc">倒序</option><option value="asc">正序</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </details>
+  <section id="public-results" class="public-results" aria-label="公开信息结果">
+    <p id="notice" role="status"></p>
+    <div id="list" aria-live="polite">加载中…</div>
+    <nav class="public-pagination" aria-label="结果分页">
+      <button id="prev" type="button">上一页</button><span id="page"></span><button id="next" type="button">下一页</button>
+    </nav>
+  </section>
+</form></main><script src="../../assets/js/public-date-filters.js?v=02705b43ae"></script><script>
+const form=document.querySelector('#filter'),notice=document.querySelector('#notice'),list=document.querySelector('#list');let page=1,total=0;const size=10;
+const advanced=document.querySelector('#advanced-filters'),dateError=document.querySelector('#date-range-error');
+function updateAdvanced(){
+ const enabled=PublicDateFilters.advancedConditions(Object.fromEntries(new FormData(form)));
+ const indicator=document.querySelector('#advanced-indicator');indicator.hidden=!enabled.length;
+ indicator.textContent=enabled.length?'已启用：'+enabled.join('、'):'';
+}
+function validateDateRange(reveal=false){
+ try{PublicDateFilters.bounds(form.elements.from.value,form.elements.to.value);
+  dateError.hidden=true;dateError.textContent='';
+  form.elements.from.removeAttribute('aria-invalid');form.elements.to.removeAttribute('aria-invalid');return true;
+ }catch(error){
+  dateError.textContent=error.message;dateError.hidden=false;
+  form.elements.from.setAttribute('aria-invalid','true');form.elements.to.setAttribute('aria-invalid','true');
+  if(reveal){advanced.open=true;form.elements.from.focus();}return false;
+ }
+}
+form.addEventListener('input',()=>{validateDateRange();updateAdvanced()});
+form.addEventListener('change',()=>{validateDateRange();updateAdvanced()});
+
+function options(nodes,depth=0){for(const n of nodes){const option=document.createElement('option');option.value=n.id;option.textContent='　'.repeat(depth)+n.name;form.elements.categoryId.append(option);options(n.children,depth+1)}}
+async function load(){if(!validateDateRange(true))return;const q=new URLSearchParams(new FormData(form));const bounds=PublicDateFilters.bounds(form.elements.from.value,form.elements.to.value);q.delete('from');q.delete('to');if(bounds.from)q.set('from',bounds.from);if(bounds.to)q.set('to',bounds.to);list.textContent='加载中…';notice.textContent='';for(const [k,v] of [...q])if(!v)q.delete(k);q.set('page',page);q.set('size',size);history.replaceState(null,'','?'+q);try{const data=await Cms.api.request('/api/public/items?'+q);total=data.total;list.replaceChildren();if(!data.records.length)list.textContent='暂无符合条件的信息';for(const item of data.records){const row=document.createElement('p'),link=document.createElement('a');link.href='public-detail.html?id='+encodeURIComponent(item.id);link.textContent=item.title;row.append(link,document.createTextNode(' · '+(item.itemType==='LOST'?'寻物':'招领')+' · '+item.location+' · '+(item.resolutionStatus==='RESOLVED'?'已结案':'未结案')));list.append(row)}document.querySelector('#page').textContent=`第 ${page} 页，共 ${total} 条`;document.querySelector('#prev').disabled=page<=1;document.querySelector('#next').disabled=page*size>=total}catch(e){list.textContent='加载失败';notice.textContent=e.message}}
+(async()=>{const q=new URLSearchParams(location.search);for(const [k,v] of q)if(form.elements[k])form.elements[k].value=(k==='from'||k==='to')?PublicDateFilters.datePart(v):v;updateAdvanced();advanced.open=PublicDateFilters.advancedConditions(Object.fromEntries(new FormData(form))).length>0;page=Math.max(1,Number(q.get('page'))||1);try{const tree=await Cms.api.request('/api/public/categories');options(tree);if(q.get('categoryId'))form.elements.categoryId.value=q.get('categoryId')}catch(e){notice.textContent='分类加载失败：'+e.message}load()})();form.onsubmit=e=>{e.preventDefault();if(!validateDateRange(true))return;page=1;load()};document.querySelector('#prev').onclick=()=>{if(!validateDateRange(true))return;page--;load()};document.querySelector('#next').onclick=()=>{if(!validateDateRange(true))return;page++;load()};
+</script></body></html>
