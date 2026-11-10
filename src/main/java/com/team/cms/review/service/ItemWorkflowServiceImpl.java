@@ -8,11 +8,15 @@ import com.team.cms.auth.security.CurrentUserContext;
 import com.team.cms.category.service.CategoryAccessService;
 import com.team.cms.claim.entity.ClaimRequest;
 import com.team.cms.claim.mapper.ClaimRequestMapper;
+import com.team.cms.audit.entity.OperationLog;
+import com.team.cms.audit.mapper.OperationLogMapper;
 import com.team.cms.common.domain.ArticleStatus;
 import com.team.cms.common.domain.ItemType;
 import com.team.cms.common.domain.ResolutionStatus;
 import com.team.cms.common.exception.BusinessException;
 import java.time.LocalDateTime;
+import java.util.UUID;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,13 +43,55 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
     private final ArticleMapper articleMapper;
     private final CategoryAccessService categoryAccessService;
     private final ClaimRequestMapper claimRequestMapper;
+    private final OperationLogMapper operationLogs;
 
     public ItemWorkflowServiceImpl(ArticleMapper articleMapper,
             CategoryAccessService categoryAccessService,
-            ClaimRequestMapper claimRequestMapper) {
+            ClaimRequestMapper claimRequestMapper, OperationLogMapper operationLogs) {
         this.articleMapper = articleMapper;
         this.categoryAccessService = categoryAccessService;
         this.claimRequestMapper = claimRequestMapper;
+        this.operationLogs = operationLogs;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batch(String action, java.util.Map<Long, Integer> versions) {
+        CurrentUser actor = CurrentUserContext.require();
+        if (versions == null || versions.isEmpty() || versions.size() > 100 ||
+                !("publish".equals(action) || "offline".equals(action) || "delete".equals(action)))
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "批量请求不合法");
+        if (!actor.hasRole(AuthConstants.ROLE_ADMIN) &&
+                (!actor.hasPermission(com.team.cms.common.security.PermissionCodes.ITEM_BATCH) ||
+                 (!"delete".equals(action) && !actor.hasPermission(
+                    "publish".equals(action) ? com.team.cms.common.security.PermissionCodes.ITEM_PUBLISH
+                    : com.team.cms.common.security.PermissionCodes.ITEM_OFFLINE_ANY))))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "无批量操作权限");
+        java.util.List<Long> ids = new java.util.ArrayList<>(versions.keySet());
+        java.util.Collections.sort(ids);
+        java.util.Map<Long, Article> locked = new java.util.LinkedHashMap<>();
+        for (Long id : ids) {
+            if (id == null || id <= 0 || versions.get(id) == null || versions.get(id) < 0)
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "批量 ID 或版本不合法");
+            Article article = lock(id);
+            requireVersion(article, versions.get(id));
+            if ("delete".equals(action) && !actor.hasRole(AuthConstants.ROLE_ADMIN) &&
+                    !actor.hasPermission(com.team.cms.common.security.PermissionCodes.ITEM_DELETE_ANY))
+                throw new BusinessException(HttpStatus.FORBIDDEN, "无删除权限");
+            locked.put(id, article);
+        }
+        for (Article article : locked.values()) {
+            long started = System.nanoTime();
+            int version = versions.get(article.getId());
+            if ("publish".equals(action)) publish(article.getId(), version);
+            else if ("offline".equals(action)) offline(article.getId(), version, null);
+            else {
+                assertDeletable(article.getId());
+                if (articleMapper.logicalDeleteIfVersion(article.getId(), version) != 1)
+                    throw conflict("信息版本已变化，请刷新后重试");
+            }
+            if ("delete".equals(action)) logAction(actor, "DELETE", article.getId(), started);
+        }
     }
 
     @Override
@@ -89,6 +135,7 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void publish(Long itemId, int version) {
+        long started = System.nanoTime();
         CurrentUser actor = CurrentUserContext.require();
         requirePublishPermission(actor);
         Article article = lock(itemId);
@@ -102,14 +149,17 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
             throw conflict("存在已通过的认领，不能重新发布");
         }
         changeStatus(article, version, ArticleStatus.PUBLISHED, LocalDateTime.now());
+        logAction(actor, "PUBLISH", itemId, started);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void offline(Long itemId, int version, String reason) {
+        long started = System.nanoTime();
         CurrentUser actor = CurrentUserContext.require();
         Article article = lock(itemId);
-        if (!article.getAuthorId().equals(actor.getId())) {
+        if (!article.getAuthorId().equals(actor.getId()) && !actor.hasPermission(
+                com.team.cms.common.security.PermissionCodes.ITEM_OFFLINE_ANY)) {
             requirePublishPermission(actor);
         }
         requireStatus(article, ArticleStatus.PUBLISHED);
@@ -120,6 +170,7 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
         String closeReason = safeReason(reason);
         changeStatus(article, version, ArticleStatus.OFFLINE, null);
         claimRequestMapper.closePendingByItem(itemId, closeReason);
+        logAction(actor, "OFFLINE", itemId, started);
     }
 
     @Override
@@ -138,6 +189,10 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
     @Transactional(rollbackFor = Exception.class)
     public void resolve(Long itemId, int version, Long expectedClaimId) {
         CurrentUser actor = CurrentUserContext.require();
+        if (!actor.hasRole(AuthConstants.ROLE_ADMIN) && !actor.hasPermission(
+                com.team.cms.common.security.PermissionCodes.CLAIM_HANDOVER_OWN)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "无交接确认权限");
+        }
         Article article = lock(itemId);
         requireAuthor(article, actor);
         if (article.getResolutionStatus() == ResolutionStatus.RESOLVED) {
@@ -266,6 +321,36 @@ public class ItemWorkflowServiceImpl implements ItemWorkflowService {
         }
         String text = reason.trim();
         return text.length() <= MAX_TEXT ? text : text.substring(0, MAX_TEXT);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(Long itemId, int version) {
+        long started = System.nanoTime();
+        CurrentUser actor = CurrentUserContext.require();
+        Article article = lock(itemId);
+        boolean own = article.getAuthorId().equals(actor.getId());
+        if (!actor.hasRole(AuthConstants.ROLE_ADMIN) && !actor.hasPermission(own
+                ? com.team.cms.common.security.PermissionCodes.ITEM_DELETE_OWN
+                : com.team.cms.common.security.PermissionCodes.ITEM_DELETE_ANY))
+            throw new BusinessException(HttpStatus.FORBIDDEN, "无删除权限");
+        requireVersion(article, version);
+        assertDeletable(itemId);
+        if (articleMapper.logicalDeleteIfVersion(itemId, version) != 1)
+            throw conflict("信息版本已变化，请刷新后重试");
+        logAction(actor, "DELETE", itemId, started);
+    }
+
+    private void logAction(CurrentUser actor, String action, Long itemId, long started) {
+        OperationLog log = new OperationLog();
+        log.setOperatorId(actor.getId()); log.setOperatorName(actor.getDisplayName());
+        log.setModule("article"); log.setAction(action); log.setTargetId(itemId);
+        String requestId = MDC.get("requestId");
+        log.setRequestId(StringUtils.hasText(requestId) ? requestId : UUID.randomUUID().toString());
+        log.setResult("SUCCESS");
+        log.setElapsedMs(Math.max(0L, (System.nanoTime() - started) / 1_000_000L));
+        log.setCreatedAt(LocalDateTime.now());
+        if (operationLogs.insert(log) != 1) throw new IllegalStateException("业务日志保存失败");
     }
 
     private static BusinessException conflict(String message) {

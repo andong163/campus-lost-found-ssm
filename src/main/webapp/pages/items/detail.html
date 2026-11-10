@@ -16,5 +16,10 @@ async function load(){try{item=await api('/items/'+encodeURIComponent(id)+'/mine
  const map={DRAFT:['submit','提交审核'],REJECTED:['submit','重新提交审核'],PENDING_REVIEW:['withdraw','撤回'],PUBLISHED:['offline','下架'],OFFLINE:['draft','转为草稿']};
  if(map[item.status]){const [op,label]=map[item.status];const button=document.createElement('button');button.textContent=label;
  button.onclick=async()=>{button.disabled=true;try{await write('/items/'+id+'/'+op,'POST',{version:item.version});show('操作成功');await load()}catch(e){show(e.message,true);button.disabled=false}};actions.append(button)}
+ const permissions=Cms.shell.user?.permissions||[];
+ if(item.status==='APPROVED'||item.status==='OFFLINE'){
+  if(permissions.includes('item:publish')){const button=document.createElement('button');button.textContent='发布';button.onclick=async()=>{button.disabled=true;try{await write('/items/'+id+'/publish','POST',{version:item.version});show('发布成功');await load()}catch(e){show(e.message,true);button.disabled=false}};actions.append(button)}
+ }
+ if(permissions.includes('item:delete:own')||permissions.includes('item:delete:any')){const button=document.createElement('button');button.textContent='删除';button.onclick=async()=>{button.disabled=true;try{await write('/items/'+id,'DELETE',{version:item.version});location.href='mine.html'}catch(e){show(e.message,true);button.disabled=false}};actions.append(button)}
  }catch(e){show(e.message,true)}}load();
 </script></body></html>

@@ -1,0 +1,1394 @@
+{
+  "date": "2026-10-29",
+  "owner": "高鸣远",
+  "round": "GMY R3",
+  "scope": "验收工具、外部部署及当前接口文档",
+  "baseCommit": "c3f8562106bb7701b84a201651276ff4318c1660",
+  "productionCodePomAndMigrationsUnchanged": true,
+  "openapi": {
+    "paths": 41,
+    "operations": 45,
+    "schemas": 60,
+    "source": "actual Controller/DTO reflection",
+    "futureBusinessRoutesNotInvented": true
+  },
+  "tests": {
+    "surefire-reports": {
+      "tests": 110,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "failsafe-reports": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "javascriptTests": {
+    "tests": 16,
+    "failures": 0
+  },
+  "negativeWarFixtures": 6,
+  "finalToolRecheck": {
+    "tests": 4,
+    "failures": 0
+  },
+  "externalRuns": [
+    {
+      "runId": "gmy-r3-59bd7f9e9db4",
+      "startedAt": "2026-10-29T14:37:21.1541965Z",
+      "completedAt": "2026-10-29T14:37:42.0394821Z",
+      "tomcatVersion": "9.0.123",
+      "container": "external Apache Tomcat distribution / Bootstrap",
+      "startupMs": 12828,
+      "warSha256": "0a0584d45606c239cfb99683ffed9377a4727cb6202679b4aeb858efa5d017df",
+      "database": "unique real MySQL fixture",
+      "checks": [
+        {
+          "name": "Web 健康",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/system/health",
+          "status": 200,
+          "requestId": "7417492f-b11f-49b1-b5f2-21654ff9509a",
+          "elapsedMs": 71
+        },
+        {
+          "name": "真实 MySQL 就绪",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/system/readiness",
+          "status": 200,
+          "requestId": "546e314a-2f5a-4971-94c5-ec1471354fb2",
+          "elapsedMs": 625
+        },
+        {
+          "name": "匿名读取分类树",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/public/categories",
+          "status": 200,
+          "requestId": "57745dee-4237-4b88-ae08-773d51e60764",
+          "elapsedMs": 56
+        },
+        {
+          "name": "匿名私有请求拒绝",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/mine",
+          "status": 401,
+          "requestId": "7a9dcb3d-6a1a-4583-b6ee-7df929975a18",
+          "elapsedMs": 10
+        },
+        {
+          "name": "未知 API JSON 404",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/not-found",
+          "status": 404,
+          "requestId": "eb82ad30-b3c1-43bf-ae49-1940fe2466cc",
+          "elapsedMs": 8
+        },
+        {
+          "name": "不支持方法 JSON 405",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/system/health",
+          "status": 405,
+          "requestId": "ebefd86b-caf8-4e42-ae4b-67c45adf8e41",
+          "elapsedMs": 4
+        },
+        {
+          "name": "登录夹具 admin",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "ff6f7903-9ed2-4a09-9679-7a0342952d2d",
+          "elapsedMs": 356
+        },
+        {
+          "name": "读取会话令牌 admin",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "d52cccbb-b2cf-46f1-82e0-d347f1331ab6",
+          "elapsedMs": 10
+        },
+        {
+          "name": "登录夹具 editor",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "7b22bf31-4808-4852-935d-80848a07e397",
+          "elapsedMs": 26
+        },
+        {
+          "name": "读取会话令牌 editor",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "0414ecff-87d0-4d57-ab91-7481330d0418",
+          "elapsedMs": 4
+        },
+        {
+          "name": "登录夹具 reviewer",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "d4f56233-5986-4067-b450-d852c5e7f9e1",
+          "elapsedMs": 24
+        },
+        {
+          "name": "读取会话令牌 reviewer",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "05eb7b99-6565-4133-ad0c-ba02e54339bf",
+          "elapsedMs": 4
+        },
+        {
+          "name": "登录夹具 viewer",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "bf732a61-1993-4813-a7f8-9e6d2c9f46c8",
+          "elapsedMs": 23
+        },
+        {
+          "name": "读取会话令牌 viewer",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "66d35f5e-fa68-4177-88a1-32b455a3b404",
+          "elapsedMs": 4
+        },
+        {
+          "name": "学生身份",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200,
+          "requestId": "d43c2380-52c8-445f-bd02-fb1366221a56",
+          "elapsedMs": 4
+        },
+        {
+          "passed": true,
+          "name": "学生不拥有 ADMIN"
+        },
+        {
+          "name": "真实注册忽略伪造角色",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/register",
+          "status": 200,
+          "requestId": "3a8c55ec-4e79-4bf1-8d6f-46535a06d276",
+          "elapsedMs": 87
+        },
+        {
+          "passed": true,
+          "name": "新生只分配学生角色"
+        },
+        {
+          "name": "重复注册拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/register",
+          "status": 409,
+          "requestId": "5e322c75-6229-4e60-911c-41715291eea1",
+          "elapsedMs": 7
+        },
+        {
+          "name": "新生真实登录",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "77807f0d-6749-42f9-b50c-6c5574745e37",
+          "elapsedMs": 26
+        },
+        {
+          "name": "新生令牌",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "72439aa0-4ddc-4fe4-8ed2-9d723beed8e1",
+          "elapsedMs": 5
+        },
+        {
+          "name": "学生不能管理用户",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/users",
+          "status": 403,
+          "requestId": "1a6ea0c6-f537-4e84-a9fd-c3909d47047a",
+          "elapsedMs": 38
+        },
+        {
+          "name": "只读不能查看本人内容",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/mine",
+          "status": 403,
+          "requestId": "f8b98859-7e06-4ad8-89f9-89758c39182c",
+          "elapsedMs": 9
+        },
+        {
+          "name": "管理员用户分页",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/users?page=1&size=5",
+          "status": 200,
+          "requestId": "85a0c86b-cd46-45f6-8487-b6caf0b369c9",
+          "elapsedMs": 114
+        },
+        {
+          "name": "管理员权限清单",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/permissions",
+          "status": 200,
+          "requestId": "ddbd4a3f-008d-438b-99d4-c143ede5a23e",
+          "elapsedMs": 14
+        },
+        {
+          "name": "管理员新建分类",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/categories",
+          "status": 200,
+          "requestId": "9b209754-7e44-4b9b-9539-f4a9534965fb",
+          "elapsedMs": 45
+        },
+        {
+          "name": "学生不能新增分类",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/categories",
+          "status": 403,
+          "requestId": "d950e9fc-dfa8-44f3-89c4-4b3f3786c989",
+          "elapsedMs": 5
+        },
+        {
+          "name": "分类重名拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/categories",
+          "status": 409,
+          "requestId": "c1e32d3e-61e8-4d7e-a08d-4c98909164ee",
+          "elapsedMs": 7
+        },
+        {
+          "name": "分类管理树",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/categories/tree",
+          "status": 200,
+          "requestId": "15ed8898-bea6-41b9-891c-352252b2d3f8",
+          "elapsedMs": 6
+        },
+        {
+          "name": "草稿缺 CSRF 拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items",
+          "status": 403,
+          "requestId": "17b4b8c7-dc21-4714-b6c1-3b2065a8e46f",
+          "elapsedMs": 44
+        },
+        {
+          "name": "学生创建本人草稿",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items",
+          "status": 200,
+          "requestId": "1d355bf2-b639-4c72-b74e-52f672debde5",
+          "elapsedMs": 37
+        },
+        {
+          "name": "他人草稿隐藏",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/1/mine",
+          "status": 404,
+          "requestId": "3130e756-8d3e-4991-bef6-92fd92c089ed",
+          "elapsedMs": 11
+        },
+        {
+          "name": "本人列表",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/mine?page=1&size=10",
+          "status": 200,
+          "requestId": "0e0ae9c0-2334-4587-9a36-7272d89a64bf",
+          "elapsedMs": 23
+        },
+        {
+          "name": "分页超限拒绝",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/mine?size=101",
+          "status": 400,
+          "requestId": "ad5febba-425c-4729-b9dc-c34144bcdabd",
+          "elapsedMs": 16
+        },
+        {
+          "name": "草稿修改",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/items/1",
+          "status": 200,
+          "requestId": "f692f78b-b7b6-4fd2-8b51-5de47f88c06b",
+          "elapsedMs": 28
+        },
+        {
+          "name": "旧版本修改拒绝",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/items/1",
+          "status": 409,
+          "requestId": "e51e498d-1a9b-4ebb-8558-41530f028938",
+          "elapsedMs": 6
+        },
+        {
+          "name": "真实物品引用拒绝删分类",
+          "passed": true,
+          "method": "DELETE",
+          "path": "/api/categories/1",
+          "status": 409,
+          "requestId": "0687d994-af89-468c-8464-ac76e5ff19e0",
+          "elapsedMs": 8
+        },
+        {
+          "name": "学生提审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/1/submit",
+          "status": 200,
+          "requestId": "97591e46-35fc-4b4d-9231-c308a348909f",
+          "elapsedMs": 20
+        },
+        {
+          "name": "待审不能直接编辑",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/items/1",
+          "status": 409,
+          "requestId": "1d9c79b1-796b-47ce-bda1-aa0eff1aa27a",
+          "elapsedMs": 7
+        },
+        {
+          "name": "审核员新队列",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/reviews/pending",
+          "status": 200,
+          "requestId": "3f0e9296-09cd-41f8-a96a-73c4ca685c70",
+          "elapsedMs": 18
+        },
+        {
+          "name": "审核员原工作台队列",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/reviews",
+          "status": 200,
+          "requestId": "f94c1c36-6007-4a0a-90ec-a2d63b7e220f",
+          "elapsedMs": 22
+        },
+        {
+          "name": "学生不能审核",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/approve",
+          "status": 403,
+          "requestId": "240cf1c9-9dba-4158-91c0-89c220c4103b",
+          "elapsedMs": 11
+        },
+        {
+          "name": "驳回必须有意见",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/reject",
+          "status": 400,
+          "requestId": "9c1aba82-de4b-43c9-829d-1d1db9db6057",
+          "elapsedMs": 21
+        },
+        {
+          "name": "审核员驳回",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/reject",
+          "status": 200,
+          "requestId": "a5c633c1-92e2-4914-973d-b6b612e2adef",
+          "elapsedMs": 25
+        },
+        {
+          "name": "作者查看意见",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/1/reviews",
+          "status": 200,
+          "requestId": "3e7ed017-85d5-4e09-8c21-b63913d55318",
+          "elapsedMs": 7
+        },
+        {
+          "passed": true,
+          "name": "作者读取真实意见"
+        },
+        {
+          "name": "驳回后修改",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/items/1",
+          "status": 200,
+          "requestId": "1928ab71-a348-4040-879e-36cb7020d3ad",
+          "elapsedMs": 24
+        },
+        {
+          "name": "修改后重新提审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/1/submit",
+          "status": 200,
+          "requestId": "95201f1f-3e90-4411-ab28-e5a6a16afd47",
+          "elapsedMs": 13
+        },
+        {
+          "name": "旧审核路由缺令牌拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/decision",
+          "status": 403,
+          "requestId": "ce2ba9b8-4d54-46ba-8b2e-37c6535ab871",
+          "elapsedMs": 8
+        },
+        {
+          "name": "旧审核路由批准",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/decision",
+          "status": 200,
+          "requestId": "0b1ec559-b030-411f-b7d2-09df9537f5a1",
+          "elapsedMs": 21
+        },
+        {
+          "name": "批准后作者详情",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/1/mine",
+          "status": 200,
+          "requestId": "3c5cacf7-3a1a-4443-b876-97e4d8e3f2cc",
+          "elapsedMs": 4
+        },
+        {
+          "passed": true,
+          "name": "状态为批准而非发布"
+        },
+        {
+          "name": "审核历史一致",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/1/reviews",
+          "status": 200,
+          "requestId": "21e5b2f2-5051-4c48-ac77-912c68b5f653",
+          "elapsedMs": 5
+        },
+        {
+          "passed": true,
+          "name": "两次审核记录保留"
+        },
+        {
+          "name": "历史查询",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/reviews/history?articleId=1",
+          "status": 200,
+          "requestId": "a874c5c1-d736-4e02-8605-e13dc26f59ff",
+          "elapsedMs": 14
+        },
+        {
+          "name": "管理员查询业务审计",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/operation-logs?page=1&size=10",
+          "status": 200,
+          "requestId": "250f0a3b-263c-45a7-b3ed-d99b0b7fcc2a",
+          "elapsedMs": 29
+        },
+        {
+          "name": "学生无审计权限",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/operation-logs",
+          "status": 403,
+          "requestId": "733a1eac-456e-49f0-a2e0-e0ca55875861",
+          "elapsedMs": 3
+        },
+        {
+          "name": "撤回场景草稿",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items",
+          "status": 200,
+          "requestId": "e57bca6a-7a2b-4373-8404-84553ad35479",
+          "elapsedMs": 11
+        },
+        {
+          "name": "撤回场景提审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/2/submit",
+          "status": 200,
+          "requestId": "f90b9997-041d-45c3-9b03-257abe1b1534",
+          "elapsedMs": 14
+        },
+        {
+          "name": "撤回成功",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/2/withdraw",
+          "status": 200,
+          "requestId": "ccf1d8a0-1f2f-4e20-9e1f-517b3bc05914",
+          "elapsedMs": 13
+        },
+        {
+          "name": "撤回后详情",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/2/mine",
+          "status": 200,
+          "requestId": "58c0910a-bcc2-4a62-afe1-d8b38499210e",
+          "elapsedMs": 4
+        },
+        {
+          "passed": true,
+          "name": "撤回回到草稿"
+        },
+        {
+          "name": "审核员身份",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200,
+          "requestId": "676ec9ab-da44-41f6-a9be-d43248e16c11",
+          "elapsedMs": 3
+        },
+        {
+          "name": "为审核员加入学生测试角色",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/users/3/roles",
+          "status": 200,
+          "requestId": "5d7ffa58-a176-4775-9aa3-0fbe239cb84c",
+          "elapsedMs": 33
+        },
+        {
+          "name": "审核员本人草稿",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items",
+          "status": 200,
+          "requestId": "e7002e73-7721-4a0c-be25-cc0b583e3574",
+          "elapsedMs": 13
+        },
+        {
+          "name": "审核员本人提审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/3/submit",
+          "status": 200,
+          "requestId": "baf1100d-3e6e-4ede-b0ea-334badc86585",
+          "elapsedMs": 15
+        },
+        {
+          "name": "审核员不能自审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/3/approve",
+          "status": 403,
+          "requestId": "cf5335d2-bf7e-44af-89d9-da1de4a5ad8f",
+          "elapsedMs": 11
+        },
+        {
+          "name": "读取角色授权",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/roles",
+          "status": 200,
+          "requestId": "405eeb20-5e00-4bbc-93fa-69da2267bbc4",
+          "elapsedMs": 7
+        },
+        {
+          "name": "撤销审核决定权限",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/roles/3/permissions",
+          "status": 200,
+          "requestId": "1ee588e8-50f0-48fa-88b6-74035baa7c67",
+          "elapsedMs": 21
+        },
+        {
+          "name": "旧会话撤权立即拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/2/approve",
+          "status": 403,
+          "requestId": "686872a2-62da-415a-869a-db18770d91e8",
+          "elapsedMs": 4
+        },
+        {
+          "name": "恢复隔离角色授权",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/roles/3/permissions",
+          "status": 200,
+          "requestId": "4f1e6176-c1ea-4e09-b61b-ece1482d53a2",
+          "elapsedMs": 13
+        },
+        {
+          "name": "管理员停用测试学生",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/users/5/status",
+          "status": 200,
+          "requestId": "db944e84-8163-4809-a7c8-ac851b24ce5d",
+          "elapsedMs": 13
+        },
+        {
+          "name": "停用使旧会话失效",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 401,
+          "requestId": "558f47fb-43ec-4592-bf67-20ca560de8ff",
+          "elapsedMs": 2
+        },
+        {
+          "name": "退出登录",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/logout",
+          "status": 200,
+          "requestId": "93c5fb20-442d-45df-8594-af4537ab734f",
+          "elapsedMs": 3
+        },
+        {
+          "name": "退出后旧会话失效",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 401,
+          "requestId": "f1f5609b-466e-4be4-8938-722ff063603e",
+          "elapsedMs": 1
+        },
+        {
+          "passed": true,
+          "name": "正式 WAR 首页静态资源可用"
+        }
+      ],
+      "passed": true,
+      "serverStopped": true,
+      "databaseDropped": true,
+      "credentialsDeleted": true
+    },
+    {
+      "runId": "gmy-r3-7af8daef6d5a",
+      "startedAt": "2026-10-29T14:39:06.3546608Z",
+      "completedAt": "2026-10-29T14:39:27.9500134Z",
+      "tomcatVersion": "9.0.123",
+      "container": "external Apache Tomcat distribution / Bootstrap",
+      "startupMs": 13488,
+      "warSha256": "0a0584d45606c239cfb99683ffed9377a4727cb6202679b4aeb858efa5d017df",
+      "database": "unique real MySQL fixture",
+      "checks": [
+        {
+          "name": "Web 健康",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/system/health",
+          "status": 200,
+          "requestId": "14d3410f-c119-409a-b6be-b210582544c9",
+          "elapsedMs": 78
+        },
+        {
+          "name": "真实 MySQL 就绪",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/system/readiness",
+          "status": 200,
+          "requestId": "13c32c5f-1e45-4a9d-a431-28ca7350fb94",
+          "elapsedMs": 617
+        },
+        {
+          "name": "匿名读取分类树",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/public/categories",
+          "status": 200,
+          "requestId": "b44b29a3-30f2-41f4-bedd-8f6084acb5e1",
+          "elapsedMs": 54
+        },
+        {
+          "name": "匿名私有请求拒绝",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/mine",
+          "status": 401,
+          "requestId": "db47f0aa-4d07-49fb-a206-2bf74a022931",
+          "elapsedMs": 10
+        },
+        {
+          "name": "未知 API JSON 404",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/not-found",
+          "status": 404,
+          "requestId": "10afd878-a70b-4d3c-9822-6f1c0d20a711",
+          "elapsedMs": 8
+        },
+        {
+          "name": "不支持方法 JSON 405",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/system/health",
+          "status": 405,
+          "requestId": "09ce5af7-ee27-475f-913c-dacef4112521",
+          "elapsedMs": 4
+        },
+        {
+          "name": "登录夹具 admin",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "3db44d28-36da-4490-a20e-f1380e385527",
+          "elapsedMs": 391
+        },
+        {
+          "name": "读取会话令牌 admin",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "d136a6b7-373c-4149-8cf6-a35ee0bfb5df",
+          "elapsedMs": 12
+        },
+        {
+          "name": "登录夹具 editor",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "82ef0d96-9347-4215-a5d4-b6ab3d7160d1",
+          "elapsedMs": 28
+        },
+        {
+          "name": "读取会话令牌 editor",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "aa79ccb3-47d7-4da2-8720-59a4bc0cd359",
+          "elapsedMs": 5
+        },
+        {
+          "name": "登录夹具 reviewer",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "0057e9c9-bd6b-4d8e-9bb2-94e5004b25e1",
+          "elapsedMs": 26
+        },
+        {
+          "name": "读取会话令牌 reviewer",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "ac6132e1-2b72-485d-a2a2-0ce99e2d6af6",
+          "elapsedMs": 4
+        },
+        {
+          "name": "登录夹具 viewer",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "ed40a56c-2aaa-4489-85c8-a5ff1ad43f4e",
+          "elapsedMs": 24
+        },
+        {
+          "name": "读取会话令牌 viewer",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "8c2d59a6-a855-46b9-9254-181bf11f680f",
+          "elapsedMs": 4
+        },
+        {
+          "name": "学生身份",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200,
+          "requestId": "a89a948c-9e51-48fc-8e3f-7700b8d3c845",
+          "elapsedMs": 5
+        },
+        {
+          "name": "学生不拥有 ADMIN",
+          "passed": true
+        },
+        {
+          "name": "真实注册忽略伪造角色",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/register",
+          "status": 200,
+          "requestId": "0f55a784-9ca5-4a1c-ac64-7afa531013b6",
+          "elapsedMs": 92
+        },
+        {
+          "name": "新生只分配学生角色",
+          "passed": true
+        },
+        {
+          "name": "重复注册拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/register",
+          "status": 409,
+          "requestId": "6933b059-6e25-481a-a4b3-4daf28c60e43",
+          "elapsedMs": 6
+        },
+        {
+          "name": "新生真实登录",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/login",
+          "status": 200,
+          "requestId": "53539d15-cf93-4264-980e-3679809844a9",
+          "elapsedMs": 26
+        },
+        {
+          "name": "新生令牌",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/csrf",
+          "status": 200,
+          "requestId": "0f2a7b17-b7c8-4baf-a454-459b40465ce8",
+          "elapsedMs": 4
+        },
+        {
+          "name": "学生不能管理用户",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/users",
+          "status": 403,
+          "requestId": "6c156504-19fe-4102-9f66-c841cd6b166f",
+          "elapsedMs": 33
+        },
+        {
+          "name": "只读不能查看本人内容",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/mine",
+          "status": 403,
+          "requestId": "ed1a6dc7-590e-47ba-9502-cdd053cd96de",
+          "elapsedMs": 9
+        },
+        {
+          "name": "管理员用户分页",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/users?page=1&size=5",
+          "status": 200,
+          "requestId": "e0c3ee45-bf49-46b3-805f-e8955f7ddd83",
+          "elapsedMs": 161
+        },
+        {
+          "name": "管理员权限清单",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/permissions",
+          "status": 200,
+          "requestId": "83ebe4c4-7543-4b39-8b7e-09477bf7a655",
+          "elapsedMs": 14
+        },
+        {
+          "name": "管理员新建分类",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/categories",
+          "status": 200,
+          "requestId": "13a731b9-a929-4c57-89ac-4efc63cd4383",
+          "elapsedMs": 45
+        },
+        {
+          "name": "学生不能新增分类",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/categories",
+          "status": 403,
+          "requestId": "b50e158e-7f1a-4b5a-b4b0-9a12c2b56268",
+          "elapsedMs": 5
+        },
+        {
+          "name": "分类重名拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/categories",
+          "status": 409,
+          "requestId": "18435ac1-0146-4640-8955-b009f8805a26",
+          "elapsedMs": 6
+        },
+        {
+          "name": "分类管理树",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/categories/tree",
+          "status": 200,
+          "requestId": "07917bcb-42a4-48ab-b413-54490c258836",
+          "elapsedMs": 5
+        },
+        {
+          "name": "草稿缺 CSRF 拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items",
+          "status": 403,
+          "requestId": "c8dcb2f8-db4c-430d-be77-be00f9cfdc58",
+          "elapsedMs": 47
+        },
+        {
+          "name": "学生创建本人草稿",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items",
+          "status": 200,
+          "requestId": "b31c9f16-cbc0-4ff0-845d-f401d19ded7b",
+          "elapsedMs": 36
+        },
+        {
+          "name": "他人草稿隐藏",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/1/mine",
+          "status": 404,
+          "requestId": "aae64cb0-cd73-44e4-8051-dd96b2d092a3",
+          "elapsedMs": 11
+        },
+        {
+          "name": "本人列表",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/mine?page=1&size=10",
+          "status": 200,
+          "requestId": "0fc80f9c-86b2-4e28-9da8-92b8ebbfbce5",
+          "elapsedMs": 23
+        },
+        {
+          "name": "分页超限拒绝",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/mine?size=101",
+          "status": 400,
+          "requestId": "c330b6e4-b827-4df6-ab31-79d9f816e479",
+          "elapsedMs": 17
+        },
+        {
+          "name": "草稿修改",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/items/1",
+          "status": 200,
+          "requestId": "4426f544-826c-437a-934a-0c82e525b0dc",
+          "elapsedMs": 30
+        },
+        {
+          "name": "旧版本修改拒绝",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/items/1",
+          "status": 409,
+          "requestId": "b1b16355-c785-4731-afde-4b91e60fc504",
+          "elapsedMs": 7
+        },
+        {
+          "name": "真实物品引用拒绝删分类",
+          "passed": true,
+          "method": "DELETE",
+          "path": "/api/categories/1",
+          "status": 409,
+          "requestId": "cc7469fb-6976-4790-8f3c-60812a004459",
+          "elapsedMs": 9
+        },
+        {
+          "name": "学生提审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/1/submit",
+          "status": 200,
+          "requestId": "c136f438-1803-478f-ba93-9091994b4993",
+          "elapsedMs": 23
+        },
+        {
+          "name": "待审不能直接编辑",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/items/1",
+          "status": 409,
+          "requestId": "c635581f-5ff1-4d91-bf43-8a3c65ccb5c9",
+          "elapsedMs": 7
+        },
+        {
+          "name": "审核员新队列",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/reviews/pending",
+          "status": 200,
+          "requestId": "dd68c82e-b8f9-4bf1-bab1-3a994731afdf",
+          "elapsedMs": 19
+        },
+        {
+          "name": "审核员原工作台队列",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/reviews",
+          "status": 200,
+          "requestId": "dbd650bf-68a0-4f3d-bf25-2c3883e256d4",
+          "elapsedMs": 24
+        },
+        {
+          "name": "学生不能审核",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/approve",
+          "status": 403,
+          "requestId": "c9cbc8c4-cf34-49ee-8ea3-0977690c5ae5",
+          "elapsedMs": 12
+        },
+        {
+          "name": "驳回必须有意见",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/reject",
+          "status": 400,
+          "requestId": "46362c05-279f-40d2-aa33-cd6e9f15f77e",
+          "elapsedMs": 23
+        },
+        {
+          "name": "审核员驳回",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/reject",
+          "status": 200,
+          "requestId": "ea8ba1a0-ebde-41c7-a1b9-82b991f76426",
+          "elapsedMs": 24
+        },
+        {
+          "name": "作者查看意见",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/1/reviews",
+          "status": 200,
+          "requestId": "8813de09-722e-4f72-87f1-4faaeabc2b2b",
+          "elapsedMs": 8
+        },
+        {
+          "name": "作者读取真实意见",
+          "passed": true
+        },
+        {
+          "name": "驳回后修改",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/items/1",
+          "status": 200,
+          "requestId": "3a25c886-4bec-4b96-a250-44446ab9a7d7",
+          "elapsedMs": 15
+        },
+        {
+          "name": "修改后重新提审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/1/submit",
+          "status": 200,
+          "requestId": "2f4271ba-7140-4f10-bbd9-b46a84225a00",
+          "elapsedMs": 14
+        },
+        {
+          "name": "旧审核路由缺令牌拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/decision",
+          "status": 403,
+          "requestId": "e3c058a6-aa60-4138-895a-4e7a5f170cd2",
+          "elapsedMs": 8
+        },
+        {
+          "name": "旧审核路由批准",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/1/decision",
+          "status": 200,
+          "requestId": "0196dd5a-1aa0-4568-822b-fc634337aaf1",
+          "elapsedMs": 18
+        },
+        {
+          "name": "批准后作者详情",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/1/mine",
+          "status": 200,
+          "requestId": "553e974b-77ba-44dc-9c20-b7e9d46c0ced",
+          "elapsedMs": 4
+        },
+        {
+          "name": "状态为批准而非发布",
+          "passed": true
+        },
+        {
+          "name": "审核历史一致",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/1/reviews",
+          "status": 200,
+          "requestId": "0867b7dc-267d-4121-9c25-015f870733b6",
+          "elapsedMs": 5
+        },
+        {
+          "name": "两次审核记录保留",
+          "passed": true
+        },
+        {
+          "name": "历史查询",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/reviews/history?articleId=1",
+          "status": 200,
+          "requestId": "d230b33a-e5f9-4138-8c06-e1cf947b0208",
+          "elapsedMs": 14
+        },
+        {
+          "name": "管理员查询业务审计",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/operation-logs?page=1&size=10",
+          "status": 200,
+          "requestId": "73d7b53e-6010-46cd-99f5-5d0dbe3564b7",
+          "elapsedMs": 31
+        },
+        {
+          "name": "学生无审计权限",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/operation-logs",
+          "status": 403,
+          "requestId": "eb32dfa9-6ac9-4bbe-a247-cf68090e917d",
+          "elapsedMs": 4
+        },
+        {
+          "name": "撤回场景草稿",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items",
+          "status": 200,
+          "requestId": "10aa05d5-7c50-4b8a-8072-36bc10c593e3",
+          "elapsedMs": 13
+        },
+        {
+          "name": "撤回场景提审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/2/submit",
+          "status": 200,
+          "requestId": "73055e96-a0f4-4d71-8831-69faae2d6aa4",
+          "elapsedMs": 13
+        },
+        {
+          "name": "撤回成功",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/2/withdraw",
+          "status": 200,
+          "requestId": "76e37f36-9508-4ff6-afb3-b7a4a6018124",
+          "elapsedMs": 12
+        },
+        {
+          "name": "撤回后详情",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/items/2/mine",
+          "status": 200,
+          "requestId": "da3a5f78-914c-41d2-967f-8e1ad49b2ff3",
+          "elapsedMs": 5
+        },
+        {
+          "name": "撤回回到草稿",
+          "passed": true
+        },
+        {
+          "name": "审核员身份",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 200,
+          "requestId": "62756f78-924f-488e-983a-010b096e4c9c",
+          "elapsedMs": 4
+        },
+        {
+          "name": "为审核员加入学生测试角色",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/users/3/roles",
+          "status": 200,
+          "requestId": "e0892128-f228-4984-a3a4-0a8414e6a9f1",
+          "elapsedMs": 40
+        },
+        {
+          "name": "审核员本人草稿",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items",
+          "status": 200,
+          "requestId": "788dc5a0-901a-41ac-bce1-871bf51a477f",
+          "elapsedMs": 13
+        },
+        {
+          "name": "审核员本人提审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/items/3/submit",
+          "status": 200,
+          "requestId": "a1553d2f-d992-41ad-9657-eb324c0db4a7",
+          "elapsedMs": 15
+        },
+        {
+          "name": "审核员不能自审",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/3/approve",
+          "status": 403,
+          "requestId": "29cb1033-8542-4c77-93a9-edf7b928138a",
+          "elapsedMs": 15
+        },
+        {
+          "name": "读取角色授权",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/roles",
+          "status": 200,
+          "requestId": "9ad0c7a2-840c-4086-a106-6d295ac3ea46",
+          "elapsedMs": 9
+        },
+        {
+          "name": "撤销审核决定权限",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/roles/3/permissions",
+          "status": 200,
+          "requestId": "a1bf6cb9-257f-42a3-8f3c-43e221837fe7",
+          "elapsedMs": 24
+        },
+        {
+          "name": "旧会话撤权立即拒绝",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/reviews/2/approve",
+          "status": 403,
+          "requestId": "b57ebe2c-a4ea-407c-823d-f6a4bf603576",
+          "elapsedMs": 5
+        },
+        {
+          "name": "恢复隔离角色授权",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/roles/3/permissions",
+          "status": 200,
+          "requestId": "81bcf165-8156-42f2-9c75-9c7920e5144f",
+          "elapsedMs": 16
+        },
+        {
+          "name": "管理员停用测试学生",
+          "passed": true,
+          "method": "PUT",
+          "path": "/api/users/5/status",
+          "status": 200,
+          "requestId": "8a776da3-6830-4753-875e-45b294fd0e84",
+          "elapsedMs": 18
+        },
+        {
+          "name": "停用使旧会话失效",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 401,
+          "requestId": "ab52db4d-b21b-4726-a924-b3da0347f98e",
+          "elapsedMs": 2
+        },
+        {
+          "name": "退出登录",
+          "passed": true,
+          "method": "POST",
+          "path": "/api/auth/logout",
+          "status": 200,
+          "requestId": "566c3e98-d0ae-4bb8-be43-23d6315455a9",
+          "elapsedMs": 3
+        },
+        {
+          "name": "退出后旧会话失效",
+          "passed": true,
+          "method": "GET",
+          "path": "/api/auth/me",
+          "status": 401,
+          "requestId": "a8feeee0-acb6-4531-b936-185f87d6afa3",
+          "elapsedMs": 1
+        },
+        {
+          "name": "正式 WAR 首页静态资源可用",
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "serverStopped": true,
+      "databaseDropped": true,
+      "credentialsDeleted": true
+    }
+  ],
+  "externalTomcat": {
+    "version": "9.0.123",
+    "officialDistribution": "https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.123/bin/apache-tomcat-9.0.123.zip",
+    "sha512": "79a498d57c8ac5d704aebd5c2ea0aa2adaa3fa7c75149d007f1e33bc7ce79a30240d774d807b6cf3a63a4228cad847785ccd960c841580a2ecab5b30e5d68422",
+    "checksumSource": "https://downloads.apache.org/tomcat/tomcat-9/v9.0.123/bin/apache-tomcat-9.0.123.zip.sha512"
+  },
+  "warSha256": "0a0584d45606c239cfb99683ffed9377a4727cb6202679b4aeb858efa5d017df",
+  "runtimeJarCount": 34,
+  "officialWarContainsNoAcceptanceToolsOrPrivateConfig": true,
+  "gitSubmittedAtVerification": false,
+  "submissionReview": {
+    "date": "2026-11-04",
+    "baseCommit": "c3f8562106bb7701b84a201651276ff4318c1660",
+    "toolAndContractTests": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "ssmSourceGuard": "passed",
+    "externalDeploymentRerun": false,
+    "historicalDeploymentVerificationDate": "2026-10-29",
+    "note": "个人第三轮提交沿用第二轮总基线；远程 develop 新增成员第三轮内容留待后续集成，历史部署结果未冒充本日重跑。"
+  }
+}

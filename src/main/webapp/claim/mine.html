@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>我的认领 - 校园失物招领</title>
+  <link rel="stylesheet" href="../yangcheng/common.css">
+</head>
+<body>
+<header>
+  <h1>我的认领</h1>
+  <nav>
+    <a href="../review/review.html">内容审核</a>
+    <a href="../claim/manage.html">认领处理</a>
+    <a href="../claim/handover.html">交接结案</a>
+    <a class="active" href="../claim/mine.html">我的认领</a>
+    <a href="../audit/logs.html">操作日志</a>
+  </nav>
+</header>
+<main>
+  <div id="message" class="message"></div>
+
+  <section class="panel">
+    <h2>提交认领申请</h2>
+    <p class="meta">只能申请他人已发布、未结案的招领信息；同一物品最多一条待核实或已通过申请。</p>
+    <form id="applyForm" class="filters">
+      <label>招领信息 ID
+        <input id="itemId" type="number" min="1" required placeholder="例如 12">
+      </label>
+      <label>认领说明（10～1000 字）
+        <textarea id="claimDescription" minlength="10" maxlength="1000" required
+                  placeholder="描述物品特征、丢失经过和可核实的证据"></textarea>
+      </label>
+      <label>联系方式（2～100 字）
+        <input id="contactInfo" maxlength="100" required placeholder="手机号或微信号">
+      </label>
+      <button type="submit">提交申请</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>申请记录</h2>
+    <form id="filters" class="filters">
+      <label>状态
+        <select id="status">
+          <option value="">全部</option>
+          <option value="PENDING">待核实</option>
+          <option value="APPROVED">已通过</option>
+          <option value="REJECTED">已驳回</option>
+          <option value="CANCELLED">已撤销</option>
+          <option value="COMPLETED">已完成</option>
+        </select>
+      </label>
+      <button type="submit">查询</button>
+    </form>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th><th>物品</th><th>说明</th><th>状态</th>
+        <th>核实意见</th><th>提交时间</th><th>操作</th>
+      </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="pager">
+      <button type="button" id="prev" class="secondary">上一页</button>
+      <span id="pageInfo"></span>
+      <button type="button" id="next" class="secondary">下一页</button>
+    </div>
+  </section>
+</main>
+<script src="../yangcheng/common.js"></script>
+<script>
+(function () {
+  const state = {page: 1, size: 10, total: 0};
+
+  async function load() {
+    const params = new URLSearchParams({
+      page: String(state.page),
+      size: String(state.size),
+      status: document.getElementById('status').value
+    });
+    try {
+      const data = await YC.request('/api/claims/mine?' + params.toString());
+      state.total = data.total;
+      render(data.records || []);
+    } catch (error) {
+      state.total = 0;
+      render([]);
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+    renderPager();
+  }
+
+  function render(records) {
+    const tbody = document.getElementById('rows');
+    tbody.textContent = '';
+    if (!records.length) {
+      const tr = document.createElement('tr');
+      const td = YC.text('td', '暂无认领记录', 'empty');
+      td.colSpan = 7;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    records.forEach(claim => {
+      const actions = document.createElement('td');
+      actions.className = 'actions';
+      if (claim.status === 'PENDING' || claim.status === 'APPROVED') {
+        actions.appendChild(YC.actionButton('撤销', 'danger', () => cancel(claim)));
+      }
+      const statusCell = YC.text('td');
+      statusCell.appendChild(YC.text('span', claim.status, 'status ' + claim.status));
+
+      const result = YC.text('td');
+      result.appendChild(YC.text('div', claim.reviewComment || '—'));
+      if (claim.cancelReason) {
+        result.appendChild(YC.text('div', '撤销原因：' + claim.cancelReason, 'meta'));
+      }
+      if (claim.completedAt) {
+        result.appendChild(YC.text('div', '完成时间：' + YC.formatTime(claim.completedAt), 'meta'));
+      }
+
+      tbody.appendChild(YC.row([
+        claim.id, claim.articleTitle, claim.claimDescription, statusCell,
+        result, YC.formatTime(claim.createdAt), actions
+      ]));
+    });
+  }
+
+  async function cancel(claim) {
+    const reason = window.prompt('请填写撤销原因（必填）', '');
+    if (reason === null) return;
+    if (!reason.trim()) {
+      window.alert('撤销原因不能为空。');
+      return;
+    }
+    try {
+      await YC.post('/api/claims/' + claim.id + '/cancel', {
+        version: claim.version,
+        reason: reason.trim()
+      });
+      YC.setMessage('message', '已撤销认领申请。', 'ok');
+      await load();
+    } catch (error) {
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+  }
+
+  function renderPager() {
+    const pages = Math.max(1, Math.ceil(state.total / state.size));
+    document.getElementById('pageInfo').textContent =
+      '第 ' + state.page + ' / ' + pages + ' 页，共 ' + state.total + ' 条';
+    document.getElementById('prev').disabled = state.page <= 1;
+    document.getElementById('next').disabled = state.page >= pages;
+  }
+
+  document.getElementById('applyForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const itemId = document.getElementById('itemId').value;
+    try {
+      await YC.post('/api/items/' + itemId + '/claims', {
+        claimDescription: document.getElementById('claimDescription').value.trim(),
+        contactInfo: document.getElementById('contactInfo').value.trim()
+      });
+      YC.setMessage('message', '认领申请已提交，等待审核人员核实。', 'ok');
+      document.getElementById('applyForm').reset();
+      state.page = 1;
+      await load();
+    } catch (error) {
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+  });
+
+  document.getElementById('filters').addEventListener('submit', event => {
+    event.preventDefault();
+    state.page = 1;
+    load();
+  });
+  document.getElementById('prev').addEventListener('click', () => {
+    if (state.page > 1) { state.page -= 1; load(); }
+  });
+  document.getElementById('next').addEventListener('click', () => {
+    if (state.page * state.size < state.total) { state.page += 1; load(); }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
