@@ -1,0 +1,309 @@
+{
+  "info": {
+    "name": "校园失物招领-身份与权限矩阵（郭金滔 GJT R4）",
+    "description": "身份模块接口用例：注册登录、会话、用户管理、角色权限，以及权限矩阵回归（未登录 401、无权限 403、越权、停用、撤权、最后一个管理员 409）。导入 ApiFox 后先执行「登录管理员」取得会话 Cookie，再执行「获取写请求令牌」把返回值写入环境变量 csrf。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8088/cms" },
+    { "key": "csrf", "value": "" },
+    { "key": "userId", "value": "2" }
+  ],
+  "item": [
+    {
+      "name": "01 公开接口",
+      "item": [
+        {
+          "name": "注册学生（只能得到 EDITOR）",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"student_r4\",\"displayName\":\"学生甲\",\"password\":\"password123\",\"role\":\"ADMIN\",\"permissions\":[\"user:manage\"]}"
+            },
+            "description": "期望 200。请求体里刻意伪造 role/permissions 字段，返回的 data.roles 必须只有 [EDITOR]，证明服务端忽略客户端传入的角色。"
+          }
+        },
+        {
+          "name": "重复注册（409）",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"student_r4\",\"displayName\":\"学生甲\",\"password\":\"password123\"}"
+            },
+            "description": "期望 409，message 为「用户名已存在」。"
+          }
+        },
+        {
+          "name": "校验失败（400）",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"ab\",\"displayName\":\"甲\",\"password\":\"123\"}"
+            },
+            "description": "期望 400，data 中含字段级错误。用户名 4~30 位字母数字下划线，昵称 2~20 字，口令 8~64 位。"
+          }
+        },
+        {
+          "name": "公开分类树（游客可访问）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/public/categories",
+            "description": "期望 200。该路径在登录拦截器白名单内，未登录也能取。"
+          }
+        },
+        {
+          "name": "健康检查",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/system/health",
+            "description": "期望 200。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 会话",
+      "item": [
+        {
+          "name": "登录（学生）",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": { "mode": "raw", "raw": "{\"username\":\"student_r4\",\"password\":\"password123\"}" },
+            "description": "期望 200。登录会换发会话标识（防会话固定），data 含 id/username/displayName/roles/permissions。"
+          }
+        },
+        {
+          "name": "登录（管理员）",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": { "mode": "raw", "raw": "{\"username\":\"admin\",\"password\":\"你的管理员口令\"}" },
+            "description": "期望 200。需先设置 CMS_ADMIN_PASSWORD 完成一次性初始化。"
+          }
+        },
+        {
+          "name": "口令错误（401，统一提示）",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": { "mode": "raw", "raw": "{\"username\":\"student_r4\",\"password\":\"wrong-password\"}" },
+            "description": "期望 401。账号不存在、口令错误、账号停用都返回同一句「用户名或密码错误」，不泄露认证细节。"
+          }
+        },
+        {
+          "name": "获取写请求令牌",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/csrf",
+            "description": "期望 200，data 为字符串。把该值填到环境变量 csrf，后续所有写请求带请求头 X-CSRF-Token。"
+          }
+        },
+        {
+          "name": "当前用户",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": "期望 200。未登录时 401。返回 roles 与 permissions，停用或撤权后再次请求应立即变为 401 / 权限变化。"
+          }
+        },
+        {
+          "name": "退出后原会话失效（401）",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "X-CSRF-Token", "value": "{{csrf}}" }],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "先退出返回 200，再用同一会话访问 /api/auth/me 应得到 401。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 用户管理（user:manage）",
+      "item": [
+        {
+          "name": "用户分页（学生访问应 403）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users?page=1&size=10&enabled=1",
+            "description": "管理员 200；学生/审核员/只读 403；未登录 401。响应不得包含 password 字段。"
+          }
+        },
+        {
+          "name": "用户详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users/{{userId}}",
+            "description": "期望 200，含 roles 与 permissions 明细；不存在时 404。"
+          }
+        },
+        {
+          "name": "停用账号",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" }
+            ],
+            "url": "{{baseUrl}}/api/users/{{userId}}/status",
+            "body": { "mode": "raw", "raw": "{\"enabled\":false}" },
+            "description": "期望 200。停用后该用户的既有会话下一次请求即 401。缺少 CSRF 令牌时 403；停用最后一个管理员时 409。"
+          }
+        },
+        {
+          "name": "分配角色",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" }
+            ],
+            "url": "{{baseUrl}}/api/users/{{userId}}/roles",
+            "body": { "mode": "raw", "raw": "{\"roleCodes\":[\"EDITOR\",\"REVIEWER\"]}" },
+            "description": "期望 200。替换式语义：提交的集合即最终角色。撤销 REVIEWER 后该用户既有会话访问审核接口应立即 403。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 角色与权限（role:manage）",
+      "item": [
+        {
+          "name": "角色列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/roles",
+            "description": "期望 200，返回四个内置角色及其权限。"
+          }
+        },
+        {
+          "name": "权限清单",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/permissions",
+            "description": "期望 200，返回已发布权限码，供页面勾选。"
+          }
+        },
+        {
+          "name": "新建角色",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" }
+            ],
+            "url": "{{baseUrl}}/api/roles",
+            "body": { "mode": "raw", "raw": "{\"code\":\"AUDITOR\",\"name\":\"审计员\"}" },
+            "description": "期望 200；角色代码重复时 409；代码为空或格式错误时 400。"
+          }
+        },
+        {
+          "name": "为角色授权",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" }
+            ],
+            "url": "{{baseUrl}}/api/roles/2/permissions",
+            "body": { "mode": "raw", "raw": "{\"permissionCodes\":[\"user:manage\",\"role:manage\"]}" },
+            "description": "期望 200。管理员角色必须保留用户管理与角色管理权限，移除时返回 409。"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 权限矩阵回归",
+      "item": [
+        {
+          "name": "未登录调用受保护接口（401）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/users",
+            "description": "不携带会话 Cookie，期望 401，body.code=401。手工构造请求不能绕过登录拦截。"
+          }
+        },
+        {
+          "name": "学生访问管理接口（403）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/roles",
+            "description": "以学生会话执行，期望 403，body.code=403。"
+          }
+        },
+        {
+          "name": "学生替自己提权（403）",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-CSRF-Token", "value": "{{csrf}}" }
+            ],
+            "url": "{{baseUrl}}/api/users/{{userId}}/roles",
+            "body": { "mode": "raw", "raw": "{\"roleCodes\":[\"ADMIN\"]}" },
+            "description": "以学生会话执行，期望 403。注意请求体必须合法，否则会先被参数校验拦成 400。"
+          }
+        },
+        {
+          "name": "审核员访问审核工作台（200）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/reviews",
+            "description": "以审核员会话执行，期望 200；同一会话访问 /api/users 应 403。"
+          }
+        },
+        {
+          "name": "管理员访问审核日志（200 / 审核员 403）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/operation-logs",
+            "description": "需要 audit:view。管理员 200；审核员、学生、只读 403。"
+          }
+        },
+        {
+          "name": "访问他人审核记录（403）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/items/1/review-records",
+            "description": "以既非作者本人、也不是审核人员的会话执行，期望 403；作者本人或审核人员 200。"
+          }
+        },
+        {
+          "name": "写接口缺少 CSRF 令牌（403）",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/users/{{userId}}/status",
+            "body": { "mode": "raw", "raw": "{\"enabled\":true}" },
+            "description": "管理员会话但不带 X-CSRF-Token，期望 403。使用他人会话的令牌同样 403。"
+          }
+        }
+      ]
+    }
+  ]
+}
