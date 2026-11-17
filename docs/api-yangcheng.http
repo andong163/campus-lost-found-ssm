@@ -1,0 +1,107 @@
+### 杨程模块接口片段（ApiFox / IDEA HTTP Client 可导入）
+### 基础地址按本地上下文 /cms 配置；下面的账号与口令为占位，换成自己的测试账号，禁止提交真实口令。
+@base = http://127.0.0.1:8080/cms
+@itemId = 1
+@claimId = 1
+@csrf = <登录后 GET /api/auth/csrf 返回的 data>
+
+### 登录审核员（先执行；登录会签发 CSRF 令牌并保存同源会话 Cookie）
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{"username":"reviewer01","password":"<本地测试口令>"}
+
+### 读取 CSRF 令牌：把 data 填入上方 @csrf；所有 POST 都要带 X-CSRF-Token
+GET {{base}}/api/auth/csrf
+
+### 审核待办：200，records 不含正文与联系方式
+GET {{base}}/api/reviews?page=1&size=10
+
+### 审核待办筛选：200
+GET {{base}}/api/reviews?keyword=雨伞&itemType=FOUND&page=1&size=10
+
+### 审核历史：200
+GET {{base}}/api/reviews/history?page=1&size=10
+
+### 批准：200；旧 version 或非 PENDING_REVIEW 返回 409；自审返回 403
+POST {{base}}/api/reviews/{{itemId}}/decision
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"version":1,"decision":"APPROVED","comment":"内容完整，同意发布"}
+
+### 驳回：200，comment 必填；缺失返回 400
+POST {{base}}/api/reviews/{{itemId}}/decision
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"version":1,"decision":"REJECTED","comment":"请补充物品颜色和明显特征"}
+
+### 单物品审核记录：作者或审核人员 200，其他学生 403
+GET {{base}}/api/items/{{itemId}}/review-records
+
+### 学生申请认领：200；本人发布、LOST、未发布、已结案、重复申请返回 409
+POST {{base}}/api/items/{{itemId}}/claims
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"claimDescription":"我丢失的雨伞与描述一致，伞柄有磨损，可提供购买记录。","contactInfo":"13900000002"}
+
+### 我的认领：200
+GET {{base}}/api/claims/mine?page=1&size=10
+
+### 我的认领按状态：200
+GET {{base}}/api/claims/mine?status=PENDING&page=1&size=10
+
+### 审核员认领队列：200；学生 403
+GET {{base}}/api/claims?status=PENDING&page=1&size=10
+
+### 发布者/审核员查看某物品申请：200；其他学生 403；含证据，禁止公开
+GET {{base}}/api/items/{{itemId}}/claims
+
+### 批准认领：200；批准后物品仍 OPEN；第二个批准 409；自审/本人发布物品 403
+POST {{base}}/api/claims/{{claimId}}/decision
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"version":0,"decision":"APPROVED","comment":"特征吻合，可进入线下交接"}
+
+### 驳回认领：200，理由必填
+POST {{base}}/api/claims/{{claimId}}/decision
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"version":0,"decision":"REJECTED","comment":"无法提供物品特征，驳回"}
+
+### 申请人撤销：200；撤销已通过申请会释放唯一通过名额
+POST {{base}}/api/claims/{{claimId}}/cancel
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"version":1,"reason":"已与发布者线下沟通，放弃认领"}
+
+### 交接入口上下文：发布者或认领处理人员 200；不返回联系方式
+GET {{base}}/api/items/{{itemId}}/handover
+
+### 确认交接（FOUND）：200；申请 COMPLETED、物品 RESOLVED、其他 PENDING 关闭
+POST {{base}}/api/items/{{itemId}}/resolve
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"version":2,"claimId":{{claimId}}}
+
+### 确认找回（LOST）：200；作者本人；非作者 403；重复 409
+POST {{base}}/api/items/{{itemId}}/resolve
+Content-Type: application/json
+X-CSRF-Token: {{csrf}}
+
+{"version":2}
+
+### FOUND 联系方式：作者/已通过申请人/审核人员 200；其他学生 403；每次读取写审计
+GET {{base}}/api/items/{{itemId}}/found-contact
+
+### 操作日志：管理员或 audit:view 200；普通学生 403
+GET {{base}}/api/operation-logs?page=1&size=20&result=SUCCESS
+
+### 操作日志筛选：动作、操作者、时间范围
+GET {{base}}/api/operation-logs?action=REVIEW_DECIDE&operatorId=3&from=2026-10-01T00:00:00&to=2026-10-31T23:59:59
