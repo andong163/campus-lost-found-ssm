@@ -42,7 +42,14 @@ public class SpringMvcConfig implements WebMvcConfigurer {
     // 根容器声明的登录拦截器：保护 /api/**，白名单为注册、登录与系统健康接口。
     @Autowired private AuthInterceptor authInterceptor;
 
+    @Autowired private com.team.cms.audit.service.AuditWriter r4AuditWriter;
     @Override public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new com.team.cms.article.web.ContactResponseInterceptor(r4AuditWriter))
+            .addPathPatterns("/api/items/*/contact", "/api/items/*/found-contact",
+                "/api/items/*/claim-eligibility", "/api/claims/**", "/api/claims",
+                "/api/items/*/claims", "/api/items/*/handover", "/api/items/*/r4-detail", "/api/items/*/resolution")
+            .order(-100);
+
         registry.addInterceptor(authInterceptor)
             .addPathPatterns("/api/**")
             .excludePathPatterns(AuthConstants.PUBLIC_PATHS);

@@ -1,0 +1,91 @@
+/* Public-page controls and layout. Shared shell/theme and query behavior are kept intact. */
+.public-items-page #advanced-filters,
+.public-items-page #public-results a,
+.public-items-page .advanced-fields :is(input, select, button) { scroll-margin-top: var(--public-focus-offset, 0px); }
+.public-items-page .workspace > .topbar { position: sticky; top: 0; z-index: 30; }
+.public-items-page .topbar .page-heading { font-family: var(--body); line-height: 1.85; letter-spacing: normal; }
+.public-items-page main { padding-top: 24px; padding-bottom: 24px; }
+.public-items-page .public-sr-only {
+  position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important;
+  margin: -1px !important; overflow: hidden !important; clip-path: inset(50%) !important; white-space: nowrap; border: 0 !important;
+}
+.module-page main > #filter { max-width: none; width: 100%; padding: 0; margin: 0; border: 0; }
+#filter .filter-primary {
+  position: sticky; top: var(--public-header-height, 0px); z-index: 20; margin: 0; padding: 14px;
+  border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--surface);
+  box-shadow: 0 3px 8px rgb(23 62 88 / 5%);
+}
+#filter .filter-fields {
+  display: grid; grid-template-columns: minmax(160px, 1.8fr) repeat(3, minmax(104px, 1fr)) max-content;
+  align-items: end; gap: 12px;
+}
+#filter .filter-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+#filter .filter-field > label {
+  display: block; margin: 0; color: var(--ink); font-size: 14px; font-weight: 600; line-height: 1.5;
+}
+#filter input, #filter select, #filter button {
+  width: 100%; min-width: 0; height: 42px; min-height: 42px; margin: 0;
+  padding: 0 12px; border: 1px solid var(--line); border-radius: var(--radius-control);
+  background: var(--surface); color: var(--ink); font: inherit; font-size: 14px;
+}
+#filter input::placeholder { color: var(--muted); }
+#filter input[type="date"] { display: block; max-width: 100%; }
+#filter input:hover, #filter select:hover, #filter button:hover { border-color: #8aa4b5; }
+#filter :is(input, select, button):focus,
+#filter :is(input, select, button):focus-visible {
+  border-color: var(--ink); outline: 2px solid #c6dfed; outline-offset: 0; box-shadow: none;
+}
+#filter :is(input, select, button)[aria-invalid="true"] { border-color: var(--error-line); }
+#filter :is(input, select, button)[aria-invalid="true"]:focus { outline-color: #eed3cf; }
+#filter .filter-actions { display: flex; align-items: center; gap: 12px; min-width: 0; }
+#filter .filter-submit {
+  width: auto; min-width: 76px; padding-inline: 16px;
+  border-color: var(--ink); color: var(--on-ink); background: var(--ink); font-weight: 700; white-space: nowrap;
+}
+#filter .filter-submit:hover { background: var(--action-hover); border-color: var(--action-hover); }
+#filter .filter-more { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; white-space: nowrap; }
+#filter .filter-disclosure { font-size: 12px; }
+#filter .filter-more[aria-expanded="true"] .filter-disclosure { transform: rotate(90deg); }
+#filter .advanced-badge { padding-left: 6px; border-left: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+#filter :is(input, select, button):disabled { color: var(--disabled-ink); background: var(--disabled-surface); border-color: var(--disabled-line); }
+#filter .advanced-filters { margin: 0; padding: 0; border: 0; }
+#filter .advanced-filters[open] {
+  margin-top: 12px; padding: 16px; border: 1px solid var(--line);
+  border-radius: var(--radius-control); background: var(--surface);
+}
+#filter .advanced-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+#filter .filter-sort { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; grid-column: span 2; min-width: 0; }
+#filter .filter-date-range { grid-column: 1 / -1; min-width: 0; margin: 0; padding: 0; border: 0; }
+#filter .filter-date-range legend { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+#filter .filter-help { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+#filter .filter-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+#filter .filter-date-error { margin: 8px 0 0; color: var(--error-ink); font-size: 13px; }
+#filter .public-results { margin-top: 22px; }
+#filter #notice { margin: 0 0 12px; font-size: 14px; }
+#filter #notice:empty { display: none; }
+#filter #list { font-size: 14px; line-height: 1.8; }
+#filter #list:not(:has(> *)) { padding: 16px 0; color: var(--muted); }
+#filter #list > p { margin: 0; padding: 14px 0; border-bottom: 1px solid var(--line); }
+#filter .public-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 14px; }
+#filter .public-pagination button { width: auto; min-height: 40px; height: 40px; padding: 0 14px; }
+.public-items-page.public-static-toolbar #filter .filter-primary { position: static; }
+@media (max-width: 1080px) and (min-width: 901px), (max-width: 840px) {
+  #filter .filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #filter .filter-actions { grid-column: 1 / -1; }
+}
+@media (max-width: 760px), (max-height: 560px) {
+  .public-items-page .workspace > .topbar, #filter .filter-primary { position: static; }
+}
+@media (max-width: 700px) {
+  #filter .advanced-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #filter .filter-status { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+  #filter .filter-fields { grid-template-columns: minmax(0, 1fr); }
+  #filter .filter-actions { grid-column: auto; flex-wrap: wrap; }
+  #filter .filter-actions > button { flex: 1 1 auto; }
+  #filter .filter-dates, #filter .filter-sort { grid-template-columns: minmax(0, 1fr); }
+}
+@media (forced-colors: active) {
+  #filter :is(input, select, button):focus-visible { outline-color: Highlight; }
+}

@@ -3,7 +3,7 @@
   "info" : {
     "title" : "校园失物招领 SSM 主接口",
     "version" : "0.3.0-gmy-r3",
-    "description" : "汇总第三轮集成源码的实际 Controller/DTO，含公开检索、批量管理与认领。已存在的交接/结案入口仅记录实现，不代表第四轮已验收。角色/所有权及兼容路由说明见 docs/api-contracts-current.md。错误响应列为统一错误契约，不表示每个接口都会产生所有错误。"
+    "description" : "汇总当前集成源码的实际 Controller/DTO，含公开检索、批量管理、认领及第四轮联系、资格和结案历史。角色/所有权及兼容路由说明见 docs/api-contracts-current.md。错误响应列为统一错误契约，不表示每个接口都会产生所有错误。"
   },
   "servers" : [ {
     "url" : "http://127.0.0.1:8088/cms"
@@ -1612,6 +1612,116 @@
         }
       }
     },
+    "/api/items/{id}/claim-eligibility" : {
+      "get" : {
+        "summary" : "eligibility",
+        "operationId" : "ArticleR4Controller_eligibility",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleR4Controller#eligibility",
+        "x-csrf-enforced" : false,
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_claim_dto_ClaimEligibility_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/items/{id}/contact" : {
+      "get" : {
+        "summary" : "contact",
+        "operationId" : "ArticleR4Controller_contact",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleR4Controller#contact",
+        "x-csrf-enforced" : false,
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_article_dto_ContactView_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/api/items/{id}/draft" : {
       "post" : {
         "summary" : "toDraft",
@@ -1936,6 +2046,118 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/com_team_cms_common_api_Result_java_lang_Void_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/items/{id}/r4-detail" : {
+      "get" : {
+        "summary" : "mySummary",
+        "operationId" : "ArticleR4Controller_mySummary",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleR4Controller#mySummary",
+        "x-csrf-enforced" : false,
+        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "item:view:own",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_article_dto_ArticleSummaryView_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/items/{id}/resolution" : {
+      "get" : {
+        "summary" : "myResolution",
+        "operationId" : "ArticleR4Controller_myResolution",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleR4Controller#myResolution",
+        "x-csrf-enforced" : false,
+        "description" : "所需权限：item:view:own，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ {
+          "SessionCookie" : [ ]
+        } ],
+        "x-permission" : "item:view:own",
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_article_dto_ResolutionView_"
                 }
               }
             }
@@ -2934,6 +3156,59 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_article_dto_PublicArticleView_"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "401" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "403" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "409" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/Error"
+          },
+          "503" : {
+            "$ref" : "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/public/items/{id}/resolution" : {
+      "get" : {
+        "summary" : "resolution",
+        "operationId" : "ArticleR4Controller_resolution",
+        "tags" : [ "袁运轩" ],
+        "x-controller" : "com.team.cms.article.controller.ArticleR4Controller#resolution",
+        "x-csrf-enforced" : false,
+        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "security" : [ ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "成功，HTTP 与 Result.code 均为 200",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/com_team_cms_common_api_Result_com_team_cms_article_dto_ResolutionView_"
                 }
               }
             }
@@ -4288,6 +4563,44 @@
           }
         }
       },
+      "com_team_cms_article_dto_ArticleSummaryView" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "string"
+          },
+          "eventTime" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "itemType" : {
+            "type" : "string",
+            "enum" : [ "LOST", "FOUND" ]
+          },
+          "location" : {
+            "type" : "string"
+          },
+          "resolutionStatus" : {
+            "type" : "string",
+            "enum" : [ "OPEN", "RESOLVED" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "DRAFT", "PENDING_REVIEW", "APPROVED", "PUBLISHED", "REJECTED", "OFFLINE" ]
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "com_team_cms_article_dto_BatchArticleRequest" : {
         "type" : "object",
         "properties" : {
@@ -4312,6 +4625,14 @@
           }
         },
         "required" : [ "ids" ]
+      },
+      "com_team_cms_article_dto_ContactView" : {
+        "type" : "object",
+        "properties" : {
+          "contactInfo" : {
+            "type" : "string"
+          }
+        }
       },
       "com_team_cms_article_dto_CreateDraftRequest" : {
         "type" : "object",
@@ -4607,6 +4928,22 @@
             "enum" : [ "OPEN", "RESOLVED" ]
           },
           "title" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_article_dto_ResolutionView" : {
+        "type" : "object",
+        "properties" : {
+          "resolutionStatus" : {
+            "type" : "string",
+            "enum" : [ "OPEN", "RESOLVED" ]
+          },
+          "resolvedAt" : {
+            "type" : "string",
+            "description" : "本地 ISO 日期时间，Asia/Shanghai，例如 2026-10-29T12:00:00（不带时区偏移）"
+          },
+          "result" : {
             "type" : "string"
           }
         }
@@ -5137,6 +5474,17 @@
         },
         "required" : [ "decision", "version" ]
       },
+      "com_team_cms_claim_dto_ClaimEligibility" : {
+        "type" : "object",
+        "properties" : {
+          "eligible" : {
+            "type" : "boolean"
+          },
+          "reason" : {
+            "type" : "string"
+          }
+        }
+      },
       "com_team_cms_claim_dto_ClaimQuery" : {
         "type" : "object",
         "properties" : {
@@ -5464,6 +5812,36 @@
           }
         }
       },
+      "com_team_cms_common_api_Result_com_team_cms_article_dto_ArticleSummaryView_" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_article_dto_ArticleSummaryView"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_common_api_Result_com_team_cms_article_dto_ContactView_" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_article_dto_ContactView"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
       "com_team_cms_common_api_Result_com_team_cms_article_dto_PrivateArticleDetail_" : {
         "type" : "object",
         "properties" : {
@@ -5488,6 +5866,21 @@
           },
           "data" : {
             "$ref" : "#/components/schemas/com_team_cms_article_dto_PublicArticleView"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_common_api_Result_com_team_cms_article_dto_ResolutionView_" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_article_dto_ResolutionView"
           },
           "message" : {
             "type" : "string"
@@ -5548,6 +5941,21 @@
           },
           "data" : {
             "$ref" : "#/components/schemas/com_team_cms_category_dto_CategoryCreateResponse"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "com_team_cms_common_api_Result_com_team_cms_claim_dto_ClaimEligibility_" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "data" : {
+            "$ref" : "#/components/schemas/com_team_cms_claim_dto_ClaimEligibility"
           },
           "message" : {
             "type" : "string"

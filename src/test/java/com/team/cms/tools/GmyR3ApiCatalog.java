@@ -140,7 +140,7 @@ public final class GmyR3ApiCatalog {
         }
         schemas.put("ErrorResult",map("type","object","required",List.of("code","message","data"),"properties",map("code",map("type","integer"),"message",map("type","string"),"data",map("nullable",true))));
         return map("openapi","3.0.3","info",map("title","校园失物招领 SSM 主接口","version","0.3.0-gmy-r3",
-            "description","汇总第三轮集成源码的实际 Controller/DTO，含公开检索、批量管理与认领。已存在的交接/结案入口仅记录实现，不代表第四轮已验收。角色/所有权及兼容路由说明见 docs/api-contracts-current.md。错误响应列为统一错误契约，不表示每个接口都会产生所有错误。"),
+            "description","汇总当前集成源码的实际 Controller/DTO，含公开检索、批量管理、认领及第四轮联系、资格和结案历史。角色/所有权及兼容路由说明见 docs/api-contracts-current.md。错误响应列为统一错误契约，不表示每个接口都会产生所有错误。"),
             "servers",List.of(map("url","http://127.0.0.1:8088/cms")),"paths",paths,"components",map("schemas",schemas,
                 "securitySchemes",map("SessionCookie",map("type","apiKey","in","cookie","name","JSESSIONID")),
                 "responses",map("Error",map("description","统一安全错误，HTTP 状态与 code 一致；无 SQL、堆栈或口令","content",map("application/json",map("schema",map("$ref","#/components/schemas/ErrorResult")))))));

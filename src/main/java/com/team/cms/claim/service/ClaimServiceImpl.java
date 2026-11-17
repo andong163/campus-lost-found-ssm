@@ -6,7 +6,6 @@ import com.team.cms.article.mapper.ArticleMapper;
 import com.team.cms.auth.AuthConstants;
 import com.team.cms.auth.security.CurrentUser;
 import com.team.cms.auth.security.CurrentUserContext;
-import com.team.cms.category.service.CategoryAccessService;
 import com.team.cms.claim.ClaimPermissions;
 import com.team.cms.claim.domain.ClaimDecision;
 import com.team.cms.claim.dto.ClaimCancelRequest;
@@ -44,15 +43,15 @@ public class ClaimServiceImpl implements ClaimService {
     private static final int MAX_COMMENT = 500;
     private static final int MAX_REASON = 500;
 
+    private final ClaimReadPolicy readPolicy;
     private final ArticleMapper articleMapper;
     private final ClaimRequestMapper claimRequestMapper;
-    private final CategoryAccessService categoryAccessService;
 
     public ClaimServiceImpl(ArticleMapper articleMapper, ClaimRequestMapper claimRequestMapper,
-            CategoryAccessService categoryAccessService) {
+            ClaimReadPolicy readPolicy) {
+        this.readPolicy = readPolicy;
         this.articleMapper = articleMapper;
         this.claimRequestMapper = claimRequestMapper;
-        this.categoryAccessService = categoryAccessService;
     }
 
     @Override
@@ -61,29 +60,7 @@ public class ClaimServiceImpl implements ClaimService {
         CurrentUser actor = CurrentUserContext.require();
         requireWritePermission(actor, PermissionCodes.CLAIM_CREATE);
         Article article = articleMapper.selectByIdForUpdate(itemId);
-        if (article == null) {
-            throw new BusinessException(HttpStatus.NOT_FOUND, "信息不存在");
-        }
-        if (article.getAuthorId().equals(actor.getId())) {
-            throw conflict("不能认领本人发布的招领信息");
-        }
-        if (article.getItemType() != ItemType.FOUND) {
-            throw conflict("寻物信息不支持认领申请");
-        }
-        if (article.getStatus() != ArticleStatus.PUBLISHED) {
-            throw conflict("只有已发布的招领信息可以申请认领");
-        }
-        if (article.getResolutionStatus() != ResolutionStatus.OPEN) {
-            throw conflict("该招领信息已结案，不能新增认领");
-        }
-        // 分类停用后旧申请仍可核实，但新增申请必须重新检查分类及祖先有效性。
-        categoryAccessService.requireBindable(article.getCategoryId());
-        if (claimRequestMapper.countActiveByApplicant(itemId, actor.getId()) > 0) {
-            throw conflict("你已有一条待核实或已通过的申请，不能重复提交");
-        }
-        if (claimRequestMapper.countApprovedByItem(itemId) > 0) {
-            throw conflict("该物品已有通过的认领，不能新增申请");
-        }
+        readPolicy.requireEligible(article, actor);
         ClaimRequest claim = new ClaimRequest();
         claim.setArticleId(itemId);
         claim.setApplicantId(actor.getId());

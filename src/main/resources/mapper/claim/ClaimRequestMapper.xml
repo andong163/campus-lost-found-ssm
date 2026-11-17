@@ -55,11 +55,11 @@
     WHERE article_id = #{articleId} AND status = 'APPROVED'
   </select>
 
-  <select id="countApprovedByApplicant" resultType="int">
+  <select id="countVerifiedByApplicant" resultType="int">
     SELECT COUNT(*) FROM cms_claim_request
     WHERE article_id = #{articleId}
       AND applicant_id = #{applicantId}
-      AND status = 'APPROVED'
+      AND status IN ('APPROVED', 'COMPLETED')
   </select>
 
   <update id="updateDecision">

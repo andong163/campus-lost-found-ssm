@@ -32,7 +32,7 @@ public interface ClaimRequestMapper extends BaseMapper<ClaimRequest> {
 
     int countApprovedByItem(@Param("articleId") Long articleId);
 
-    int countApprovedByApplicant(@Param("articleId") Long articleId,
+    int countVerifiedByApplicant(@Param("articleId") Long articleId,
             @Param("applicantId") Long applicantId);
 
     int updateDecision(@Param("id") Long id,

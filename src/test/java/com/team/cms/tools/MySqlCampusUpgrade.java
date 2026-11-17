@@ -40,6 +40,7 @@ public final class MySqlCampusUpgrade {
                     update.executeUpdate("UPDATE sys_role SET name='只读用户',updated_at=CURRENT_TIMESTAMP,version=version+1 " +
                         "WHERE code='VIEWER' AND name='普通用户'");
                 }
+                LocalDatabaseSupport.script(connection, "sql/migrations/007-r4-lost-contact-permission.sql");
                 LocalDatabaseSupport.verifyCampusSchema(connection);
                 verifyClaimConstraints(connection);
                 System.out.println("Campus upgrade verified: schema, duplicate claim rejection, exclusive approval and rollback.");
