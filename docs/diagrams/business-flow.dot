@@ -1,0 +1,25 @@
+digraph Workflow {
+graph [bgcolor="white",pad="0.35",nodesep="0.4",ranksep="0.6",fontname="Microsoft YaHei",fontsize=19,labelloc=t];
+node [shape=box,style="rounded,filled",fillcolor="#F3F6F8",color="#71828D",fontname="Microsoft YaHei",fontsize=13,margin="0.24,0.16"];
+edge [color="#536E7D",arrowsize=0.7,fontname="Microsoft YaHei",fontsize=11];
+rankdir=TB; label="发布 认领与实际交接业务流程";
+draft [label="学生登记 LOST 或 FOUND\nDRAFT 本人维护",width="2.84"];
+pending [label="提审 PENDING_REVIEW\n审核人不能审核本人内容",width="2.66"];
+approved [label="APPROVED 审核通过",width="2.41"];
+rejected [label="REJECTED 驳回并说明",width="2.47"];
+published [label="授权发布 PUBLISHED\n公开 DTO 无联系方式和认领证据",width="3.33"];
+type [shape=diamond,label="物品类型",width="1.39"];
+claim [label="FOUND 他人申请 PENDING\n本人回避 可见分类 同人防重",width="2.98"];
+verify [label="核实 APPROVED\n同物品至多一条通过 不等于归还",width="3.25"];
+handover [label="FOUND 发布者确认真实交接\n所有权 CSRF 版本与当前申请",width="3.02"];
+foundtx [fillcolor="#E5F0E8",label="同一事务\n申请 COMPLETED 完成时间\n物品 RESOLVED 结案时间 版本递增\n其他 PENDING 申请关闭",width="3.56"];
+lost [label="LOST 作者确认已找回\n所有权 CSRF 与版本",width="2.43"];
+losttx [fillcolor="#E5F0E8",label="物品 RESOLVED\n写入结案时间 版本递增",width="2.53"];
+history [label="保留结案历史\n重复确认与新认领拒绝",width="2.47"];
+rollback [color="#AC6255",fillcolor="#F9EEEB",label="任一步失败 全事务回滚\n申请 物品 时间 版本保持原状",width="3.0"];
+note [shape=note,fillcolor="white",label="接口级流程 当前实现通过自动验收后记录证据\n第四轮正式页面与材料仍由各模块负责人交付",width="4.33"];
+ draft -> pending -> approved -> published -> type; pending -> rejected; rejected -> pending [label="本人修正重提"];
+ type -> claim [label="FOUND"]; claim -> verify -> handover -> foundtx -> history;
+ type -> lost [label="LOST"]; lost -> losttx -> history;
+ foundtx -> rollback [style=dashed,label="受控失败验证"]; history -> note [style=invis];
+}

@@ -1,0 +1,20 @@
+erDiagram
+  SYS_USER ||--o{ SYS_USER_ROLE : user_id
+  SYS_ROLE ||--o{ SYS_USER_ROLE : role_id
+  SYS_ROLE ||--o{ SYS_ROLE_PERMISSION : role_id
+  SYS_PERMISSION ||--o{ SYS_ROLE_PERMISSION : permission_id
+  CMS_CATEGORY o|--o{ CMS_CATEGORY : parent_id
+  SYS_USER ||--o{ CMS_ARTICLE : author_id
+  CMS_CATEGORY ||--o{ CMS_ARTICLE : category_id
+  CMS_ARTICLE ||--o{ CMS_REVIEW_RECORD : article_id
+  SYS_USER ||--o{ CMS_REVIEW_RECORD : reviewer_id
+  CMS_ARTICLE ||--o{ CMS_CLAIM_REQUEST : article_id
+  SYS_USER ||--o{ CMS_CLAIM_REQUEST : applicant_id
+  SYS_USER o|--o{ CMS_CLAIM_REQUEST : reviewer_id
+  SYS_OPERATION_LOG {
+    bigint id PK
+    bigint operator_id
+    string operator_name
+    string action
+    string request_id
+  }

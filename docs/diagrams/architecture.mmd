@@ -1,0 +1,15 @@
+flowchart TB
+  Page[学生 管理页面 或 ApiFox] --> Web[WebAppInitializer DispatcherServlet requestId]
+  subgraph MVC[Spring MVC 子容器]
+    Controller[Controller DTO 参数校验 权限AOP 统一异常]
+  end
+  subgraph Root[Spring 根容器]
+    Service[Service 声明式事务 所有权 状态版本]
+    Rules[CurrentUser CategoryAccess ClaimReadPolicy]
+    Mapper[MyBatis Mapper XML 与手动接入 MP]
+    DS[Druid DataSourceTransactionManager]
+    Service --> Rules
+    Service --> Mapper --> DS
+  end
+  Web --> Controller --> Service
+  DS --> DB[(MySQL 8 十表 外键 唯一约束 行锁)]

@@ -1,0 +1,1394 @@
+{
+  "task": "GMY R4",
+  "engineeringPassed": true,
+  "releaseReady": false,
+  "pendingMembers": [
+    "GJT R4",
+    "SR R4",
+    "YC R4",
+    "YYX R4"
+  ],
+  "passed": true,
+  "skipBuild": false,
+  "baseCommit": "c0245d9fbf1485c428c7791399c42de20349737b",
+  "workingTreeDirty": true,
+  "tomcatVersion": "9.0.123",
+  "container": "external Apache Tomcat distribution / Bootstrap",
+  "javaHome": "C:\\Users\\gaomi\\Desktop\\企业级实验\\cms-ssm\\.tools\\jdk-11.0.32.1+1",
+  "runDirectory": "C:\\Users\\gaomi\\Desktop\\企业级实验\\cms-ssm\\.local\\gmy-r3-c3a13f2ed927",
+  "baseUrl": "http://127.0.0.1:8098/cms",
+  "startedAt": "2026-11-08T01:56:50.8391410Z",
+  "codeFingerprint": "c021e12cbeba20904a9f17bb2cad6a9a3b376ab3769a478154a0199b674d3a10",
+  "junit": {
+    "failures": 0,
+    "skipped": 0,
+    "tests": 145,
+    "errors": 0
+  },
+  "warDeployment": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<failsafe-summary xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"https://maven.apache.org/surefire/maven-surefire-plugin/xsd/failsafe-summary.xsd\" result=\"null\" timeout=\"false\">\n    <completed>1</completed>\n    <errors>0</errors>\n    <failures>0</failures>\n    <skipped>0</skipped>\n    <failureMessage xsi:nil=\"true\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"/>\n</failsafe-summary>",
+  "sharedUiPassed": true,
+  "foundationNegativePassed": true,
+  "warSha256": "f1b17ae593633f120a14c18111728e9137faa08a46df047e9ef21fc20140a670",
+  "processId": 4664,
+  "startupMs": 13528,
+  "http": {
+    "baseUrl": "http://127.0.0.1:8098/cms",
+    "schema": "cms_gmy_r3_c3a13f2ed927",
+    "startedAt": "2026-11-08T01:57:09.888039200Z",
+    "passed": true,
+    "completedAt": "2026-11-08T01:57:12.940340800Z",
+    "checks": [
+      {
+        "name": "Web 健康",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/system/health",
+        "status": 200,
+        "requestId": "1f111ca3-a175-465f-a0a6-c825298f84e6",
+        "elapsedMs": 71
+      },
+      {
+        "name": "真实 MySQL 就绪",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/system/readiness",
+        "status": 200,
+        "requestId": "e5ca4617-3d7f-4ffa-bd9c-d5002d3d6a94",
+        "elapsedMs": 651
+      },
+      {
+        "name": "匿名读取分类树",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/public/categories",
+        "status": 200,
+        "requestId": "423dfdfa-bf4b-48cd-9776-d8c89b08fdf6",
+        "elapsedMs": 60
+      },
+      {
+        "name": "匿名私有请求拒绝",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/items/mine",
+        "status": 401,
+        "requestId": "f23b0a2a-6fa3-477f-b1be-15392cc01df1",
+        "elapsedMs": 13
+      },
+      {
+        "name": "未知 API JSON 404",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/not-found",
+        "status": 404,
+        "requestId": "27d54edd-0174-489e-8c01-7768df7808cc",
+        "elapsedMs": 10
+      },
+      {
+        "name": "不支持方法 JSON 405",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/system/health",
+        "status": 405,
+        "requestId": "6ac2e82b-0467-4a65-aa21-c3d7f6b1e82c",
+        "elapsedMs": 4
+      },
+      {
+        "name": "登录夹具 admin",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/auth/login",
+        "status": 200,
+        "requestId": "e79dd063-d613-48d8-8421-4077a9e8db18",
+        "elapsedMs": 386
+      },
+      {
+        "name": "读取会话令牌 admin",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/auth/csrf",
+        "status": 200,
+        "requestId": "0b3ccf60-c0f5-49fa-933e-c461966c49ee",
+        "elapsedMs": 12
+      },
+      {
+        "name": "登录夹具 editor",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/auth/login",
+        "status": 200,
+        "requestId": "049f1851-8d7b-402d-8d46-f094c88e3c9a",
+        "elapsedMs": 28
+      },
+      {
+        "name": "读取会话令牌 editor",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/auth/csrf",
+        "status": 200,
+        "requestId": "8ae0d7e9-db69-486b-a72b-27679c13ad60",
+        "elapsedMs": 5
+      },
+      {
+        "name": "登录夹具 reviewer",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/auth/login",
+        "status": 200,
+        "requestId": "68d6be01-1774-44c6-9e96-028d8a4f7efc",
+        "elapsedMs": 25
+      },
+      {
+        "name": "读取会话令牌 reviewer",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/auth/csrf",
+        "status": 200,
+        "requestId": "3b426998-2d1d-43b3-9f0b-49b72d78db48",
+        "elapsedMs": 4
+      },
+      {
+        "name": "登录夹具 viewer",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/auth/login",
+        "status": 200,
+        "requestId": "fd6501ca-9533-47f6-a070-5a58c19ad100",
+        "elapsedMs": 23
+      },
+      {
+        "name": "读取会话令牌 viewer",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/auth/csrf",
+        "status": 200,
+        "requestId": "8f8a7c95-c82a-49f5-bbdc-06fdd5d1656f",
+        "elapsedMs": 4
+      },
+      {
+        "name": "学生身份",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/auth/me",
+        "status": 200,
+        "requestId": "97154b27-6613-45a3-a52a-0e4c075e6a81",
+        "elapsedMs": 4
+      },
+      {
+        "passed": true,
+        "name": "学生不拥有 ADMIN"
+      },
+      {
+        "name": "真实注册忽略伪造角色",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/auth/register",
+        "status": 200,
+        "requestId": "93eb435d-6753-4cee-9328-2cc790070f45",
+        "elapsedMs": 86
+      },
+      {
+        "passed": true,
+        "name": "新生只分配学生角色"
+      },
+      {
+        "name": "重复注册拒绝",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/auth/register",
+        "status": 409,
+        "requestId": "eb365a52-6d08-4fdd-a4fb-cbf632924510",
+        "elapsedMs": 7
+      },
+      {
+        "name": "新生真实登录",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/auth/login",
+        "status": 200,
+        "requestId": "f813fb83-9f6b-4c8f-bf0d-723494a66c59",
+        "elapsedMs": 24
+      },
+      {
+        "name": "新生令牌",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/auth/csrf",
+        "status": 200,
+        "requestId": "0bf6676c-7dcf-4f2a-969d-cb0f013de716",
+        "elapsedMs": 4
+      },
+      {
+        "name": "学生不能管理用户",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/users",
+        "status": 403,
+        "requestId": "9870e362-3817-4cc1-9de6-48cc72d2b16a",
+        "elapsedMs": 34
+      },
+      {
+        "name": "只读不能查看本人内容",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/items/mine",
+        "status": 403,
+        "requestId": "64f5af58-3b52-4e1f-a5fe-6a3b6d7ce9ca",
+        "elapsedMs": 8
+      },
+      {
+        "name": "管理员用户分页",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/users?page=1&size=5",
+        "status": 200,
+        "requestId": "e46040de-8c08-4fa2-bafd-428493d9cba3",
+        "elapsedMs": 112
+      },
+      {
+        "name": "管理员权限清单",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/permissions",
+        "status": 200,
+        "requestId": "a0773e32-1bd4-43ab-b4d9-e174c07a0c7f",
+        "elapsedMs": 17
+      },
+      {
+        "name": "管理员新建分类",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/categories",
+        "status": 200,
+        "requestId": "ecd07128-893e-4443-b651-40662a6805d2",
+        "elapsedMs": 44
+      },
+      {
+        "name": "学生不能新增分类",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/categories",
+        "status": 403,
+        "requestId": "c0e224a0-11fa-4ab8-92c1-53b59d1a80b5",
+        "elapsedMs": 5
+      },
+      {
+        "name": "分类重名拒绝",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/categories",
+        "status": 409,
+        "requestId": "0218c712-ff35-4f0e-bedd-a1f60d1d068b",
+        "elapsedMs": 6
+      },
+      {
+        "name": "分类管理树",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/categories/tree",
+        "status": 200,
+        "requestId": "4c9462fb-6c94-49fb-ad6e-0769a7bdeb54",
+        "elapsedMs": 5
+      },
+      {
+        "name": "草稿缺 CSRF 拒绝",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/items",
+        "status": 403,
+        "requestId": "45ffa93f-8346-409f-b23a-e3da2d6f216c",
+        "elapsedMs": 43
+      },
+      {
+        "name": "学生创建本人草稿",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/items",
+        "status": 200,
+        "requestId": "598c590b-565e-4206-b82d-db8a813eb13c",
+        "elapsedMs": 28
+      },
+      {
+        "name": "他人草稿隐藏",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/items/1/mine",
+        "status": 404,
+        "requestId": "2293e65d-b9d3-4cbb-a8d9-a5d8155e3123",
+        "elapsedMs": 11
+      },
+      {
+        "name": "本人列表",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/items/mine?page=1&size=10",
+        "status": 200,
+        "requestId": "8c582f3f-0909-4f3c-98e3-412e0b4bcf24",
+        "elapsedMs": 25
+      },
+      {
+        "name": "分页超限拒绝",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/items/mine?size=101",
+        "status": 400,
+        "requestId": "86a5c4f0-1750-41b4-a6e7-9ac922fa08d1",
+        "elapsedMs": 18
+      },
+      {
+        "name": "草稿修改",
+        "passed": true,
+        "method": "PUT",
+        "path": "/api/items/1",
+        "status": 200,
+        "requestId": "b4c8c56c-3a5f-4215-a635-1e861e97aa07",
+        "elapsedMs": 31
+      },
+      {
+        "name": "旧版本修改拒绝",
+        "passed": true,
+        "method": "PUT",
+        "path": "/api/items/1",
+        "status": 409,
+        "requestId": "4c822c41-4f46-4628-b2b5-6bc8abbbd14a",
+        "elapsedMs": 8
+      },
+      {
+        "name": "真实物品引用拒绝删分类",
+        "passed": true,
+        "method": "DELETE",
+        "path": "/api/categories/1",
+        "status": 409,
+        "requestId": "c48c3545-de74-4946-b1cc-0698c3aa0df3",
+        "elapsedMs": 9
+      },
+      {
+        "name": "学生提审",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/items/1/submit",
+        "status": 200,
+        "requestId": "db947db7-f82b-4235-b6aa-bdbee7705b39",
+        "elapsedMs": 22
+      },
+      {
+        "name": "待审不能直接编辑",
+        "passed": true,
+        "method": "PUT",
+        "path": "/api/items/1",
+        "status": 409,
+        "requestId": "9cee72e0-9a7c-4326-87ab-3bc3b4513871",
+        "elapsedMs": 8
+      },
+      {
+        "name": "审核员新队列",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/reviews/pending",
+        "status": 200,
+        "requestId": "0be919fb-5f8f-411f-8b96-111e71959e27",
+        "elapsedMs": 20
+      },
+      {
+        "name": "审核员原工作台队列",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/reviews",
+        "status": 200,
+        "requestId": "ca80e73f-5aa3-4824-a11c-bbaadd64a28d",
+        "elapsedMs": 31
+      },
+      {
+        "name": "学生不能审核",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/reviews/1/approve",
+        "status": 403,
+        "requestId": "1c51af72-30de-4e74-8b37-f1c5d9d57e97",
+        "elapsedMs": 11
+      },
+      {
+        "name": "驳回必须有意见",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/reviews/1/reject",
+        "status": 400,
+        "requestId": "686fa04b-e3f1-4f18-bc0f-8ca9a0da55e8",
+        "elapsedMs": 23
+      },
+      {
+        "name": "审核员驳回",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/reviews/1/reject",
+        "status": 200,
+        "requestId": "d363d308-5966-4d37-b443-2f8fd9492baa",
+        "elapsedMs": 27
+      },
+      {
+        "name": "作者查看意见",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/items/1/reviews",
+        "status": 200,
+        "requestId": "078d2c67-fde8-428e-8af6-b02c54ee7808",
+        "elapsedMs": 10
+      },
+      {
+        "passed": true,
+        "name": "作者读取真实意见"
+      },
+      {
+        "name": "驳回后修改",
+        "passed": true,
+        "method": "PUT",
+        "path": "/api/items/1",
+        "status": 200,
+        "requestId": "487bfae8-f447-4b58-977a-f2d6357e3577",
+        "elapsedMs": 15
+      },
+      {
+        "name": "修改后重新提审",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/items/1/submit",
+        "status": 200,
+        "requestId": "e5fb85e1-0763-4989-9d48-b0dc99ec3e27",
+        "elapsedMs": 16
+      },
+      {
+        "name": "旧审核路由缺令牌拒绝",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/reviews/1/decision",
+        "status": 403,
+        "requestId": "25d6a603-b1fd-4363-bd3f-b885827c1a0c",
+        "elapsedMs": 10
+      },
+      {
+        "name": "旧审核路由批准",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/reviews/1/decision",
+        "status": 200,
+        "requestId": "77aeffd8-49c6-4065-a577-f3786040af79",
+        "elapsedMs": 23
+      },
+      {
+        "name": "批准后作者详情",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/items/1/mine",
+        "status": 200,
+        "requestId": "cfdc5177-b796-4951-90bd-0dbbf5caf6f8",
+        "elapsedMs": 5
+      },
+      {
+        "passed": true,
+        "name": "状态为批准而非发布"
+      },
+      {
+        "name": "审核历史一致",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/items/1/reviews",
+        "status": 200,
+        "requestId": "8d6ee608-cfab-42c3-93d1-9f28a0082b3d",
+        "elapsedMs": 5
+      },
+      {
+        "passed": true,
+        "name": "两次审核记录保留"
+      },
+      {
+        "name": "历史查询",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/reviews/history?articleId=1",
+        "status": 200,
+        "requestId": "9e44804a-c010-4d05-a8d5-ce436dd7f550",
+        "elapsedMs": 16
+      },
+      {
+        "name": "管理员查询业务审计",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/operation-logs?page=1&size=10",
+        "status": 200,
+        "requestId": "5b72a6d3-6d4d-4dfe-9e6a-fe106823ec76",
+        "elapsedMs": 32
+      },
+      {
+        "name": "学生无审计权限",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/operation-logs",
+        "status": 403,
+        "requestId": "d3ff7cae-6c0b-4794-9e1f-c285094c1d8c",
+        "elapsedMs": 4
+      },
+      {
+        "name": "撤回场景草稿",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/items",
+        "status": 200,
+        "requestId": "d81d3daa-da25-4c8d-b541-6fb187cca1ca",
+        "elapsedMs": 12
+      },
+      {
+        "name": "撤回场景提审",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/items/2/submit",
+        "status": 200,
+        "requestId": "4b65278c-8e2d-4a9d-be54-a5b3d355c602",
+        "elapsedMs": 12
+      },
+      {
+        "name": "撤回成功",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/items/2/withdraw",
+        "status": 200,
+        "requestId": "325765e1-5c3b-4074-9793-b551b6b89aa5",
+        "elapsedMs": 12
+      },
+      {
+        "name": "撤回后详情",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/items/2/mine",
+        "status": 200,
+        "requestId": "52bd8800-c967-4804-a609-baf86decf930",
+        "elapsedMs": 5
+      },
+      {
+        "passed": true,
+        "name": "撤回回到草稿"
+      },
+      {
+        "name": "审核员身份",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/auth/me",
+        "status": 200,
+        "requestId": "baf52a20-dc9e-46db-ba65-31d5e62afc44",
+        "elapsedMs": 3
+      },
+      {
+        "name": "为审核员加入学生测试角色",
+        "passed": true,
+        "method": "PUT",
+        "path": "/api/users/3/roles",
+        "status": 200,
+        "requestId": "d6ac588b-e98e-42b1-8848-fb8549652719",
+        "elapsedMs": 34
+      },
+      {
+        "name": "审核员本人草稿",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/items",
+        "status": 200,
+        "requestId": "c46e073d-0092-43e9-bd0c-3960163aa70a",
+        "elapsedMs": 15
+      },
+      {
+        "name": "审核员本人提审",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/items/3/submit",
+        "status": 200,
+        "requestId": "9c75dd4a-8695-47f0-9aee-eb5387634721",
+        "elapsedMs": 51
+      },
+      {
+        "name": "审核员不能自审",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/reviews/3/approve",
+        "status": 403,
+        "requestId": "fabc45b4-766c-4f4d-91b6-f55ed7b316dc",
+        "elapsedMs": 31
+      },
+      {
+        "name": "读取角色授权",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/roles",
+        "status": 200,
+        "requestId": "ad8e24df-e76a-45c1-ae66-3bb9fcd2f06f",
+        "elapsedMs": 37
+      },
+      {
+        "name": "撤销审核决定权限",
+        "passed": true,
+        "method": "PUT",
+        "path": "/api/roles/3/permissions",
+        "status": 200,
+        "requestId": "50bf922f-a15c-4dd7-890a-64c8763d01ab",
+        "elapsedMs": 26
+      },
+      {
+        "name": "旧会话撤权立即拒绝",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/reviews/2/approve",
+        "status": 403,
+        "requestId": "48d6fd11-c99a-4e0f-8a96-3318428d4d37",
+        "elapsedMs": 4
+      },
+      {
+        "name": "恢复隔离角色授权",
+        "passed": true,
+        "method": "PUT",
+        "path": "/api/roles/3/permissions",
+        "status": 200,
+        "requestId": "8d90356f-ba0a-40f6-b838-af9004494e53",
+        "elapsedMs": 13
+      },
+      {
+        "name": "管理员停用测试学生",
+        "passed": true,
+        "method": "PUT",
+        "path": "/api/users/5/status",
+        "status": 200,
+        "requestId": "802fa276-01a5-4383-a5bb-13fa4ebb68f1",
+        "elapsedMs": 15
+      },
+      {
+        "name": "停用使旧会话失效",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/auth/me",
+        "status": 401,
+        "requestId": "fc732e80-98b4-416d-b8d5-2d169674a162",
+        "elapsedMs": 2
+      },
+      {
+        "name": "退出登录",
+        "passed": true,
+        "method": "POST",
+        "path": "/api/auth/logout",
+        "status": 200,
+        "requestId": "26d7c476-ee87-4c90-ae1a-bf0d065ca329",
+        "elapsedMs": 3
+      },
+      {
+        "name": "退出后旧会话失效",
+        "passed": true,
+        "method": "GET",
+        "path": "/api/auth/me",
+        "status": 401,
+        "requestId": "fee73a83-3a84-4bb2-a2bf-057cc47b4f2c",
+        "elapsedMs": 1
+      },
+      {
+        "passed": true,
+        "name": "正式 WAR 首页静态资源可用"
+      }
+    ],
+    "passedChecks": 76
+  },
+  "r4Http": {
+    "task": "GMY R4",
+    "passed": true,
+    "startedAt": "2026-11-08T01:57:14.61244Z",
+    "checks": [
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/auth/login",
+        "actual": 200,
+        "name": "登录测试身份"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/auth/csrf",
+        "actual": 200,
+        "name": "读取同会话令牌"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/auth/login",
+        "actual": 200,
+        "name": "登录测试身份"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/auth/csrf",
+        "actual": 200,
+        "name": "读取同会话令牌"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/auth/login",
+        "actual": 200,
+        "name": "登录测试身份"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/auth/csrf",
+        "actual": 200,
+        "name": "读取同会话令牌"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/auth/login",
+        "actual": 200,
+        "name": "登录测试身份"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/auth/csrf",
+        "actual": 200,
+        "name": "读取同会话令牌"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/auth/register",
+        "actual": 200,
+        "name": "注册独立学生"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/auth/login",
+        "actual": 200,
+        "name": "登录测试身份"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/auth/csrf",
+        "actual": 200,
+        "name": "读取同会话令牌"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/auth/register",
+        "actual": 200,
+        "name": "注册独立学生"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/auth/login",
+        "actual": 200,
+        "name": "登录测试身份"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/auth/csrf",
+        "actual": 200,
+        "name": "读取同会话令牌"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/categories",
+        "actual": 200,
+        "name": "新建父分类"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/categories",
+        "actual": 200,
+        "name": "新建子分类"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items",
+        "actual": 200,
+        "name": "创建待验收物品"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/4/submit",
+        "actual": 200,
+        "name": "提交审核"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/reviews/4/approve",
+        "actual": 200,
+        "name": "审核批准"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/4/publish",
+        "actual": 200,
+        "name": "授权发布"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/items/4/mine",
+        "actual": 200,
+        "name": "发布后私有详情"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/public/items/4",
+        "actual": 200,
+        "name": "公开招领详情"
+      },
+      {
+        "passed": true,
+        "name": "公开响应排除私密字段"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/4/claims",
+        "actual": 200,
+        "name": "申请认领"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/4/claims",
+        "actual": 200,
+        "name": "申请认领"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/claims/1/decision",
+        "actual": 200,
+        "name": "核实通过但尚未交接"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/claims/mine",
+        "actual": 200,
+        "name": "本人申请状态"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/claims/mine",
+        "actual": 200,
+        "name": "本人申请状态"
+      },
+      {
+        "passed": true,
+        "name": "核实不等于交接"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/items/4/found-contact",
+        "actual": 200,
+        "name": "核实者读取联系方式"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 403,
+        "path": "/api/items/4/found-contact",
+        "actual": 403,
+        "name": "无关申请人不可读联系方式"
+      },
+      {
+        "passed": true,
+        "name": "无关申请人不可读联系方式 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 403,
+        "path": "/api/items/4/resolve",
+        "actual": 403,
+        "name": "非发布者不能交接"
+      },
+      {
+        "passed": true,
+        "name": "非发布者不能交接 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 403,
+        "path": "/api/items/4/resolve",
+        "actual": 403,
+        "name": "只读账号不能交接"
+      },
+      {
+        "passed": true,
+        "name": "只读账号不能交接 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 409,
+        "path": "/api/items/4/resolve",
+        "actual": 409,
+        "name": "错误物品版本拒绝"
+      },
+      {
+        "passed": true,
+        "name": "错误物品版本拒绝 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 409,
+        "path": "/api/items/4/resolve",
+        "actual": 409,
+        "name": "指定其他申请拒绝"
+      },
+      {
+        "passed": true,
+        "name": "指定其他申请拒绝 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 403,
+        "path": "/api/items/4/resolve",
+        "actual": 403,
+        "name": "无令牌不能交接"
+      },
+      {
+        "passed": true,
+        "name": "无令牌不能交接 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 500,
+        "path": "/api/items/4/resolve",
+        "actual": 500,
+        "name": "交接第二步注入失败"
+      },
+      {
+        "passed": true,
+        "name": "交接第二步注入失败 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/items/4/mine",
+        "actual": 200,
+        "name": "回滚后的物品"
+      },
+      {
+        "passed": true,
+        "name": "物品状态时间版本全部回滚"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/claims/mine",
+        "actual": 200,
+        "name": "本人申请状态"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/claims/mine",
+        "actual": 200,
+        "name": "本人申请状态"
+      },
+      {
+        "passed": true,
+        "name": "已通过申请未被提前完成"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/claims/mine",
+        "actual": 200,
+        "name": "本人申请状态"
+      },
+      {
+        "passed": true,
+        "name": "其他待申请未被提前关闭"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/4/resolve",
+        "actual": 200,
+        "name": "发布者确认真实交接"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/items/4/mine",
+        "actual": 200,
+        "name": "交接后物品"
+      },
+      {
+        "passed": true,
+        "name": "物品结案写入时间和版本"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/claims/mine",
+        "actual": 200,
+        "name": "本人申请状态"
+      },
+      {
+        "passed": true,
+        "name": "申请完成并写入完成时间"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/claims/mine",
+        "actual": 200,
+        "name": "本人申请状态"
+      },
+      {
+        "passed": true,
+        "name": "其他待申请同事务关闭"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 409,
+        "path": "/api/items/4/resolve",
+        "actual": 409,
+        "name": "重复交接拒绝"
+      },
+      {
+        "passed": true,
+        "name": "重复交接拒绝 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 409,
+        "path": "/api/items/4/claims",
+        "actual": 409,
+        "name": "结案后禁止新认领"
+      },
+      {
+        "passed": true,
+        "name": "结案后禁止新认领 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/public/items/4",
+        "actual": 200,
+        "name": "公开结案历史"
+      },
+      {
+        "passed": true,
+        "name": "公开响应排除私密字段"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items",
+        "actual": 200,
+        "name": "创建待验收物品"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/5/submit",
+        "actual": 200,
+        "name": "提交审核"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/reviews/5/approve",
+        "actual": 200,
+        "name": "审核批准"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/5/publish",
+        "actual": 200,
+        "name": "授权发布"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/items/5/mine",
+        "actual": 200,
+        "name": "发布后私有详情"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 403,
+        "path": "/api/items/5/resolve",
+        "actual": 403,
+        "name": "他人不能确认寻物找回"
+      },
+      {
+        "passed": true,
+        "name": "他人不能确认寻物找回 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/5/resolve",
+        "actual": 200,
+        "name": "寻物作者确认找回"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/items/5/mine",
+        "actual": 200,
+        "name": "寻物找回后详情"
+      },
+      {
+        "passed": true,
+        "name": "寻物结案及时间落库"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 409,
+        "path": "/api/items/5/resolve",
+        "actual": 409,
+        "name": "寻物重复找回拒绝"
+      },
+      {
+        "passed": true,
+        "name": "寻物重复找回拒绝 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items",
+        "actual": 200,
+        "name": "创建待验收物品"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/6/submit",
+        "actual": 200,
+        "name": "提交审核"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/reviews/6/approve",
+        "actual": 200,
+        "name": "审核批准"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/6/publish",
+        "actual": 200,
+        "name": "授权发布"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/items/6/mine",
+        "actual": 200,
+        "name": "发布后私有详情"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/6/claims",
+        "actual": 200,
+        "name": "申请认领"
+      },
+      {
+        "passed": true,
+        "method": "PUT",
+        "expected": 200,
+        "path": "/api/categories/2/enabled",
+        "actual": 200,
+        "name": "停用祖先分类"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 404,
+        "path": "/api/public/items/6",
+        "actual": 404,
+        "name": "停用后公开详情隐藏"
+      },
+      {
+        "passed": true,
+        "name": "停用后公开详情隐藏 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/public/items?categoryId=2",
+        "actual": 200,
+        "name": "停用子树查询"
+      },
+      {
+        "passed": true,
+        "name": "停用后公开检索隐藏"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 409,
+        "path": "/api/items/6/claims",
+        "actual": 409,
+        "name": "停用分类拒绝新申请"
+      },
+      {
+        "passed": true,
+        "name": "停用分类拒绝新申请 安全错误正文"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/claims/3/decision",
+        "actual": 200,
+        "name": "停用后原申请仍可核实"
+      },
+      {
+        "passed": true,
+        "method": "POST",
+        "expected": 200,
+        "path": "/api/items/6/resolve",
+        "actual": 200,
+        "name": "原申请可继续交接"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 200,
+        "path": "/api/operation-logs?action=CLAIM_RESOLVE&size=100",
+        "actual": 200,
+        "name": "授权查询交接审计"
+      },
+      {
+        "passed": true,
+        "name": "交接审计含成功与失败"
+      },
+      {
+        "passed": true,
+        "name": "交接日志不含联系方式证据口令"
+      },
+      {
+        "passed": true,
+        "method": "GET",
+        "expected": 403,
+        "path": "/api/operation-logs",
+        "actual": 403,
+        "name": "学生无权读取全站审计"
+      },
+      {
+        "passed": true,
+        "name": "学生无权读取全站审计 安全错误正文"
+      }
+    ],
+    "completedAt": "2026-11-08T01:57:15.865879800Z"
+  },
+  "freshMigration": {
+    "mode": "fresh-init",
+    "permissionCount": 8,
+    "ADMINNewGrants": 8,
+    "EDITORNewGrants": 4,
+    "REVIEWERNewGrants": 0,
+    "VIEWERNewGrants": 0,
+    "repeatedMigrationPassed": true,
+    "customGrantPreserved": false
+  },
+  "legacyUpgrade": {
+    "passed": true,
+    "nonemptyLegacyRefusedWithoutDataLoss": true,
+    "partialSchemaRefused": true,
+    "legacyNineTableUpgrade": true,
+    "repeatUpgrade": true,
+    "existingUsersCategoryAndCustomGrantPreserved": true,
+    "uniquenessAndProbeRollback": true
+  },
+  "serverStopped": true,
+  "cleanup": {
+    "schema": "cms_gmy_r3_c3a13f2ed927",
+    "completedAt": "2026-11-08T01:57:24.158086Z",
+    "secretsDeleted": true,
+    "databaseDropped": true
+  },
+  "upgradeCleanup": {
+    "databaseDropped": true,
+    "secretsDeleted": true,
+    "completedAt": "2026-11-08T01:57:25.799071800Z",
+    "schema": "cms_gmy_r3_6a7edcc134b6"
+  },
+  "completedAt": "2026-11-08T01:57:28.1359015Z"
+}
