@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>交接结案 - 校园失物招领</title>
+  <link rel="stylesheet" href="../yangcheng/common.css">
+</head>
+<body>
+<header>
+  <h1>交接结案</h1>
+  <nav>
+    <a href="../review/review.html">内容审核</a>
+    <a href="../claim/manage.html">认领处理</a>
+    <a class="active" href="../claim/handover.html">交接结案</a>
+    <a href="../claim/mine.html">我的认领</a>
+    <a href="../audit/logs.html">操作日志</a>
+  </nav>
+</header>
+<main>
+  <div id="message" class="message"></div>
+
+  <section class="panel">
+    <h2>查询待结案物品</h2>
+    <p class="meta">招领：发布者在实际交接后确认，已通过申请变为完成，物品结案并关闭其他待核实申请。
+      寻物：作者确认已找回，物品结案。</p>
+    <form id="loadForm" class="filters">
+      <label>物品 ID
+        <input id="itemId" type="number" min="1" required placeholder="例如 12">
+      </label>
+      <button type="submit">查询</button>
+    </form>
+  </section>
+
+  <section id="detail" class="panel" hidden>
+    <h2 id="detailTitle"></h2>
+    <p id="detailMeta" class="meta"></p>
+    <p id="approvedInfo"></p>
+    <button id="resolveButton" type="button" class="danger">确认结案</button>
+  </section>
+</main>
+<script src="../yangcheng/common.js"></script>
+<script>
+(function () {
+  let current = null;
+  let currentItemId = null;
+
+  async function load(itemId) {
+    YC.setMessage('message', '正在加载……');
+    document.getElementById('detail').hidden = true;
+    try {
+      const data = await YC.request('/api/items/' + itemId + '/handover');
+      current = data;
+      currentItemId = itemId;
+      document.getElementById('detail').hidden = false;
+      document.getElementById('detailTitle').textContent =
+        '#' + data.itemId + ' ' + data.title;
+      document.getElementById('detailMeta').textContent =
+        '类型：' + (data.itemType === 'LOST' ? '寻物' : '招领') +
+        '　状态：' + data.status +
+        '　处理状态：' + data.resolutionStatus +
+        '　当前版本：' + data.version;
+
+      const approved = document.getElementById('approvedInfo');
+      if (data.approvedClaimId) {
+        approved.textContent = '已通过认领 #' + data.approvedClaimId +
+          '，申请人：' + (data.approvedApplicantName || '');
+      } else if (data.itemType === 'FOUND') {
+        approved.textContent = '当前没有已通过的认领，不能确认招领交接。';
+      } else {
+        approved.textContent = '寻物信息无认领申请，可由作者确认已找回。';
+      }
+      const button = document.getElementById('resolveButton');
+      button.disabled = data.itemType === 'FOUND' && !data.approvedClaimId;
+      button.textContent = data.itemType === 'LOST' ? '确认已找回' : '确认已实际交接';
+      YC.setMessage('message', '');
+    } catch (error) {
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+  }
+
+  document.getElementById('loadForm').addEventListener('submit', event => {
+    event.preventDefault();
+    load(document.getElementById('itemId').value);
+  });
+
+  document.getElementById('resolveButton').addEventListener('click', async () => {
+    if (!current) return;
+    if (!window.confirm('确认结案后不能重复操作，其他待核实申请会被关闭。继续吗？')) return;
+    try {
+      await YC.post('/api/items/' + currentItemId + '/resolve', {
+        version: current.version,
+        claimId: current.approvedClaimId || null
+      });
+      YC.setMessage('message', '结案成功。', 'ok');
+      await load(currentItemId);
+    } catch (error) {
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+  });
+})();
+</script>
+</body>
+</html>
