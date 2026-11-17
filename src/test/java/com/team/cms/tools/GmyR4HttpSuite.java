@@ -88,10 +88,22 @@ public final class GmyR4HttpSuite {
         long category=post("新建子分类",admin,"/api/categories",Map.of("name","验收子类","parentId",root,"sortOrder",0),200).path("id").asLong();
         JsonNode found=publish(owner,reviewer,category,"FOUND"); long id=found.path("id").asLong(); int version=found.path("version").asInt();
         privateFieldsAbsent(get("公开招领详情",guest,"/api/public/items/"+id,200));
+        String itemPath = "/api/items/" + id;
+        get("匿名不能读取单条联系方式", guest, itemPath + "/contact", 401);
+        get("尚未核实的学生不能读取联系方式", alice, itemPath + "/contact", 403);
+        expect("真实认领资格", get("学生查询认领资格", alice, itemPath + "/claim-eligibility", 200)
+            .path("eligible").asBoolean());
+        LocalDate eventDay = LocalDateTime.parse(found.path("eventTime").asText()).toLocalDate();
+        var filtered = get("真实 MySQL 日期筛选", guest, "/api/public/items?categoryId=" + category
+            + "&from=" + eventDay + "T00:00:00&to=" + eventDay + "T23:59:59.999999999", 200);
+        expect("日期筛选返回对应物品", filtered.path("records").size() == 1
+            && filtered.path("records").get(0).path("id").asLong() == id);
         JsonNode a=apply(alice,id), b=apply(bob,id); long aId=a.path("id").asLong(),bId=b.path("id").asLong();
         post("核实通过但尚未交接",reviewer,"/api/claims/"+aId+"/decision",Map.of("version",0,"decision","APPROVED"),200);
         expect("核实不等于交接",claim(alice,aId).path("status").asText().equals("APPROVED") && claim(alice,aId).path("completedAt").isNull());
         get("核实者读取联系方式",alice,"/api/items/"+id+"/found-contact",200);
+        expect("单条入口返回联系字段", "R4_TEST_OWNER_CONTACT".equals(
+            get("核实者使用信息端联系入口", alice, itemPath + "/contact", 200).path("contactInfo").asText()));
         get("无关申请人不可读联系方式",bob,"/api/items/"+id+"/found-contact",403);
         Map<String,Object> resolve=Map.of("version",version,"claimId",aId);
         post("非发布者不能交接",bob,"/api/items/"+id+"/resolve",resolve,403);
@@ -117,13 +129,20 @@ public final class GmyR4HttpSuite {
         JsonNode completedClaim=claim(alice,aId);
         expect("申请完成并写入完成时间",completedClaim.path("status").asText().equals("COMPLETED") && !completedClaim.path("completedAt").isNull());
         expect("其他待申请同事务关闭",claim(bob,bId).path("status").asText().equals("CANCELLED"));
+        expect("匿名历史只报告真实结案", "FOUND_HANDOVER".equals(
+            get("公开结案历史", guest, "/api/public/items/" + id + "/resolution", 200).path("result").asText()));
+        get("完成交接的申请人保留联系方式授权", alice, itemPath + "/contact", 200);
         post("重复交接拒绝",owner,"/api/items/"+id+"/resolve",Map.of("version",version+1,"claimId",aId),409);
         post("结案后禁止新认领",bob,"/api/items/"+id+"/claims",Map.of("claimDescription","结案后再次尝试，仅用于测试。","contactInfo","TEST"),409);
         privateFieldsAbsent(get("公开结案历史",guest,"/api/public/items/"+id,200));
         JsonNode lost=publish(owner,reviewer,category,"LOST"); long lostId=lost.path("id").asLong();
+        String lostContact = "/api/items/" + lostId + "/contact";
+        get("007 授权学生单条联系寻物失主", alice, lostContact, 200);
+        get("只读账号没有寻物联系权限", viewer, lostContact, 403);
         post("他人不能确认寻物找回",alice,"/api/items/"+lostId+"/resolve",Map.of("version",lost.path("version").asInt()),403);
         post("寻物作者确认找回",owner,"/api/items/"+lostId+"/resolve",Map.of("version",lost.path("version").asInt()),200);
         JsonNode resolvedLost=get("寻物找回后详情",owner,"/api/items/"+lostId+"/mine",200);
+        get("寻物结案后关闭学生联系入口", alice, lostContact, 403);
         expect("寻物结案及时间落库",resolvedLost.path("resolutionStatus").asText().equals("RESOLVED") && !resolvedLost.path("resolvedAt").isNull());
         post("寻物重复找回拒绝",owner,"/api/items/"+lostId+"/resolve",Map.of("version",resolvedLost.path("version").asInt()),409);
         JsonNode hidden=publish(owner,reviewer,category,"FOUND"); long hiddenId=hidden.path("id").asLong(); JsonNode oldClaim=apply(alice,hiddenId);

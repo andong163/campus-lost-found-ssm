@@ -94,6 +94,12 @@ public class IdentityContractAuditTest {
         claims.put("handover", "发布者交接上下文，ClaimReadPolicy 判定且不返回联系方式");
         claims.put("foundContact", "ClaimReadPolicy 判定并记录 FOUND_CONTACT_READ 审计");
         ALLOWED.put("ClaimController.java", claims);
+
+        Map<String, String> articleR4 = new LinkedHashMap<>();
+        articleR4.put("contact", "作者、审核或核实对象由 ArticleR4Service 和 ClaimReadPolicy 判定并审计");
+        articleR4.put("eligibility", "登录拦截器及公开可见性检查保护资格查询");
+        articleR4.put("resolution", "公开范围内返回不含个人信息的结案状态");
+        ALLOWED.put("ArticleR4Controller.java", articleR4);
     }
 
     /**

@@ -35,9 +35,14 @@ public final class GmyR4UpgradeProbe {
             refused(db,"Partial item schema");
             sql.execute("ALTER TABLE cms_article DROP COLUMN item_type");
             report.put("partialSchemaRefused", true);
+            sql.executeUpdate("DELETE FROM sys_role_permission WHERE permission_id IN (SELECT id FROM sys_permission WHERE code='item:contact:lost')");
+            sql.executeUpdate("DELETE FROM sys_permission WHERE code='item:contact:lost'");
             MySqlCampusUpgrade.upgrade(db);
             MySqlCampusUpgrade.upgrade(db);
             LocalDatabaseSupport.verifyCampusSchema(db);
+            expect(count(db,"SELECT COUNT(*) FROM sys_role_permission rp JOIN sys_role r ON r.id=rp.role_id JOIN sys_permission p ON p.id=rp.permission_id WHERE p.code='item:contact:lost'") == 2,
+                "007 必须准确恢复默认授权，重复执行不能重复授权");
+            report.put("r4LostContactPermissionUpgrade",true);
             expect(count(db,"SELECT COUNT(*) FROM sys_user") == users, "事务探针遗留测试用户");
             expect(count(db,"SELECT COUNT(*) FROM cms_article") == 0, "事务探针遗留内容");
             expect(count(db,"SELECT COUNT(*) FROM sys_role_permission rp JOIN sys_role r ON r.id=rp.role_id JOIN sys_permission p ON p.id=rp.permission_id WHERE r.code='GMY_R4_LEGACY' AND p.code='audit:view'") == 1, "旧角色授权丢失");
