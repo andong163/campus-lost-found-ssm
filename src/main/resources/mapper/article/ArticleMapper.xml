@@ -1,6 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.team.cms.article.mapper.ArticleMapper">
+  <sql id="publicColumns">a.id, a.title, a.content, a.category_id, a.status, a.item_type, a.event_time, a.location, a.resolution_status, a.published_at, a.deleted</sql>
+  <select id="selectPublic" resultType="com.team.cms.article.entity.Article">
+    SELECT <include refid="publicColumns"/> FROM cms_article a
+    WHERE a.deleted=0 AND a.status='PUBLISHED' AND a.category_id IN
+    <foreach collection="categoryIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+    <if test="query.keywordPattern != null">AND (a.title LIKE #{query.keywordPattern} ESCAPE '!' OR a.content LIKE #{query.keywordPattern} ESCAPE '!')</if>
+    <if test="query.locationPattern != null">AND a.location LIKE #{query.locationPattern} ESCAPE '!'</if>
+    <if test="query.itemType != null">AND a.item_type=#{query.itemType}</if>
+    <if test="query.resolutionStatus != null">AND a.resolution_status=#{query.resolutionStatus}</if>
+    <if test="query.from != null">AND a.event_time &gt;= #{query.from}</if>
+    <if test="query.to != null">AND a.event_time &lt;= #{query.to}</if>
+    ORDER BY ${query.sortColumn} ${query.sortDirection}, a.id ${query.sortDirection}
+  </select>
+  <select id="selectPublicDetail" resultType="com.team.cms.article.entity.Article">
+    SELECT <include refid="publicColumns"/> FROM cms_article a
+    WHERE a.id=#{id} AND a.deleted=0 AND a.status='PUBLISHED' AND a.category_id IN
+    <foreach collection="categoryIds" item="cid" open="(" separator="," close=")">#{cid}</foreach>
+  </select>
+  <update id="logicalDeleteIfVersion">
+    UPDATE cms_article SET deleted=1, version=version+1, updated_at=CURRENT_TIMESTAMP
+    WHERE id=#{id} AND deleted=0 AND version=#{version}
+  </update>
+  <select id="selectManage" resultType="com.team.cms.article.entity.Article">
+    SELECT id,title,content,author_id,category_id,status,item_type,event_time,location,contact_info,
+           resolution_status,resolved_at,published_at,created_at,updated_at,deleted,version
+    FROM cms_article WHERE deleted=0
+    <if test="query.status != null">AND status=#{query.status}</if>
+    <if test="query.authorId != null">AND author_id=#{query.authorId}</if>
+    ORDER BY created_at DESC,id DESC
+  </select>
   <select id="selectMine" resultType="com.team.cms.article.entity.Article">
     SELECT id, title, content, author_id, category_id, status, item_type, event_time,
            location, contact_info, resolution_status, resolved_at, published_at,

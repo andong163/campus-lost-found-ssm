@@ -32,7 +32,7 @@ cms_claim_request 的 active_applicant_id、approved_article_id 是数据库生�
 
 ## 模块职责与目标 API
 
-以下接口是规划，当前只有 system 接口实现。
+下表保留各模块总体目标，部分包含后续轮次接口。第二轮总基线已经完成身份、分类、本人信息与审核；当前实际路径、字段及权限见 [当前接口约定](api-contracts-current.md) 和 [OpenAPI 主文件](openapi.json)，不能把下表中的规划路径当成已交付接口。
 
 | 成员 | 包 | 目标路径与依赖 |
 |---|---|---|
@@ -45,7 +45,7 @@ cms_claim_request 的 active_applicant_id、approved_article_id 是数据库生�
 
 ## 共同状态入口
 
-杨程维护 ItemWorkflowService，袁运轩调用提审、撤回、发布、下架、修改和结案入口。具体服务尚待实现，不能绕过它直接设置状态。
+杨程维护 review.service.ItemWorkflowService，第二轮已实现状态服务；袁运轩通过响应适配层调用提审、撤回、发布、下架等入口，不能绕过它再写状态机。后续认领、交接和结案的业务入口仍按第三、第四轮交付，不以服务中预留的方法表示页面和完整业务已经完成。
 
 主流程 DRAFT → PENDING_REVIEW → APPROVED → PUBLISHED → OFFLINE；待审可以撤回草稿；驳回修改后重提。已发布先下架再转草稿编辑，修改后重审；OFFLINE 内容未修改且分类有效、未结案时才能恢复发布。审核人不能审核本人内容，记录与状态同一事务。
 

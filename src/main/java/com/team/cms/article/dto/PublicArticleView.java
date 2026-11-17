@@ -9,26 +9,32 @@ import java.time.LocalDateTime;
 /** 公开返回结构，不包含联系方式和作者身份信息。 */
 public final class PublicArticleView {
     private final Long id, categoryId;
-    private final String title, content, location;
+    private final String title, content, location, categoryName, categoryPath;
     private final ItemType itemType;
     private final ResolutionStatus resolutionStatus;
     private final LocalDateTime eventTime, publishedAt;
 
-    private PublicArticleView(Article value) {
+    private PublicArticleView(Article value, String categoryName, String categoryPath) {
         id = value.getId(); categoryId = value.getCategoryId(); title = value.getTitle();
         content = value.getContent(); location = value.getLocation(); itemType = value.getItemType();
         resolutionStatus = value.getResolutionStatus(); eventTime = value.getEventTime();
         publishedAt = value.getPublishedAt();
+        this.categoryName=categoryName; this.categoryPath=categoryPath;
     }
     /** 调用前须确认所属分类及所有祖先分类仍可公开。 */
     public static PublicArticleView fromVisibleArticle(Article value) {
+        return fromVisibleArticle(value, null, null);
+    }
+    public static PublicArticleView fromVisibleArticle(Article value, String categoryName, String categoryPath) {
         if (value.getStatus() != ArticleStatus.PUBLISHED || !Integer.valueOf(0).equals(value.getDeleted())) {
             throw new IllegalArgumentException("article is not public");
         }
-        return new PublicArticleView(value);
+        return new PublicArticleView(value, categoryName, categoryPath);
     }
     public Long getId() { return id; }
     public Long getCategoryId() { return categoryId; }
+    public String getCategoryName() { return categoryName; }
+    public String getCategoryPath() { return categoryPath; }
     public String getTitle() { return title; }
     public String getContent() { return content; }
     public String getLocation() { return location; }

@@ -33,3 +33,9 @@ CREATE TABLE IF NOT EXISTS cms_claim_request (
  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, version INT NOT NULL DEFAULT 0
 );
 DELETE FROM cms_claim_request;
+
+CREATE TABLE IF NOT EXISTS sys_operation_log (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY, operator_id BIGINT, operator_name VARCHAR(80),
+ module VARCHAR(50), action VARCHAR(80), target_id BIGINT, request_id VARCHAR(36),
+ result VARCHAR(20), elapsed_ms BIGINT, created_at TIMESTAMP
+);

@@ -34,9 +34,6 @@
     const startGeneration = generation;
     const headers = new Headers({ Accept: 'application/json' });
     if (options.body !== undefined) headers.set('Content-Type', 'application/json');
-    if (!['GET', 'HEAD'].includes(method) && !['/api/auth/login', '/api/auth/register'].includes(path)) {
-      headers.set('X-CSRF-Token', await csrf());
-    }
     const controller = new AbortController();
     const abort = () => controller.abort();
     if (options.signal?.aborted) throw new DOMException('Aborted', 'AbortError');
@@ -44,6 +41,11 @@
     let timedOut = false;
     const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, options.timeout || 15000);
     try {
+      if (!['GET', 'HEAD'].includes(method) && !['/api/auth/login', '/api/auth/register'].includes(path)) {
+        // Cancel this caller's wait without cancelling the shared token request.
+        headers.set('X-CSRF-Token', await waitFor(csrf(), controller.signal));
+      }
+      if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError');
       const response = await window.fetch(destination.href, {
         method, credentials: 'same-origin', cache: 'no-store', redirect: 'error', headers,
         body: options.body === undefined ? undefined : JSON.stringify(options.body), signal: controller.signal
@@ -68,6 +70,15 @@
       window.clearTimeout(timeout);
       options.signal?.removeEventListener('abort', abort);
     }
+  }
+  function waitFor(pending, signal) {
+    return new Promise((resolve, reject) => {
+      const aborted = () => reject(new DOMException('Aborted', 'AbortError'));
+      signal.addEventListener('abort', aborted, { once: true });
+      // Always observe the shared promise, including after this caller stops waiting.
+      pending.then(resolve, reject).finally(() => signal.removeEventListener('abort', aborted));
+      if (signal.aborted) aborted();
+    });
   }
   async function csrf() {
     if (token) return token;

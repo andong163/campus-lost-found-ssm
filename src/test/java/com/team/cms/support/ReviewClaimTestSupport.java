@@ -81,9 +81,12 @@ public abstract class ReviewClaimTestSupport {
             Collections.singleton(role), Collections.emptySet()));
     }
 
-    protected void asAuthor() { as(1L, "张同学"); }
-    protected void asApplicant() { as(2L, "李同学"); }
-    protected void asOtherStudent() { as(4L, "赵同学"); }
+    protected void asAuthor() { asStudent(1L, "张同学"); }
+    protected void asApplicant() { asStudent(2L, "李同学"); }
+    protected void asOtherStudent() { asStudent(4L, "赵同学"); }
+    private void asStudent(long id, String name) {
+        as(id, name, "claim:create", "claim:cancel:own", "claim:handover:own");
+    }
     protected void asReviewer() {
         as(3L, "王审核", ReviewPermissions.REVIEW_HANDLE,
             com.team.cms.claim.ClaimPermissions.CLAIM_HANDLE, "article:publish");

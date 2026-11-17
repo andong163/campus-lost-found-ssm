@@ -32,4 +32,9 @@ public interface ItemWorkflowService {
      * FOUND 必须存在 APPROVED 申请，成功后申请 COMPLETED、物品 RESOLVED、其他 PENDING 关闭。
      */
     void resolve(Long itemId, int version, Long expectedClaimId);
+
+    /** 按 ID 升序锁定整批，任一失败回滚所有状态、认领及日志。 */
+    void batch(String action, java.util.Map<Long, Integer> versions);
+
+    void delete(Long itemId, int version);
 }

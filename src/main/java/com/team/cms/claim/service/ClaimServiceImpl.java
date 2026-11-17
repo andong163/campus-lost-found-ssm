@@ -23,6 +23,7 @@ import com.team.cms.common.domain.ClaimStatus;
 import com.team.cms.common.domain.ItemType;
 import com.team.cms.common.domain.ResolutionStatus;
 import com.team.cms.common.exception.BusinessException;
+import com.team.cms.common.security.PermissionCodes;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.dao.DuplicateKeyException;
@@ -58,6 +59,7 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional(rollbackFor = Exception.class)
     public ClaimView apply(Long itemId, ClaimCreateRequest request) {
         CurrentUser actor = CurrentUserContext.require();
+        requireWritePermission(actor, PermissionCodes.CLAIM_CREATE);
         Article article = articleMapper.selectByIdForUpdate(itemId);
         if (article == null) {
             throw new BusinessException(HttpStatus.NOT_FOUND, "信息不存在");
@@ -189,6 +191,7 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional(rollbackFor = Exception.class)
     public void cancel(Long claimId, ClaimCancelRequest request) {
         CurrentUser actor = CurrentUserContext.require();
+        requireWritePermission(actor, PermissionCodes.CLAIM_CANCEL_OWN);
         ClaimRequest preview = claimRequestMapper.selectById(claimId);
         if (preview == null) {
             throw new BusinessException(HttpStatus.NOT_FOUND, "认领申请不存在");
@@ -255,6 +258,12 @@ public class ClaimServiceImpl implements ClaimService {
         view.setCreatedAt(claim.getCreatedAt());
         view.setVersion(claim.getVersion());
         return view;
+    }
+
+    private static void requireWritePermission(CurrentUser actor, String permission) {
+        if (!actor.hasRole(AuthConstants.ROLE_ADMIN) && !actor.hasPermission(permission)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "无认领操作权限");
+        }
     }
 
     private static void requireClaimHandler(CurrentUser actor) {
