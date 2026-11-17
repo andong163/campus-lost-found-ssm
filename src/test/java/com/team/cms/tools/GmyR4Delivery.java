@@ -86,7 +86,7 @@ public final class GmyR4Delivery {
         Files.copy(war,output.resolve("cms.war")); Files.copy(verification,output.resolve("verification.json"));
         Map<String,Object> result=new LinkedHashMap<>();
         result.put("task","GMY R4"); result.put("kind","candidate"); result.put("releaseReady",false);
-        result.put("releaseBlockers",List.of("其他四人第四轮尚未合入本候选基线并验收","本候选分支待按协作流程合入 develop 并复验","全组最终页面和隐私性能材料待汇总"));
+        result.put("releaseBlockers",List.of("正式发布前复核页面演示、隐私性能和课程交付材料"));
         result.put("generatedAt",Instant.now().toString()); result.put("baseCommit",git(root,"rev-parse","HEAD").trim());
         result.put("workingTreeDirty",!git(root,"status","--porcelain=v1").isBlank());
         result.put("codeFingerprint",fingerprint(root)); result.put("sourceFiles",manifest.size());

@@ -65,4 +65,4 @@ flowchart TD
   Complete --> Close[同事务关闭其他待核实申请]
 ```
 
-当前本地集成基线的接口级交接和寻物找回已由 GMY R4 在外部 Tomcat 与专用 MySQL 上复验，状态服务仍归杨程、信息接口归袁运轩。正式第四轮页面和成员材料尚待合入，完整图稿见 diagrams/README.md，实际结果见 gmy-r4-verification.json。
+第四轮集成版本包含杨程的交接与日志页面，以及袁运轩的单条联系方式、认领资格和结案历史。完整图稿见 diagrams/README.md，五人联调结果见第四轮总合并 PR。

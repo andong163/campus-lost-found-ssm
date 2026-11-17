@@ -31,7 +31,7 @@ try {
     $classpath=(Join-Path $script:CmsRoot 'target/test-classes')+';'+(Join-Path $script:CmsRoot 'target/classes')+';'+(Get-Content 'target/gmy-r3-classpath.txt' -Raw).Trim()
     $run=Join-Path $script:CmsRoot ('.local/gmy-r3-'+[Guid]::NewGuid().ToString('N').Substring(0,12))
     New-Item -ItemType Directory -Path $run | Out-Null
-    $result=[ordered]@{ task='GMY R4'; engineeringPassed=$false; releaseReady=$false; pendingMembers=@('GJT R4','SR R4','YC R4','YYX R4'); passed=$false; skipBuild=[bool]$SkipBuild; baseCommit=(& git rev-parse HEAD); workingTreeDirty=[bool](& git status --porcelain); tomcatVersion=$serverVersion; container='external Apache Tomcat distribution / Bootstrap'; javaHome=$jdk; runDirectory=$run; baseUrl="http://127.0.0.1:$Port/cms"; startedAt=[DateTime]::UtcNow.ToString('o') }
+    $result=[ordered]@{ task='GMY R4'; engineeringPassed=$false; releaseReady=$false; passed=$false; skipBuild=[bool]$SkipBuild; baseCommit=(& git rev-parse HEAD); workingTreeDirty=[bool](& git status --porcelain); tomcatVersion=$serverVersion; container='external Apache Tomcat distribution / Bootstrap'; javaHome=$jdk; runDirectory=$run; baseUrl="http://127.0.0.1:$Port/cms"; startedAt=[DateTime]::UtcNow.ToString('o') }
     $result.codeFingerprint=(& (Join-Path $jdk 'bin/java.exe') '-Dfile.encoding=UTF-8' -cp $classpath com.team.cms.tools.GmyR4Delivery fingerprint).Trim()
     if ($LASTEXITCODE -ne 0) { throw '验收源代码指纹生成失败。' }
     $unit=@{tests=0;failures=0;errors=0;skipped=0}

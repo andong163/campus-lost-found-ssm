@@ -2,17 +2,17 @@
 
 学生登记 LOST/FOUND，授权人员审核发布，学生申请认领，经核实与实际交接后结案。工程严格采用传统 Spring + Spring MVC + MyBatis，MyBatis-Plus 手动接入，JDK 11，交付 WAR 到外部 Tomcat 9，禁止 Spring Boot。
 
-高鸣远第四轮提交分支为 `feature/gaomingyuan-r4`，承接 `integration/r3-compat-20261105`：五人第三轮代码及兼容修复作为前置基线单独保留；远程 develop 仍是独立基线，不能把本地状态写成已经远程合并。高鸣远第四轮工程验收与交付工具已完成；其他成员第四轮尚未进入本次基线，全组最终发布待验收。
+第四轮集成版本包含五人的身份权限复验、分类并发验证、实际交接与审计、信息端联系方式及结案历史，以及验收和部署材料。
 
 ## 当前交付
 
 - [高鸣远第四轮说明](docs/gmy-r4.md) 和 [工程报告 PDF](docs/gmy-r4-report.pdf)
-- [验收 JSON](docs/gmy-r4-verification.json)、[部署说明](docs/deployment-r4.md)、[评分点对照](docs/school-rubric-matrix.md)
+- [高鸣远 11 月 8 日历史验收 JSON](docs/gmy-r4-verification.json)、[部署说明](docs/deployment-r4.md)、[评分点对照](docs/school-rubric-matrix.md)
 - [架构 E R 业务流程图](docs/diagrams/README.md)，包含可编辑源稿、SVG 和 PNG
 - [第三轮兼容验收](docs/r3-total-integration.md)、[需求](docs/requirements.md)、[五人分工](docs/team-iteration-plan.md)
-- [当前接口约定](docs/api-contracts-current.md) 与可导入 ApiFox 的 [OpenAPI](docs/openapi.json)，当前 63 个操作
+- [当前接口约定](docs/api-contracts-current.md) 与可导入 ApiFox 的 [OpenAPI](docs/openapi.json)，当前 68 个操作
 
-2026-11-08 提交前复验通过 145 项 Java 测试、1 项 WAR 部署、24 项前端检查、6 项架构防护反向检查，以及真实 MySQL + 外部 Tomcat 的 76 项核心和 96 项第四轮接口检查。最新提交前验收结果见 docs/gmy-r4.md 和结构化验收记录。候选包不等于正式发布。
+第四轮总合并的测试结果记录在 GitHub 总合并 PR。已有数据库按 `003` 至 `007` 顺序增量升级，具体步骤见[部署说明](docs/deployment-r4.md)。
 
 ## 准备与运行
 
