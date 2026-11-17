@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>操作日志 - 校园失物招领</title>
+  <link rel="stylesheet" href="../yangcheng/common.css">
+</head>
+<body>
+<header>
+  <h1>操作日志</h1>
+  <nav>
+    <a href="../review/review.html">内容审核</a>
+    <a href="../claim/manage.html">认领处理</a>
+    <a href="../claim/handover.html">交接结案</a>
+    <a href="../claim/mine.html">我的认领</a>
+    <a class="active" href="../audit/logs.html">操作日志</a>
+  </nav>
+</header>
+<main>
+  <div id="message" class="message"></div>
+
+  <section class="panel">
+    <h2>审计查询</h2>
+    <p class="meta">仅管理员或持有 audit:view 的只读审计账号可查询。日志只含操作者、动作、目标、结果、耗时和 requestId。</p>
+    <form id="filters" class="filters">
+      <label>操作者 ID
+        <input id="operatorId" type="number" min="1" placeholder="可选">
+      </label>
+      <label>动作
+        <input id="action" maxlength="80" placeholder="如 REVIEW_DECIDE">
+      </label>
+      <label>结果
+        <select id="result">
+          <option value="">全部</option>
+          <option value="SUCCESS">成功</option>
+          <option value="FAILURE">失败</option>
+        </select>
+      </label>
+      <label>开始时间
+        <input id="from" type="datetime-local">
+      </label>
+      <label>结束时间
+        <input id="to" type="datetime-local">
+      </label>
+      <button type="submit">查询</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th><th>时间</th><th>操作者</th><th>模块</th><th>动作</th>
+        <th>目标</th><th>结果</th><th>耗时(ms)</th><th>requestId</th>
+      </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="pager">
+      <button type="button" id="prev" class="secondary">上一页</button>
+      <span id="pageInfo"></span>
+      <button type="button" id="next" class="secondary">下一页</button>
+    </div>
+  </section>
+</main>
+<script src="../yangcheng/common.js"></script>
+<script>
+(function () {
+  const state = {page: 1, size: 20, total: 0};
+
+  function iso(value) {
+    if (!value) return '';
+    return value.length === 16 ? value + ':00' : value;
+  }
+
+  async function load() {
+    YC.setMessage('message', '正在加载……');
+    const params = new URLSearchParams({
+      page: String(state.page),
+      size: String(state.size),
+      operatorId: document.getElementById('operatorId').value.trim(),
+      action: document.getElementById('action').value.trim(),
+      result: document.getElementById('result').value,
+      from: iso(document.getElementById('from').value),
+      to: iso(document.getElementById('to').value)
+    });
+    Array.from(params.keys()).forEach(key => {
+      if (!params.get(key)) params.delete(key);
+    });
+    try {
+      const data = await YC.request('/api/operation-logs?' + params.toString());
+      state.total = data.total;
+      render(data.records || []);
+      YC.setMessage('message', '');
+    } catch (error) {
+      state.total = 0;
+      render([]);
+      YC.setMessage('message', YC.errorMessage(error), 'error');
+    }
+    renderPager();
+  }
+
+  function render(records) {
+    const tbody = document.getElementById('rows');
+    tbody.textContent = '';
+    if (!records.length) {
+      const tr = document.createElement('tr');
+      const td = YC.text('td', '暂无日志', 'empty');
+      td.colSpan = 9;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    records.forEach(log => {
+      const resultCell = YC.text('td');
+      resultCell.appendChild(YC.text('span', log.result,
+        'status ' + (log.result === 'SUCCESS' ? 'APPROVED' : 'REJECTED')));
+      tbody.appendChild(YC.row([
+        log.id,
+        YC.formatTime(log.createdAt),
+        (log.operatorName || '—') + (log.operatorId ? '（#' + log.operatorId + '）' : ''),
+        log.module, log.action,
+        log.targetId === null || log.targetId === undefined ? '—' : log.targetId,
+        resultCell, log.elapsedMs, log.requestId
+      ]));
+    });
+  }
+
+  function renderPager() {
+    const pages = Math.max(1, Math.ceil(state.total / state.size));
+    document.getElementById('pageInfo').textContent =
+      '第 ' + state.page + ' / ' + pages + ' 页，共 ' + state.total + ' 条';
+    document.getElementById('prev').disabled = state.page <= 1;
+    document.getElementById('next').disabled = state.page >= pages;
+  }
+
+  document.getElementById('filters').addEventListener('submit', event => {
+    event.preventDefault();
+    state.page = 1;
+    load();
+  });
+  document.getElementById('prev').addEventListener('click', () => {
+    if (state.page > 1) { state.page -= 1; load(); }
+  });
+  document.getElementById('next').addEventListener('click', () => {
+    if (state.page * state.size < state.total) { state.page += 1; load(); }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

@@ -4,25 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>认领处理 - 校园失物招领</title>
-  <link rel="stylesheet" href="../yangcheng/common.css">
+  <link rel="stylesheet" href="../assets/css/base.css"><link rel="stylesheet" href="../assets/css/modules.css">
 </head>
-<body>
-<header>
-  <h1>认领处理</h1>
-  <nav>
-    <a href="../review/review.html">内容审核</a>
-    <a class="active" href="../claim/manage.html">认领处理</a>
-    <a href="../claim/handover.html">交接结案</a>
-    <a href="../claim/mine.html">我的认领</a>
+<body class="module-page" data-page-title="认领处理">
+<div data-cms-shell></div>
+<main><h1>认领处理</h1>
+  <nav aria-label="审核与认领">
+    <a href="../review/review.html">内容审核</a> ·
+    <a href="../claim/manage.html">认领处理</a> ·
+    <a href="../claim/handover.html">交接结案</a> ·
+    <a href="../claim/mine.html">我的认领</a> ·
     <a href="../audit/logs.html">操作日志</a>
   </nav>
-</header>
-<main>
   <div id="message" class="message"></div>
 
   <section class="panel">
     <h2>认领申请队列</h2>
-    <p class="meta">批准表示证据核实通过，物品仍保持“未结案”；实际交接由发布者在“交接结案”确认。</p>
+    <p class="meta">批准表示证据核实通过，物品仍保持“未结案”；实际交接由发布者在本人信息详情确认。</p>
     <form id="filters" class="filters">
       <label>状态
         <select id="status">
@@ -48,14 +46,10 @@
       </thead>
       <tbody id="rows"></tbody>
     </table>
-    <div class="pager">
-      <button type="button" id="prev" class="secondary">上一页</button>
-      <span id="pageInfo"></span>
-      <button type="button" id="next" class="secondary">下一页</button>
-    </div>
+    <div id="claim-pager"></div>
   </section>
 </main>
-<script src="../yangcheng/common.js"></script>
+<script src="../assets/js/api.js"></script><script src="../assets/js/pagination.js"></script><script src="../assets/js/shell.js"></script><script src="../yangcheng/common.js"></script><script src="../assets/js/r4-claim-ui.js?v=85168d556a"></script>
 <script>
 (function () {
   const state = {page: 1, size: 10, total: 0};
@@ -135,24 +129,16 @@
     }
   }
 
-  function renderPager() {
-    const pages = Math.max(1, Math.ceil(state.total / state.size));
-    document.getElementById('pageInfo').textContent =
-      '第 ' + state.page + ' / ' + pages + ' 页，共 ' + state.total + ' 条';
-    document.getElementById('prev').disabled = state.page <= 1;
-    document.getElementById('next').disabled = state.page >= pages;
-  }
+  const pager = new Cms.Pagination(document.getElementById('claim-pager'), async value => {
+    state.page=value.page; state.size=value.size; await load();
+  });
+  function renderPager() { pager.render(state); }
+
 
   document.getElementById('filters').addEventListener('submit', event => {
     event.preventDefault();
     state.page = 1;
     load();
-  });
-  document.getElementById('prev').addEventListener('click', () => {
-    if (state.page > 1) { state.page -= 1; load(); }
-  });
-  document.getElementById('next').addEventListener('click', () => {
-    if (state.page * state.size < state.total) { state.page += 1; load(); }
   });
 
   load();

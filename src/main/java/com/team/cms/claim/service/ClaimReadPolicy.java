@@ -2,6 +2,7 @@ package com.team.cms.claim.service;
 
 import com.team.cms.article.entity.Article;
 import com.team.cms.auth.security.CurrentUser;
+import com.team.cms.claim.dto.ClaimEligibility;
 import com.team.cms.claim.dto.FoundContactView;
 
 /**
@@ -12,9 +13,14 @@ import com.team.cms.claim.dto.FoundContactView;
  */
 public interface ClaimReadPolicy {
 
+    ClaimEligibility eligibility(Article article, CurrentUser user);
+    /** 写入时在事务内锁定分类，再检查同一申请资格。 */
+    void requireEligible(Article article, CurrentUser user);
+
     /** 纯判定，不抛异常，方便调用方决定是否展示“联系失主”入口。 */
     boolean canReadFoundContact(Article article, CurrentUser user);
 
     /** 单条读取；未公开、越权或信息不存在时抛 403/404，并可由调用方写审计。 */
     FoundContactView readFoundContact(Long itemId);
+    FoundContactView readFoundContact(Article article);
 }

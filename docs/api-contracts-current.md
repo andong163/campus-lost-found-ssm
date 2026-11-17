@@ -44,7 +44,7 @@
 
 ## 迁移与环境
 
-已有库按 003 → 004 → 005 → 006 顺序升级权限元数据；`scripts/upgrade-db.ps1` 已串接这些增量脚本，新库的 init.sql 同步包含这些权限。006 仅追加角色授权，默认 EDITOR 获得本人删除与认领写权限，全站管理/批量仅 ADMIN 默认获得，REVIEWER/VIEWER 不自动获得新增写权限。原有已发布脚本不回写。GMY R3 使用唯一的 `cms_gmy_r3_十二位编号` 专用 MySQL 库，测试角色和注册数据仅存在于该库。完整准备、部署、运行和清理说明见 [gmy-r3.md](gmy-r3.md)。真实业务库不会被测试流程覆盖。
+已有库按 003 → 004 → 005 → 006 → 007 顺序升级权限元数据；`scripts/upgrade-db.ps1` 已串接这些增量脚本，新库的 init.sql 同步包含这些权限。006 仅追加角色授权，默认 EDITOR 获得本人删除与认领写权限，全站管理/批量仅 ADMIN 默认获得，REVIEWER/VIEWER 不自动获得新增写权限。原有已发布脚本不回写。GMY R3 使用唯一的 `cms_gmy_r3_十二位编号` 专用 MySQL 库，测试角色和注册数据仅存在于该库。完整准备、部署、运行和清理说明见 [gmy-r3.md](gmy-r3.md)。真实业务库不会被测试流程覆盖。
 
 ## 第三轮公开检索、管理与认领
 
@@ -59,3 +59,16 @@
 | GET `/api/items/{itemId}/found-contact` | 依 ClaimReadPolicy 授权；未通过核实及无关用户不能读取 |
 
 申请通过不改变物品 OPEN 状态，也不填写 completedAt；交接完成是后续独立业务步骤。VIEWER 没有新写权限；服务层再次验证申请、撤销和已有确认入口的写权限，身份降为只读后不得凭原所有权继续写入。
+
+
+## 第四轮信息端接入
+
+| 方法与路径 | 访问规则与结果 |
+| --- | --- |
+| `GET /api/items/{id}/contact` | 单条读取。FOUND 复用认领策略。LOST 按作者、审核权限或 `item:contact:lost` 及公开状态判定。读取留审计，响应禁止缓存。 |
+| `GET /api/items/{id}/claim-eligibility` | 登录后查看资格，非作者只可查询公开可见物品。实际申请在事务内按相同规则校验并锁定分类。 |
+| `GET /api/items/{id}/r4-detail` | `item:view:own` 和本人所有权，返回不含联系方式的详情摘要。 |
+| `GET /api/public/items/{id}/resolution` | 公开可见物品的处理状态、结案时间和结果码。 |
+| `GET /api/items/{id}/resolution` | `item:view:own` 和本人所有权，支持查看本人历史。 |
+
+`POST /api/items/{id}/resolve` 继续使用第三轮的 `claim:handover:own`、CSRF 与状态事务。`GET /api/claims/mine` 继续按当前会话限制为本人记录。

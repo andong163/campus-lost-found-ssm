@@ -161,6 +161,8 @@ INSERT INTO sys_permission(code, name) VALUES
   ('article:publish', '发布信息'), ('review:handle', '审核处理'),
   ('review:view', '查看审核待办'), ('review:decide', '决定审核'),
   ('claim:handle', '认领处理'), ('claim:resolve', '认领结案'),
+  ('claim:create', '提交认领申请'), ('claim:cancel:own', '撤销本人认领'),
+  ('claim:handover:own', '本人交接结案'), ('claim:view:own', '查看本人认领'),
   ('audit:view', '只读审计');
 
 INSERT INTO sys_role_permission(role_id, permission_id)
@@ -168,7 +170,9 @@ SELECT r.id, p.id FROM sys_role r, sys_permission p WHERE r.code = 'ADMIN';
 
 INSERT INTO sys_role_permission(role_id, permission_id)
 SELECT r.id, p.id FROM sys_role r, sys_permission p
-WHERE r.code = 'EDITOR' AND p.code IN ('article:create', 'article:edit');
+WHERE r.code = 'EDITOR' AND p.code IN
+  ('article:create', 'article:edit', 'claim:create', 'claim:cancel:own',
+   'claim:handover:own', 'claim:view:own');
 
 INSERT INTO sys_role_permission(role_id, permission_id)
 SELECT r.id, p.id FROM sys_role r, sys_permission p

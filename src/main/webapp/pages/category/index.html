@@ -242,6 +242,11 @@
     }
 
     async function loadTree() {
+      const refreshButton = el('refresh');
+      const createRootButton = el('create-root');
+      refreshButton.disabled = true;
+      createRootButton.disabled = true;
+      if (state.nodes.length === 0) treeHost.textContent = '加载中…';
       try {
         const nodes = await api('/api/categories/tree');
         state.nodes = nodes || [];
@@ -261,6 +266,9 @@
         } else {
           toast(error.message, true);
         }
+      } finally {
+        refreshButton.disabled = false;
+        createRootButton.disabled = false;
       }
     }
 
@@ -274,7 +282,9 @@
         enabled: el('edit-enabled').checked
       };
       const button = el('save-node');
+      const originalText = button.textContent;
       button.disabled = true;
+      button.textContent = '保存中…';
       try {
         if (payload.name !== node.name) {
           await api('/api/categories/' + node.id, { method: 'PUT', body: { name: payload.name } });
@@ -294,6 +304,7 @@
         toast(error.message, true);
       } finally {
         button.disabled = false;
+        button.textContent = originalText;
       }
     }
 
@@ -301,6 +312,10 @@
       const node = state.selected;
       if (!node) return;
       if (!window.confirm('确认删除分类「' + node.name + '」？')) return;
+      const button = el('delete-node');
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = '删除中…';
       try {
         await api('/api/categories/' + node.id, { method: 'DELETE' });
         state.selected = null;
@@ -309,6 +324,9 @@
         await loadTree();
       } catch (error) {
         toast(error.message, true);
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
       }
     }
 
@@ -316,7 +334,9 @@
       const name = el('new-name').value.trim();
       if (!name) { toast('请填写分类名称', true); return; }
       const button = el('create-node');
+      const originalText = button.textContent;
       button.disabled = true;
+      button.textContent = '创建中…';
       try {
         await api('/api/categories', {
           method: 'POST',
@@ -334,6 +354,7 @@
         toast(error.message, true);
       } finally {
         button.disabled = false;
+        button.textContent = originalText;
       }
     }
 
