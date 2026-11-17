@@ -6,7 +6,11 @@ DROP TABLE IF EXISTS cms_claim_request;
 DROP TABLE IF EXISTS cms_review_record;
 DROP TABLE IF EXISTS cms_article;
 DROP TABLE IF EXISTS cms_category;
+DROP TABLE IF EXISTS sys_user_role;
+DROP TABLE IF EXISTS sys_role_permission;
 DROP TABLE IF EXISTS sys_user;
+DROP TABLE IF EXISTS sys_permission;
+DROP TABLE IF EXISTS sys_role;
 
 CREATE TABLE sys_user (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -19,6 +23,41 @@ CREATE TABLE sys_user (
   deleted INT NOT NULL DEFAULT 0,
   version INT NOT NULL DEFAULT 0,
   CONSTRAINT uk_user_username UNIQUE (username)
+);
+
+-- 登录拦截器每次请求都会重新装载角色与权限，因此 HTTP 夹具必须包含完整的 RBAC 表。
+CREATE TABLE sys_role (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(40) NOT NULL,
+  name VARCHAR(80) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted INT NOT NULL DEFAULT 0,
+  version INT NOT NULL DEFAULT 0,
+  CONSTRAINT uk_role_code UNIQUE (code)
+);
+
+CREATE TABLE sys_permission (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(80) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted INT NOT NULL DEFAULT 0,
+  version INT NOT NULL DEFAULT 0,
+  CONSTRAINT uk_permission_code UNIQUE (code)
+);
+
+CREATE TABLE sys_user_role (
+  user_id BIGINT NOT NULL,
+  role_id BIGINT NOT NULL,
+  PRIMARY KEY (user_id, role_id)
+);
+
+CREATE TABLE sys_role_permission (
+  role_id BIGINT NOT NULL,
+  permission_id BIGINT NOT NULL,
+  PRIMARY KEY (role_id, permission_id)
 );
 
 CREATE TABLE cms_category (
@@ -113,6 +152,41 @@ INSERT INTO sys_user(id, username, display_name) VALUES
   (3, 'reviewer01', '王审核'),
   (4, 'student04', '赵同学'),
   (5, 'admin01', '系统管理员');
+
+INSERT INTO sys_role(code, name) VALUES
+  ('ADMIN', '管理员'), ('EDITOR', '学生'), ('REVIEWER', '审核人员');
+
+INSERT INTO sys_permission(code, name) VALUES
+  ('article:create', '创建草稿'), ('article:edit', '编辑信息'),
+  ('article:publish', '发布信息'), ('review:handle', '审核处理'),
+  ('review:view', '查看审核待办'), ('review:decide', '决定审核'),
+  ('claim:handle', '认领处理'), ('claim:resolve', '认领结案'),
+  ('audit:view', '只读审计');
+
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r, sys_permission p WHERE r.code = 'ADMIN';
+
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r, sys_permission p
+WHERE r.code = 'EDITOR' AND p.code IN ('article:create', 'article:edit');
+
+INSERT INTO sys_role_permission(role_id, permission_id)
+SELECT r.id, p.id FROM sys_role r, sys_permission p
+WHERE r.code = 'REVIEWER' AND p.code IN
+  ('article:publish', 'review:handle', 'review:view', 'review:decide',
+   'claim:handle', 'claim:resolve');
+
+INSERT INTO sys_user_role(user_id, role_id)
+SELECT u.id, r.id FROM sys_user u, sys_role r
+WHERE r.code = 'EDITOR' AND u.id IN (1, 2, 4);
+
+INSERT INTO sys_user_role(user_id, role_id)
+SELECT u.id, r.id FROM sys_user u, sys_role r
+WHERE r.code = 'REVIEWER' AND u.id = 3;
+
+INSERT INTO sys_user_role(user_id, role_id)
+SELECT u.id, r.id FROM sys_user u, sys_role r
+WHERE r.code = 'ADMIN' AND u.id = 5;
 
 INSERT INTO cms_category(id, name, parent_id, sort_order, enabled) VALUES
   (1, '电子产品', NULL, 1, 1),

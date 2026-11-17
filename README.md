@@ -1,6 +1,6 @@
 # 基于 SSM 的校园失物招领信息管理系统
 
-校园失物招领 SSM 第一轮整合版，版本为 0.2.0-SNAPSHOT。已接入五人的公共基础、注册登录、分类基础、本人草稿和审计基础；审核认领工作流、完整检索、业务页面等继续按第二到第四轮开发。接入与验证见 [第一轮总合并说明](docs/r1-total-integration.md)，请求示例见 [第一轮接口清单](docs/r1-api.http)。
+校园失物招领 SSM 工程，版本为 0.2.0-SNAPSHOT。五人第二轮已在 `develop` 总合并：身份权限、分类管理、本人信息编辑、审核状态及公共页面已接入。公开检索、批量、认领及交接等继续按第三到第四轮交付。当前接入与验证见 [第二轮总合并说明](docs/r2-total-integration.md)，实际接口见 [OpenAPI 主文件](docs/openapi.json) 和 [当前约定](docs/api-contracts-current.md)。
 
 ## 高鸣远第一轮交付
 
@@ -8,13 +8,17 @@ GMY R1 已补齐 [公共接入契约](docs/r1-contracts.md)、[机器可读字�
 
 第一轮统一基线在 `develop`，实际 PR 见五人分工登记表。组员在各自分支正常合入最新 `origin/develop` 后继续原轮次开发。
 
-第一轮只有静态建设页。高鸣远第二轮已完成公共布局、真实会话入口、统一 fetch 与分页组件，通过 `feature/gaomingyuan-base` 分支交付，尚未合入 develop。首页 `/cms/pages/index.html` 已按校园失物登记卡方向重做；各业务页面继续由对应成员开发。认证与权限使用郭金滔已接入的真实实现。
+第一轮只有静态建设页。高鸣远第二轮公共布局、真实会话入口、统一 fetch 与分页组件已随第二轮总合并进入 develop。首页 `/cms/pages/index.html` 保留校园失物登记卡方向；各业务页面继续由对应成员开发。认证与权限使用郭金滔已接入的真实实现。
 
 ## 高鸣远第二轮交付
 
 接入步骤、首页设计依据及验证结果见 [第二轮完成说明](docs/gmy-r2-local.md)。组员维护自己模块的页面和 module.json，不需要共同修改首页。只读分页示例位于 `/cms/pages/examples/shared-components.html`；它供开发接入验证，不加入学生导航。
 
 运行 `./scripts/test-shared-ui.ps1` 检查请求与分页组件，再运行原有 `./scripts/build.ps1` 验证 SSM 和实际 WAR。本轮提交仅包含高鸣远第二轮内容，其他成员后续轮次未在本次标记完成。
+
+## 高鸣远第三轮交付
+
+高鸣远第三轮的外部 Tomcat 9、专用 MySQL 和可重复 HTTP 验收见 [GMY R3 说明](docs/gmy-r3.md)。执行 `./scripts/install-tomcat9.ps1` 准备官方容器，`./scripts/test-gmy-r3.ps1` 完成准备、部署、检查及清理。其他组员第三轮业务仍由各自负责。
 
 ## 技术栈硬性约束
 

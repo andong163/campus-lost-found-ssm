@@ -2,6 +2,7 @@ package com.team.cms.claim.service;
 
 import com.team.cms.article.entity.Article;
 import com.team.cms.auth.security.CurrentUser;
+import com.team.cms.claim.dto.ClaimEligibility;
 import com.team.cms.claim.dto.FoundContactView;
 
 /**
@@ -12,7 +13,8 @@ import com.team.cms.claim.dto.FoundContactView;
  */
 public interface ClaimReadPolicy {
 
-    com.team.cms.claim.dto.ClaimEligibility eligibility(Article article, CurrentUser user);
+    ClaimEligibility eligibility(Article article, CurrentUser user);
+    /** 写入时在事务内锁定分类，再检查同一申请资格。 */
     void requireEligible(Article article, CurrentUser user);
 
     /** 纯判定，不抛异常，方便调用方决定是否展示“联系失主”入口。 */

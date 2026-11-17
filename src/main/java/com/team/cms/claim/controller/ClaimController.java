@@ -2,6 +2,8 @@ package com.team.cms.claim.controller;
 
 import com.team.cms.audit.service.AuditTemplate;
 import com.team.cms.auth.security.RequirePermission;
+import com.team.cms.auth.security.CsrfTokenService;
+import com.team.cms.common.security.PermissionCodes;
 import com.team.cms.claim.ClaimPermissions;
 import com.team.cms.claim.dto.ClaimCancelRequest;
 import com.team.cms.claim.dto.ClaimCreateRequest;
@@ -18,6 +20,7 @@ import com.team.cms.common.api.Result;
 import com.team.cms.review.service.ItemWorkflowService;
 import java.util.List;
 import javax.validation.Valid;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,36 +39,32 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class ClaimController {
 
-    @org.springframework.beans.factory.annotation.Autowired
-    private com.team.cms.auth.security.CsrfTokenService csrf;
-    @org.springframework.beans.factory.annotation.Autowired
-    private javax.servlet.http.HttpServletRequest httpRequest;
-    @org.springframework.beans.factory.annotation.Autowired
-    private com.team.cms.article.mapper.ArticleMapper articles;
     private final ClaimService claimService;
     private final ClaimReadPolicy claimReadPolicy;
     private final ItemWorkflowService itemWorkflowService;
     private final AuditTemplate auditTemplate;
+    private final CsrfTokenService csrf;
 
     public ClaimController(ClaimService claimService, ClaimReadPolicy claimReadPolicy,
-            ItemWorkflowService itemWorkflowService, AuditTemplate auditTemplate) {
+            ItemWorkflowService itemWorkflowService, AuditTemplate auditTemplate,
+            CsrfTokenService csrf) {
         this.claimService = claimService;
         this.claimReadPolicy = claimReadPolicy;
         this.itemWorkflowService = itemWorkflowService;
         this.auditTemplate = auditTemplate;
+        this.csrf = csrf;
     }
 
-    @RequirePermission(com.team.cms.common.security.PermissionCodes.CLAIM_CREATE)
     @PostMapping("/items/{itemId}/claims")
+    @RequirePermission(PermissionCodes.CLAIM_CREATE)
     public Result<ClaimView> apply(@PathVariable Long itemId,
-            @Valid @RequestBody ClaimCreateRequest request) {
+            @Valid @RequestBody ClaimCreateRequest request, HttpServletRequest httpRequest) {
         csrf.requireValid(httpRequest);
         ClaimView view = auditTemplate.<ClaimView>execute("claim", "CLAIM_APPLY", itemId,
             () -> claimService.apply(itemId, request));
         return Result.ok(view);
     }
 
-    @RequirePermission(com.team.cms.common.security.PermissionCodes.CLAIM_VIEW_OWN)
     @GetMapping("/claims/mine")
     public Result<PageResult<ClaimView>> mine(@Valid @ModelAttribute ClaimQuery query) {
         return Result.ok(claimService.mine(query));
@@ -85,17 +84,17 @@ public class ClaimController {
     @PostMapping("/claims/{claimId}/decision")
     @RequirePermission(ClaimPermissions.CLAIM_HANDLE)
     public Result<Void> decide(@PathVariable Long claimId,
-            @Valid @RequestBody ClaimDecisionRequest request) {
+            @Valid @RequestBody ClaimDecisionRequest request, HttpServletRequest httpRequest) {
         csrf.requireValid(httpRequest);
         auditTemplate.run("claim", "CLAIM_DECIDE", claimId,
             () -> claimService.decide(claimId, request));
         return Result.ok(null);
     }
 
-    @RequirePermission(com.team.cms.common.security.PermissionCodes.CLAIM_CANCEL_OWN)
     @PostMapping("/claims/{claimId}/cancel")
+    @RequirePermission(PermissionCodes.CLAIM_CANCEL_OWN)
     public Result<Void> cancel(@PathVariable Long claimId,
-            @Valid @RequestBody ClaimCancelRequest request) {
+            @Valid @RequestBody ClaimCancelRequest request, HttpServletRequest httpRequest) {
         csrf.requireValid(httpRequest);
         auditTemplate.run("claim", "CLAIM_CANCEL", claimId,
             () -> claimService.cancel(claimId, request));
@@ -103,18 +102,12 @@ public class ClaimController {
     }
 
     @PostMapping("/items/{itemId}/resolve")
+    @RequirePermission(PermissionCodes.CLAIM_HANDOVER_OWN)
     public Result<Void> resolve(@PathVariable Long itemId,
-            @Valid @RequestBody ResolveRequest request) {
+            @Valid @RequestBody ResolveRequest request, HttpServletRequest httpRequest) {
         csrf.requireValid(httpRequest);
-        auditTemplate.run("claim", "CLAIM_RESOLVE", itemId, () -> {
-            com.team.cms.article.entity.Article item=articles.selectById(itemId);
-            if (item==null) throw new com.team.cms.common.exception.BusinessException(org.springframework.http.HttpStatus.NOT_FOUND,"信息不存在");
-            String permission=item.isLost()?com.team.cms.common.security.PermissionCodes.ITEM_RESOLVE_OWN
-                :com.team.cms.common.security.PermissionCodes.CLAIM_HANDOVER_OWN;
-            if (!com.team.cms.auth.security.CurrentUserContext.require().hasPermission(permission))
-                throw new com.team.cms.common.exception.BusinessException(org.springframework.http.HttpStatus.FORBIDDEN,"无结案权限");
-            itemWorkflowService.resolve(itemId, request.getVersion(), request.getClaimId());
-        });
+        auditTemplate.run("claim", "CLAIM_RESOLVE", itemId,
+            () -> itemWorkflowService.resolve(itemId, request.getVersion(), request.getClaimId()));
         return Result.ok(null);
     }
 

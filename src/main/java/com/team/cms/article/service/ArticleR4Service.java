@@ -53,11 +53,8 @@ public class ArticleR4Service {
         CurrentUser user=CurrentUserContext.require();
         Article item=requireItem(id);
         // 资格接口不能被用于枚举未公开物品；作者仍可查看本人的不可认领原因。
-        ClaimEligibility result=claims.eligibility(item,user);
-        if (!item.getAuthorId().equals(user.getId()) &&
-                ("NOT_PUBLISHED".equals(result.getReason()) || "CATEGORY_UNAVAILABLE".equals(result.getReason())))
-            throw new BusinessException(HttpStatus.NOT_FOUND,"公开信息不存在");
-        return result;
+        if (!item.getAuthorId().equals(user.getId())) requirePublic(item);
+        return claims.eligibility(item,user);
     }
     public ResolutionView publicResolution(long id) {
         Article item=requireItem(id); requirePublic(item);

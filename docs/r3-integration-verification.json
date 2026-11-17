@@ -1,0 +1,104 @@
+{
+  "phase": "third-round local compatibility fixes",
+  "completedAt": "2026-11-05T01:32:37.633834+00:00",
+  "architecture": "Java 11 + traditional Spring MVC/Spring/MyBatis; WAR; external Tomcat 9; no Spring Boot",
+  "memberBaselines": {
+    "develop": "f64dc0c64ebed9d4bd4e92781385699859036af1",
+    "feature/gaomingyuan-base": "e7999923d427b4682759f3127614de31757ad687",
+    "feature/guojintao-auth": "1a5c5aae29514cf2c029d570c51ce556d53fcdcf",
+    "feature/sunrui-category": "c36f380c50bcff2f71b7ed069cee27ffb7d5b212",
+    "feature/yangcheng-review-claim": "17b9a97a5c4a64d8c197f1c963a8c4c57f2afa96",
+    "feature/yuanyunxuan-article": "200a0d25a728607b5e2c1f9b05542702b735140f",
+    "main": "ed2479b91c7e53d0a23b631ca9f5bf9a30a1a34c"
+  },
+  "localBranch": "integration/r3-compat-20261105",
+  "fixesCommitted": false,
+  "remotePushed": false,
+  "businessDatabaseMigrated": false,
+  "readyForFormalMergeReview": true,
+  "junit": {
+    "tests": 141,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "warDeployment": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "sharedUi": {
+    "tests": 19,
+    "failures": 0
+  },
+  "foundationNegative": {
+    "tests": 6,
+    "failures": 0
+  },
+  "coreHttp": {
+    "checks": 76,
+    "passed": true
+  },
+  "newR3Http": {
+    "checks": 114,
+    "passed": true,
+    "failures": 0
+  },
+  "freshDatabaseMigration": {
+    "mode": "fresh-init",
+    "permissionCount": 8,
+    "ADMINNewGrants": 8,
+    "EDITORNewGrants": 4,
+    "REVIEWERNewGrants": 0,
+    "VIEWERNewGrants": 0,
+    "repeatedMigrationPassed": true,
+    "customGrantPreserved": false
+  },
+  "roundTwoDatabaseUpgrade": {
+    "mode": "round2-upgrade",
+    "permissionCount": 8,
+    "ADMINNewGrants": 8,
+    "EDITORNewGrants": 4,
+    "REVIEWERNewGrants": 0,
+    "VIEWERNewGrants": 0,
+    "repeatedMigrationPassed": true,
+    "customGrantPreserved": true
+  },
+  "artifact": {
+    "checkedFiles": 149,
+    "applicationClassesAndChangedPagesMatchFinalWar": true,
+    "warSha256": "344d0b0c8c7c1e9b36c93329be03a08c4f42fc04a3a457dc1e15a334427621e7"
+  },
+  "browser": {
+    "publicListAndSearch": true,
+    "publicDetail": true,
+    "authenticatedManage": true,
+    "loginRefreshWithoutReload": true,
+    "logoutClearsPrivateRows": true,
+    "defaultAndExplicitCategoryContext": true
+  },
+  "openApi": {
+    "controllers": 13,
+    "paths": 56,
+    "operations": 63,
+    "methodBasedCsrfCatalog": true
+  },
+  "cleanup": {
+    "secretsDeleted": true,
+    "completedAt": "2026-11-05T01:31:17.777527600Z",
+    "schema": "cms_gmy_r3_99eb1728a3cb",
+    "databaseDropped": true
+  },
+  "upgradeCleanup": {
+    "schema": "cms_gmy_r3_6c83fd185611",
+    "databaseDropped": true,
+    "secretsDeleted": true,
+    "completedAt": "2026-11-05T01:30:20.961466Z"
+  },
+  "scopeLimits": [
+    "No fourth-round business added or claimed as accepted.",
+    "Existing category writes and logout are documented without CSRF enforcement; this round did not broaden that contract.",
+    "Real business database remains unchanged; use the reviewed additive upgrade before deploying the integrated source."
+  ]
+}

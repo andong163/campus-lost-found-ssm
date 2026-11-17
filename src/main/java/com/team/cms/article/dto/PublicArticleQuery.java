@@ -5,6 +5,7 @@ import com.team.cms.common.domain.ItemType;
 import com.team.cms.common.domain.ResolutionStatus;
 import com.team.cms.common.exception.BusinessException;
 import java.time.LocalDateTime;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 
 public class PublicArticleQuery extends PageQuery {
@@ -12,7 +13,10 @@ public class PublicArticleQuery extends PageQuery {
     private ItemType itemType;
     private ResolutionStatus resolutionStatus;
     private Long categoryId;
-    private LocalDateTime from, to;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private LocalDateTime from;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private LocalDateTime to;
     public String getKeyword() { return keyword; } public void setKeyword(String v) { keyword=v; }
     public String getLocation() { return location; } public void setLocation(String v) { location=v; }
     public ItemType getItemType() { return itemType; } public void setItemType(ItemType v) { itemType=v; }

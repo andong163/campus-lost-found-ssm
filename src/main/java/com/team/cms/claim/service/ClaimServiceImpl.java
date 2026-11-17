@@ -6,7 +6,6 @@ import com.team.cms.article.mapper.ArticleMapper;
 import com.team.cms.auth.AuthConstants;
 import com.team.cms.auth.security.CurrentUser;
 import com.team.cms.auth.security.CurrentUserContext;
-import com.team.cms.category.service.CategoryAccessService;
 import com.team.cms.claim.ClaimPermissions;
 import com.team.cms.claim.domain.ClaimDecision;
 import com.team.cms.claim.dto.ClaimCancelRequest;
@@ -23,6 +22,7 @@ import com.team.cms.common.domain.ClaimStatus;
 import com.team.cms.common.domain.ItemType;
 import com.team.cms.common.domain.ResolutionStatus;
 import com.team.cms.common.exception.BusinessException;
+import com.team.cms.common.security.PermissionCodes;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.dao.DuplicateKeyException;
@@ -46,27 +46,21 @@ public class ClaimServiceImpl implements ClaimService {
     private final ClaimReadPolicy readPolicy;
     private final ArticleMapper articleMapper;
     private final ClaimRequestMapper claimRequestMapper;
-    private final CategoryAccessService categoryAccessService;
 
     public ClaimServiceImpl(ArticleMapper articleMapper, ClaimRequestMapper claimRequestMapper,
-            CategoryAccessService categoryAccessService, ClaimReadPolicy readPolicy) {
-        this.readPolicy=readPolicy;
+            ClaimReadPolicy readPolicy) {
+        this.readPolicy = readPolicy;
         this.articleMapper = articleMapper;
         this.claimRequestMapper = claimRequestMapper;
-        this.categoryAccessService = categoryAccessService;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ClaimView apply(Long itemId, ClaimCreateRequest request) {
         CurrentUser actor = CurrentUserContext.require();
+        requireWritePermission(actor, PermissionCodes.CLAIM_CREATE);
         Article article = articleMapper.selectByIdForUpdate(itemId);
-        if (article == null) {
-            throw new BusinessException(HttpStatus.NOT_FOUND, "信息不存在");
-        }
         readPolicy.requireEligible(article, actor);
-        // 沿用团队分类绑定锁；统一规则已校验资格，事务内再锁分类避免新增时失效。
-        categoryAccessService.requireBindable(article.getCategoryId());
         ClaimRequest claim = new ClaimRequest();
         claim.setArticleId(itemId);
         claim.setApplicantId(actor.getId());
@@ -174,6 +168,7 @@ public class ClaimServiceImpl implements ClaimService {
     @Transactional(rollbackFor = Exception.class)
     public void cancel(Long claimId, ClaimCancelRequest request) {
         CurrentUser actor = CurrentUserContext.require();
+        requireWritePermission(actor, PermissionCodes.CLAIM_CANCEL_OWN);
         ClaimRequest preview = claimRequestMapper.selectById(claimId);
         if (preview == null) {
             throw new BusinessException(HttpStatus.NOT_FOUND, "认领申请不存在");
@@ -240,6 +235,12 @@ public class ClaimServiceImpl implements ClaimService {
         view.setCreatedAt(claim.getCreatedAt());
         view.setVersion(claim.getVersion());
         return view;
+    }
+
+    private static void requireWritePermission(CurrentUser actor, String permission) {
+        if (!actor.hasRole(AuthConstants.ROLE_ADMIN) && !actor.hasPermission(permission)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "无认领操作权限");
+        }
     }
 
     private static void requireClaimHandler(CurrentUser actor) {

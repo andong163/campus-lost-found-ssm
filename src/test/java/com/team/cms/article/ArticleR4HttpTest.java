@@ -56,7 +56,9 @@ public class ArticleR4HttpTest {
         jdbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS uk_r4_active ON cms_claim_request(article_id,active_applicant_id)");
         jdbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS uk_r4_approved ON cms_claim_request(approved_article_id)");
         try(var conn=dataSource.getConnection()) {
-            var script=new EncodedResource(new FileSystemResource("sql/migrations/006-yyx-r4-contact-claim-permissions.sql"),"UTF-8");
+            var baseline=new EncodedResource(new FileSystemResource("sql/migrations/006-r3-item-claim-permissions.sql"),"UTF-8");
+            ScriptUtils.executeSqlScript(conn, baseline);
+            var script=new EncodedResource(new FileSystemResource("sql/migrations/007-r4-lost-contact-permission.sql"),"UTF-8");
             ScriptUtils.executeSqlScript(conn,script); ScriptUtils.executeSqlScript(conn,script);
         }
         owner=login("r4owner"); student=login("r4student"); reviewer=login("r4reviewer"); other=login("r4other");
@@ -143,7 +145,7 @@ public class ArticleR4HttpTest {
         assertEquals(200,read("/api/items/"+id+"/resolution",owner).getStatus());
     }
     @Test public void claimWritesRejectCsrfOwnItemDuplicatesAndStaleVersion() throws Exception {
-        assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM sys_role_permission rp JOIN sys_role r ON r.id=rp.role_id JOIN sys_permission p ON p.id=rp.permission_id WHERE r.code IN ('ADMIN','REVIEWER','VIEWER') AND p.code IN ('claim:create','claim:view:own','claim:cancel:own','claim:handover:own')",Integer.class).intValue());
+        assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM sys_role_permission rp JOIN sys_role r ON r.id=rp.role_id JOIN sys_permission p ON p.id=rp.permission_id WHERE r.code IN ('REVIEWER','VIEWER') AND p.code IN ('item:contact:lost','claim:create','claim:cancel:own','claim:handover:own')",Integer.class).intValue());
         long id=item(ItemType.FOUND);
         assertEquals(403,write("/api/items/"+id+"/claims",application(),student,false).getStatus());
         assertEquals(409,write("/api/items/"+id+"/claims",application(),owner,true).getStatus());
@@ -153,6 +155,20 @@ public class ArticleR4HttpTest {
         jdbc.update("DELETE FROM sys_role_permission WHERE role_id=(SELECT id FROM sys_role WHERE code='EDITOR') AND permission_id=(SELECT id FROM sys_permission WHERE code='claim:create')");
         assertEquals(403,write("/api/items/"+id+"/claims",application(),other,true).getStatus());
     }
+    @Test public void matchesPublicListCalendarDateBounds() throws Exception {
+        long id = item(ItemType.LOST);
+        jdbc.update("UPDATE cms_article SET event_time='2026-11-10 23:59:59' WHERE id=?", id);
+        var within = mvc.perform(get("/api/public/items")
+            .param("from", "2026-11-10T00:00:00")
+            .param("to", "2026-11-10T23:59:59.999999999")).andReturn().getResponse();
+        assertEquals(200, within.getStatus());
+        assertEquals(id, data(within).path("records").get(0).path("id").asLong());
+        var after = mvc.perform(get("/api/public/items")
+            .param("from", "2026-11-11T00:00:00")).andReturn().getResponse();
+        assertEquals(200, after.getStatus());
+        assertEquals(0, data(after).path("records").size());
+    }
+
     @Test public void resolveChecksOwnershipVersionAndRollsBackPartialHandover() throws Exception {
         long id=item(ItemType.FOUND);long claim=apply(id,student);long pending=apply(id,other);approve(claim);
         assertEquals(403,write("/api/items/"+id+"/resolve",Map.of("version",0,"claimId",claim),other,true).getStatus());

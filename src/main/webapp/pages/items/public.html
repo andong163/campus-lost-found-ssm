@@ -77,6 +77,8 @@
     </nav>
   </section>
 </form></main><script src="../../assets/js/public-date-filters.js?v=02705b43ae"></script><script>
+document.addEventListener('DOMContentLoaded', async function () {
+await Cms.shell.ready;
 const form=document.querySelector('#filter'),notice=document.querySelector('#notice'),list=document.querySelector('#list');let page=1,total=0;const size=10;
 const advanced=document.querySelector('#advanced-filters'),dateError=document.querySelector('#date-range-error');
 function updateAdvanced(){
@@ -100,4 +102,5 @@ form.addEventListener('change',()=>{validateDateRange();updateAdvanced()});
 function options(nodes,depth=0){for(const n of nodes){const option=document.createElement('option');option.value=n.id;option.textContent='　'.repeat(depth)+n.name;form.elements.categoryId.append(option);options(n.children,depth+1)}}
 async function load(){if(!validateDateRange(true))return;const q=new URLSearchParams(new FormData(form));const bounds=PublicDateFilters.bounds(form.elements.from.value,form.elements.to.value);q.delete('from');q.delete('to');if(bounds.from)q.set('from',bounds.from);if(bounds.to)q.set('to',bounds.to);list.textContent='加载中…';notice.textContent='';for(const [k,v] of [...q])if(!v)q.delete(k);q.set('page',page);q.set('size',size);history.replaceState(null,'','?'+q);try{const data=await Cms.api.request('/api/public/items?'+q);total=data.total;list.replaceChildren();if(!data.records.length)list.textContent='暂无符合条件的信息';for(const item of data.records){const row=document.createElement('p'),link=document.createElement('a');link.href='public-detail.html?id='+encodeURIComponent(item.id);link.textContent=item.title;row.append(link,document.createTextNode(' · '+(item.itemType==='LOST'?'寻物':'招领')+' · '+item.location+' · '+(item.resolutionStatus==='RESOLVED'?'已结案':'未结案')));list.append(row)}document.querySelector('#page').textContent=`第 ${page} 页，共 ${total} 条`;document.querySelector('#prev').disabled=page<=1;document.querySelector('#next').disabled=page*size>=total}catch(e){list.textContent='加载失败';notice.textContent=e.message}}
 (async()=>{const q=new URLSearchParams(location.search);for(const [k,v] of q)if(form.elements[k])form.elements[k].value=(k==='from'||k==='to')?PublicDateFilters.datePart(v):v;updateAdvanced();advanced.open=PublicDateFilters.advancedConditions(Object.fromEntries(new FormData(form))).length>0;page=Math.max(1,Number(q.get('page'))||1);try{const tree=await Cms.api.request('/api/public/categories');options(tree);if(q.get('categoryId'))form.elements.categoryId.value=q.get('categoryId')}catch(e){notice.textContent='分类加载失败：'+e.message}load()})();form.onsubmit=e=>{e.preventDefault();if(!validateDateRange(true))return;page=1;load()};document.querySelector('#prev').onclick=()=>{if(!validateDateRange(true))return;page--;load()};document.querySelector('#next').onclick=()=>{if(!validateDateRange(true))return;page++;load()};
+}, {once:true});
 </script></body></html>

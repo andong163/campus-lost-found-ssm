@@ -29,12 +29,18 @@ public final class MySqlCampusUpgrade {
                     System.out.println("Item columns and constraints added to empty CMS table.");
                 } else { System.out.println("Item columns already present; ALTER skipped."); }
                 LocalDatabaseSupport.script(connection, "sql/migrations/002-claim-request.sql");
+                for (String migration : List.of("003-auth-permission-seed.sql",
+                        "004-item-review-permissions.sql", "005-r2-category-permissions.sql",
+                        "006-r3-item-claim-permissions.sql")) {
+                    LocalDatabaseSupport.script(connection, "sql/migrations/" + migration);
+                }
                 try (Statement update = connection.createStatement()) {
                     update.executeUpdate("UPDATE sys_role SET name='学生',updated_at=CURRENT_TIMESTAMP,version=version+1 " +
                         "WHERE code='EDITOR' AND name='编辑人员'");
                     update.executeUpdate("UPDATE sys_role SET name='只读用户',updated_at=CURRENT_TIMESTAMP,version=version+1 " +
                         "WHERE code='VIEWER' AND name='普通用户'");
                 }
+                LocalDatabaseSupport.script(connection, "sql/migrations/007-r4-lost-contact-permission.sql");
                 LocalDatabaseSupport.verifyCampusSchema(connection);
                 verifyClaimConstraints(connection);
                 System.out.println("Campus upgrade verified: schema, duplicate claim rejection, exclusive approval and rollback.");

@@ -4,18 +4,22 @@
 <p id="notice" role="status"></p><label>状态筛选 <select id="status"><option value="">全部</option><option value="DRAFT">草稿</option><option value="PENDING_REVIEW">待审核</option><option value="APPROVED">已批准</option><option value="PUBLISHED">已发布</option><option value="REJECTED">已驳回</option><option value="OFFLINE">已下架</option></select></label>
 <div id="list" aria-live="polite">加载中…</div><p><button id="prev">上一页</button> <span id="page"></span> <button id="next">下一页</button></p></main>
 <script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
-let current=1,total=0;const size=10;
-async function load(){document.querySelector('#list').textContent='加载中…';try{
+let current=1,total=0,sequence=0,busy=false,identity;const size=10;
+function buttons(){document.querySelector('#prev').disabled=busy||current<=1;document.querySelector('#next').disabled=busy||current*size>=total;}
+window.addEventListener('cms:authchange',event=>{const next=event.detail.user?.id;if(next===identity)return;identity=next;++sequence;busy=false;current=1;total=0;document.querySelector('#list').replaceChildren();document.querySelector('#page').textContent='';buttons();});
+async function load(){const request=++sequence;busy=true;buttons();document.querySelector('#list').textContent='加载中…';try{
  const status=document.querySelector('#status').value;
- const data=await api('/items/mine?page='+current+'&size='+size+(status?'&status='+status:''));total=data.total;
+ const data=await api('/items/mine?page='+current+'&size='+size+(status?'&status='+status:''));
+ if(request!==sequence)return;total=data.total;
  const list=document.querySelector('#list');list.replaceChildren();
  if(!data.records.length)list.textContent='暂无信息';
  for(const item of data.records){const row=document.createElement('p');
  const link=document.createElement('a');link.href='detail.html?id='+encodeURIComponent(item.id);link.textContent=item.title;
  row.append(link,document.createTextNode(' · '+(statusText[item.status]||item.status)+' · 版本 '+item.version));list.append(row)}
  document.querySelector('#page').textContent=`第 ${current} 页，共 ${total} 条`;
- document.querySelector('#prev').disabled=current<=1;document.querySelector('#next').disabled=current*size>=total;
- }catch(e){document.querySelector('#list').textContent='';show(e.message,true)}}
+ }catch(e){if(request!==sequence)return;document.querySelector('#list').textContent='';if(e.name!=='AbortError')show(e.message,true)}
+ finally{if(request===sequence){busy=false;buttons();}}}
 document.querySelector('#status').onchange=()=>{current=1;load()};
-document.querySelector('#prev').onclick=()=>{current--;load()};document.querySelector('#next').onclick=()=>{current++;load()};load();
+document.querySelector('#prev').onclick=()=>{if(busy||current<=1)return;current--;load()};document.querySelector('#next').onclick=()=>{if(busy||current*size>=total)return;current++;load()};
+document.addEventListener('DOMContentLoaded',async()=>{await Cms.shell.ready;load();},{once:true});
 </script></body></html>
