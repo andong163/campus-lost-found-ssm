@@ -1,5 +1,7 @@
 package com.team.cms;
 
+import static com.team.cms.support.CsrfTestRequests.csrf;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.team.cms.auth.security.CurrentUserContext;
@@ -116,7 +118,7 @@ public class CategoryIntegrationTest {
         payload.put("name", name);
         payload.put("parentId", parentId);
         payload.put("sortOrder", sortOrder);
-        return mvc.perform(post("/api/categories").session(adminSession).contentType(MediaType.APPLICATION_JSON)
+        return mvc.perform(post("/api/categories").session(adminSession).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .characterEncoding(StandardCharsets.UTF_8.name())
             .content(json.writeValueAsString(payload))).andReturn().getResponse();
     }
@@ -297,11 +299,11 @@ public class CategoryIntegrationTest {
         Map<String, Object> negative = new HashMap<>();
         negative.put("name", "x");
         negative.put("sortOrder", -1);
-        assertCode(mvc.perform(post("/api/categories").session(adminSession).contentType(MediaType.APPLICATION_JSON)
+        assertCode(mvc.perform(post("/api/categories").session(adminSession).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .content(json.writeValueAsString(negative))).andReturn().getResponse(), 400);
-        assertCode(mvc.perform(post("/api/categories").session(adminSession).contentType(MediaType.APPLICATION_JSON)
+        assertCode(mvc.perform(post("/api/categories").session(adminSession).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .content("{\"name\":\"x\",\"parentId\":0}")).andReturn().getResponse(), 400);
-        assertCode(mvc.perform(post("/api/categories").session(adminSession).contentType(MediaType.APPLICATION_JSON)
+        assertCode(mvc.perform(post("/api/categories").session(adminSession).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .content("{\"name\":\"x\",\"parentId\":1.9}")).andReturn().getResponse(), 400); // 小数 ID 拒绝
     }
 
@@ -311,7 +313,7 @@ public class CategoryIntegrationTest {
             .content(payload)).andReturn().getResponse(), 401);
         assertCode(mvc.perform(get("/api/categories/tree")).andReturn().getResponse(), 401);
         MockHttpSession student = registerStudent("catstudent");
-        assertCode(mvc.perform(post("/api/categories").session(student).contentType(MediaType.APPLICATION_JSON)
+        assertCode(mvc.perform(post("/api/categories").session(student).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .content(payload)).andReturn().getResponse(), 403);
         assertCode(mvc.perform(get("/api/categories/tree").session(student)).andReturn().getResponse(), 403);
         assertEquals(0, sql().queryForObject("SELECT COUNT(*) FROM cms_category", Integer.class).intValue());
@@ -328,13 +330,13 @@ public class CategoryIntegrationTest {
             + "SELECT r.id,p.id FROM sys_role r,sys_permission p WHERE r.code='VIEWER' AND p.code='category:view'");
         MockHttpSession delegate = login("catdelegate");
         assertCode(mvc.perform(get("/api/categories/tree").session(delegate)).andReturn().getResponse(), 200);
-        assertCode(mvc.perform(post("/api/categories").session(delegate).contentType(MediaType.APPLICATION_JSON)
+        assertCode(mvc.perform(post("/api/categories").session(delegate).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .content("{\"name\":\"禁止新增\"}")).andReturn().getResponse(), 403);
         sql().update("DELETE FROM sys_role_permission WHERE role_id=(SELECT id FROM sys_role WHERE code='VIEWER')");
         sql().update("INSERT INTO sys_role_permission(role_id,permission_id) "
             + "SELECT r.id,p.id FROM sys_role r,sys_permission p WHERE r.code='VIEWER' AND p.code='category:add'");
         delegate = login("catdelegate");
-        assertCode(mvc.perform(post("/api/categories").session(delegate).contentType(MediaType.APPLICATION_JSON)
+        assertCode(mvc.perform(post("/api/categories").session(delegate).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .content("{\"name\":\"允许新增\"}")).andReturn().getResponse(), 200);
         assertCode(mvc.perform(get("/api/categories/tree").session(delegate)).andReturn().getResponse(), 403);
     }

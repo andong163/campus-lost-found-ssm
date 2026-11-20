@@ -1,4 +1,10 @@
 {
   "module": "audit",
-  "entries": []
+  "entries": [
+    {
+      "label": "操作日志",
+      "page": "audit/logs.html",
+      "permission": "audit:view"
+    }
+  ]
 }

@@ -84,6 +84,17 @@ public final class GmyR4HttpSuite {
     private void run() throws Exception {
         Session guest=new Session(),admin=login("gmyr3_admin"),owner=login("gmyr3_editor"),reviewer=login("gmyr3_reviewer"),viewer=login("gmyr3_viewer");
         Session alice=register("alice"),bob=register("bob");
+        Map<String,Object> csrfProbe=Map.of("name","CSRF 拒绝写入探针","sortOrder",0);
+        request("分类写入拒绝缺失令牌",admin,"POST","/api/categories",csrfProbe,403,false);
+        String adminToken=admin.token;
+        try {
+            admin.token="invalid-token";
+            post("分类写入拒绝错误令牌",admin,"/api/categories",csrfProbe,403);
+            admin.token=owner.token;
+            post("分类写入拒绝其他会话令牌",admin,"/api/categories",csrfProbe,403);
+        } finally { admin.token=adminToken; }
+        request("退出拒绝缺失令牌",alice,"POST","/api/auth/logout",null,403,false);
+        get("拒绝退出后保留会话",alice,"/api/auth/me",200);
         long root=post("新建父分类",admin,"/api/categories",Map.of("name","GMY_R4_"+UUID.randomUUID().toString().substring(0,8),"sortOrder",0),200).path("id").asLong();
         long category=post("新建子分类",admin,"/api/categories",Map.of("name","验收子类","parentId",root,"sortOrder",0),200).path("id").asLong();
         JsonNode found=publish(owner,reviewer,category,"FOUND"); long id=found.path("id").asLong(); int version=found.path("version").asInt();

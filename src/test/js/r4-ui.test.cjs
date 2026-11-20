@@ -5,13 +5,13 @@ const vm=require('node:vm');
 const path=require('node:path');
 const assets=path.resolve(__dirname,'../../main/webapp/assets/js');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
-function harness({resolved=false,user={id:2},contact}={}) {
+function harness({resolved=false,user={id:2},contact,mode='public',permissions=['claim:handover:own']}={}) {
   const nodes=new Map();
   for(const id of ['title','content','meta','notice','r4-history','r4-contact','r4-contact-button','r4-contact-value','r4-claim-message','r4-claim-link','r4-resolve'])
-    nodes.set(id,{textContent:'',hidden:id==='r4-claim-link',disabled:false,replaceChildren(){this.textContent='';}});
+    nodes.set(id,{textContent:'',children:[],hidden:id==='r4-claim-link',disabled:false,replaceChildren(...children){this.textContent='';this.children=children;}});
   const events=new Map(),calls=[];
   const listeners=(type,event)=>{for(const fn of events.get(type)||[])fn(event);};
-  const Cms={shell:{user,ready:Promise.resolve(),hasPermission:()=>true,link:p=>'/cms/'+p,openLogin(){calls.push('LOGIN');}},
+  const Cms={shell:{user,ready:Promise.resolve(),hasPermission:code=>permissions.includes(code),link:p=>'/cms/'+p,openLogin(){calls.push('LOGIN');}},
     api:{request:async(p)=>{
       calls.push(p);
       if(p.endsWith('/contact'))return contact?contact():{contactInfo:'<img src=x onerror=alert(1)>'};
@@ -20,10 +20,21 @@ function harness({resolved=false,user={id:2},contact}={}) {
       return {id:1,title:'<script>alert(1)</script>',content:'<img src=x>',location:'<b>地点</b>',itemType:'FOUND',resolutionStatus:resolved?'RESOLVED':'OPEN',eventTime:'2026-11-02'};
     }}};
   const win={Cms,addEventListener(type,fn){if(!events.has(type))events.set(type,[]);events.get(type).push(fn);}};
-  const context={window:win,Cms,document:{body:{dataset:{r4Detail:'public'}},getElementById:id=>nodes.get(id)},location:{search:'?id=1',reload(){}},URLSearchParams,DOMException,Promise};
+  const context={window:win,Cms,document:{body:{dataset:{r4Detail:mode}},getElementById:id=>nodes.get(id),createElement:()=>({})},location:{search:'?id=1',reload(){}},URLSearchParams,DOMException,Promise};
   vm.runInNewContext(fs.readFileSync(path.join(assets,'r4-detail.js'),'utf8'),context);
   return {nodes,calls,Cms,events,listeners};
 }
+
+test('LOST owner sees recovery only with the same handover permission required by the server',async()=>{
+  for(const allowed of [true,false]){
+    const h=harness({mode:'owner',permissions:allowed?['claim:handover:own']:[]});
+    await tick();
+    h.listeners('cms:r4item',{detail:{id:1,itemType:'LOST',status:'PUBLISHED',resolutionStatus:'OPEN',version:0}});
+    await tick();
+    assert.equal(h.nodes.get('r4-resolve').children.length,allowed?1:0);
+    if(allowed)assert.equal(h.nodes.get('r4-resolve').children[0].textContent,'确认本人已找回');
+  }
+});
 test('detail reads contact only on deliberate click, and renders untrusted data as text',async()=>{
   const h=harness();await tick();
   assert.equal(h.calls.filter(x=>x.endsWith('/contact')).length,0);

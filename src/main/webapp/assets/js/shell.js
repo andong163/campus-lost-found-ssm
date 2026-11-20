@@ -6,6 +6,10 @@
   const modules = ['auth', 'category', 'items', 'review', 'claims', 'audit'];
   const labels = { auth: '账户管理', category: '分类管理', items: '我的信息', review: '审核工作台', claims: '认领与交接', audit: '操作记录' };
   const manifests = new Map();
+  const modulePages = {
+    claims: ['claim/mine.html', 'claim/manage.html', 'claim/handover.html'],
+    audit: ['audit/logs.html']
+  };
   let host, dialog, feedback, sessionArea, nav, loginTrigger;
   const link = path => new URL(path, root).href;
   function node(tag, className, text) {
@@ -37,7 +41,7 @@
     sessionArea.append(button);
   }
   function entryAllowed(entry) {
-    return !entry.permission || hasPermission(entry.permission);
+    return (!entry.authenticated || !!user) && (!entry.permission || hasPermission(entry.permission));
   }
   function renderNav() {
     if (!nav) return;
@@ -66,7 +70,10 @@
         if (value.module !== module || !Array.isArray(value.entries)) return;
         const prefix = `pages/${module}/`;
         manifests.set(module, value.entries.filter(entry => entry && typeof entry.label === 'string' && entry.label.length <= 30 &&
-          typeof entry.page === 'string' && entry.page.startsWith(prefix) && /^pages\/[a-z]+\/[a-zA-Z0-9_\/-]+\.html$/.test(entry.page) &&
+          typeof entry.page === 'string' &&
+          ((entry.page.startsWith(prefix) && /^pages\/[a-z]+\/[a-zA-Z0-9_\/-]+\.html$/.test(entry.page)) ||
+            modulePages[module]?.includes(entry.page)) &&
+          (entry.authenticated === undefined || typeof entry.authenticated === 'boolean') &&
           (!entry.permission || typeof entry.permission === 'string')));
       } catch (_) { /* An unavailable manifest must not block the remaining modules. */ }
     }));

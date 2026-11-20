@@ -81,7 +81,10 @@ public final class GmyR3ApiCatalog {
         "ReviewController#publish", "ClaimController#apply", "ClaimController#decide",
         "ClaimController#cancel", "ClaimController#resolve",
         "UserController#updateStatus", "UserController#assignRoles",
-        "RoleController#create", "RoleController#update", "RoleController#assignPermissions");
+        "RoleController#create", "RoleController#update", "RoleController#assignPermissions",
+        "CategoryController#create", "CategoryController#rename", "CategoryController#move",
+        "CategoryController#sort", "CategoryController#toggle", "CategoryController#delete",
+        "AuthController#logout");
     public static boolean csrfEnforced(Method method) {
         return CSRF_CHECKED_METHODS.contains(method.getDeclaringClass().getSimpleName()+"#"+method.getName());
     }

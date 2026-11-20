@@ -11,7 +11,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-/** 为登录会话签发令牌，并校验物品草稿写请求携带的令牌。 */
+/** 为登录会话签发令牌，并校验写请求携带的同会话令牌。 */
 @Component
 public class CsrfTokenService {
     private final SecureRandom random = new SecureRandom();

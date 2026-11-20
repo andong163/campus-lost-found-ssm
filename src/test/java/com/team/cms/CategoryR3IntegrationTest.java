@@ -1,5 +1,7 @@
 package com.team.cms;
 
+import static com.team.cms.support.CsrfTestRequests.csrf;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.team.cms.auth.service.AuthService;
@@ -176,14 +178,14 @@ public class CategoryR3IntegrationTest {
         payload.put("name", name);
         payload.put("parentId", parentId);
         payload.put("sortOrder", 0);
-        JsonNode body = assertCode(mvc.perform(post("/api/categories").session(adminSession)
+        JsonNode body = assertCode(mvc.perform(post("/api/categories").session(adminSession).with(csrf())
             .contentType(MediaType.APPLICATION_JSON).characterEncoding(StandardCharsets.UTF_8.name())
             .content(json.writeValueAsString(payload))).andReturn().getResponse(), 200);
         return body.get("data").get("id").asLong();
     }
 
     private void toggle(long id, boolean enabled) throws Exception {
-        assertCode(mvc.perform(put("/api/categories/" + id + "/enabled").session(adminSession)
+        assertCode(mvc.perform(put("/api/categories/" + id + "/enabled").session(adminSession).with(csrf())
             .contentType(MediaType.APPLICATION_JSON).characterEncoding(StandardCharsets.UTF_8.name())
             .content(json.writeValueAsString(Map.of("enabled", enabled)))).andReturn().getResponse(), 200);
     }

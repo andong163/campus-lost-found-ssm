@@ -41,7 +41,7 @@
   async function ownerActions() {
     if(mode!=='owner' || !item || item.status!=='PUBLISHED' || item.resolutionStatus!=='OPEN')return;
     const current=epoch;
-    const permission=item.itemType==='LOST'?'item:resolve:own':'claim:handover:own';
+    const permission='claim:handover:own';
     if(!Cms.shell.hasPermission(permission))return;
     let claimId=null;
     if(item.itemType==='FOUND'){

@@ -1,5 +1,7 @@
 package com.team.cms;
 
+import static com.team.cms.support.CsrfTestRequests.csrf;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.team.cms.auth.service.AuthService;
@@ -223,7 +225,7 @@ public class CategoryR2IntegrationTest {
         assertCode(moveCategoryWith(student, id, null), 403);
         assertCode(sortCategoryWith(student, id, 0), 403);
         assertCode(toggleCategoryWith(student, id, false), 403);
-        assertCode(mvc.perform(delete("/api/categories/" + id).session(student)).andReturn().getResponse(), 403);
+        assertCode(mvc.perform(delete("/api/categories/" + id).session(student).with(csrf())).andReturn().getResponse(), 403);
 
         // 公开分类树仍然匿名可读，且没有因为管理接口而放开其他路由
         assertCode(mvc.perform(get("/api/public/categories")).andReturn().getResponse(), 200);
@@ -268,7 +270,7 @@ public class CategoryR2IntegrationTest {
         payload.put("name", name);
         payload.put("parentId", parentId);
         payload.put("sortOrder", sortOrder);
-        JsonNode body = assertCode(mvc.perform(post("/api/categories").session(adminSession)
+        JsonNode body = assertCode(mvc.perform(post("/api/categories").session(adminSession).with(csrf())
             .contentType(MediaType.APPLICATION_JSON).characterEncoding(StandardCharsets.UTF_8.name())
             .content(json.writeValueAsString(payload))).andReturn().getResponse(), 200);
         return body.get("data").get("id").asLong();
@@ -279,7 +281,7 @@ public class CategoryR2IntegrationTest {
     }
 
     private MockHttpServletResponse putJsonWith(MockHttpSession session, String path, String content) throws Exception {
-        return mvc.perform(put(path).session(session).contentType(MediaType.APPLICATION_JSON)
+        return mvc.perform(put(path).session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .characterEncoding(StandardCharsets.UTF_8.name()).content(content)).andReturn().getResponse();
     }
 
@@ -314,7 +316,7 @@ public class CategoryR2IntegrationTest {
     }
 
     private MockHttpServletResponse deleteCategory(long id) throws Exception {
-        return mvc.perform(delete("/api/categories/" + id).session(adminSession)).andReturn().getResponse();
+        return mvc.perform(delete("/api/categories/" + id).session(adminSession).with(csrf())).andReturn().getResponse();
     }
 
     private JsonNode adminTree() throws Exception {
