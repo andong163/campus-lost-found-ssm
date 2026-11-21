@@ -2,37 +2,24 @@
 (function () {
   'use strict';
 
-  function contextPath() {
-    return location.pathname.replace(/\/(review|claim|audit)\/[^/]*$/, '') || '';
-  }
-
-  async function request(path, options) {
-    const init = Object.assign({
-      credentials: 'same-origin',
-      headers: { 'Accept': 'application/json' }
-    }, options || {});
-    const response = await fetch(contextPath() + path, init);
-    const raw = await response.text();
-    let body = null;
-    if (raw) {
-      try { body = JSON.parse(raw); } catch (ignore) { body = null; }
-    }
-    if (!response.ok) {
-      const error = new Error((body && body.message) || ('请求失败（' + response.status + '）'));
-      error.status = response.status;
-      throw error;
-    }
-    return body ? body.data : null;
-  }
-
-  async function post(path, data) {
-    const token = await request('/api/auth/csrf');
-    return request(path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-Token': token },
-      body: JSON.stringify(data)
+  async function request(path, options = {}) {
+    return Cms.api.request(path, {
+      ...options,
+      ...(options.body === undefined ? {} : {
+        body: typeof options.body === 'string' ? JSON.parse(options.body) : options.body
+      })
     });
   }
+
+  function post(path, data) {
+    return request(path, { method: 'POST', body: data });
+  }
+
+  window.addEventListener('cms:unauthorized', () => {
+    document.getElementById('rows')?.replaceChildren();
+    const detail = document.getElementById('detail');
+    if (detail) detail.hidden = true;
+  });
 
   function text(tag, value, className) {
     const element = document.createElement(tag);

@@ -60,7 +60,9 @@ public class ArticleManagementController {
         return batch("delete",body,request);
     }
     private Result<Integer> batch(String action, BatchArticleRequest body, HttpServletRequest request) {
-        csrf.requireValid(request); body.validate(); workflow.batch(action,body.getVersions());
+        csrf.requireValid(request);
+        body.validateVersions();
+        workflow.batch(action,body.getVersions());
         return Result.ok(body.getIds().size());
     }
 }

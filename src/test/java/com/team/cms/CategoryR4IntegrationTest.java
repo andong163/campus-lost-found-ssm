@@ -39,7 +39,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * SR R4 并发边界与性能证据：分类停用、删除、内容绑定的并发一致性，以及关联查询的 EXPLAIN。
  *
- * <p>并发用例走 Service 层（不经 HTTP），因为要复验的是 {@code inParentLock} 与
+ * <p>并发用例走 Service 层（不经 HTTP），因为要复验的是 {@code inWriteTransaction} 与
  * {@code selectForUpdate} 的配合，而不是权限与路由。引用关系用运行期注册的
  * {@link CategoryReferenceGuard} 模拟，不依赖物品模块的真实表。</p>
  */

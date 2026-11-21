@@ -115,10 +115,19 @@
         "operationId" : "AuthController_logout",
         "tags" : [ "郭金滔" ],
         "x-controller" : "com.team.cms.auth.controller.AuthController#logout",
-        "x-csrf-enforced" : false,
-        "description" : "身份/所有权要求见当前接口约定。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "x-csrf-enforced" : true,
+        "description" : "身份/所有权要求见当前接口约定。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
+        } ],
+        "parameters" : [ {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -261,8 +270,8 @@
         "operationId" : "CategoryController_create",
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#create",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：category:add，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：category:add，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -277,6 +286,15 @@
             }
           }
         },
+        "parameters" : [ {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
+        } ],
         "responses" : {
           "200" : {
             "description" : "成功，HTTP 与 Result.code 均为 200",
@@ -365,8 +383,8 @@
         "operationId" : "CategoryController_delete",
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#delete",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：category:delete，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：category:delete，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -379,6 +397,14 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -419,8 +445,8 @@
         "operationId" : "CategoryController_rename",
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#rename",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：category:edit，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：category:edit，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -443,6 +469,14 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -485,8 +519,8 @@
         "operationId" : "CategoryController_toggle",
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#toggle",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：category:enable，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：category:enable，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -509,6 +543,14 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -551,8 +593,8 @@
         "operationId" : "CategoryController_move",
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#move",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：category:move，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：category:move，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -575,6 +617,14 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -617,8 +667,8 @@
         "operationId" : "CategoryController_sort",
         "tags" : [ "孙睿" ],
         "x-controller" : "com.team.cms.category.controller.CategoryController#sort",
-        "x-csrf-enforced" : false,
-        "description" : "所需权限：category:sort，或 ADMIN。 当前未在此接口执行 CSRF 令牌检查；GET 只读接口不需要写请求令牌。",
+        "x-csrf-enforced" : true,
+        "description" : "所需权限：category:sort，或 ADMIN。 写请求要求同会话 X-CSRF-Token。",
         "security" : [ {
           "SessionCookie" : [ ]
         } ],
@@ -641,6 +691,14 @@
             "type" : "integer",
             "format" : "int64"
           }
+        }, {
+          "name" : "X-CSRF-Token",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "description" : "登录后 GET /api/auth/csrf 返回的 data 字符串；不写入共享环境或代码"
         } ],
         "responses" : {
           "200" : {
@@ -4624,7 +4682,7 @@
             }
           }
         },
-        "required" : [ "ids" ]
+        "required" : [ "ids", "versions" ]
       },
       "com_team_cms_article_dto_ContactView" : {
         "type" : "object",

@@ -1,6 +1,7 @@
 package com.team.cms.category.controller;
 
 import com.team.cms.auth.security.RequirePermission;
+import com.team.cms.auth.security.CsrfTokenService;
 import com.team.cms.category.dto.CategoryCreateRequest;
 import com.team.cms.category.dto.CategoryCreateResponse;
 import com.team.cms.category.dto.CategoryMoveRequest;
@@ -12,6 +13,7 @@ import com.team.cms.category.service.CategoryService;
 import com.team.cms.common.api.Result;
 import java.util.List;
 import javax.validation.Valid;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,14 +29,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/categories")
 public class CategoryController {
     private final CategoryService service;
+    private final CsrfTokenService csrf;
 
-    public CategoryController(@Qualifier("categoryServiceImpl") CategoryService service) {
+    public CategoryController(@Qualifier("categoryServiceImpl") CategoryService service, CsrfTokenService csrf) {
         this.service = service;
+        this.csrf = csrf;
     }
 
     @PostMapping
     @RequirePermission("category:add")
-    public Result<CategoryCreateResponse> create(@Valid @RequestBody CategoryCreateRequest request) {
+    public Result<CategoryCreateResponse> create(@Valid @RequestBody CategoryCreateRequest request, HttpServletRequest httpRequest) {
+        csrf.requireValid(httpRequest);
         return Result.ok(service.create(request));
     }
 
@@ -47,34 +52,39 @@ public class CategoryController {
     @PutMapping("/{id}")
     @RequirePermission("category:edit")
     public Result<CategoryCreateResponse> rename(@PathVariable("id") Long id,
-            @Valid @RequestBody CategoryRenameRequest request) {
+            @Valid @RequestBody CategoryRenameRequest request, HttpServletRequest httpRequest) {
+        csrf.requireValid(httpRequest);
         return Result.ok(service.rename(id, request.getName()));
     }
 
     @PutMapping("/{id}/parent")
     @RequirePermission("category:move")
     public Result<CategoryCreateResponse> move(@PathVariable("id") Long id,
-            @Valid @RequestBody CategoryMoveRequest request) {
+            @Valid @RequestBody CategoryMoveRequest request, HttpServletRequest httpRequest) {
+        csrf.requireValid(httpRequest);
         return Result.ok(service.move(id, request.getParentId()));
     }
 
     @PutMapping("/{id}/sort")
     @RequirePermission("category:sort")
     public Result<CategoryCreateResponse> sort(@PathVariable("id") Long id,
-            @Valid @RequestBody CategorySortRequest request) {
+            @Valid @RequestBody CategorySortRequest request, HttpServletRequest httpRequest) {
+        csrf.requireValid(httpRequest);
         return Result.ok(service.sort(id, request.getSortOrder()));
     }
 
     @PutMapping("/{id}/enabled")
     @RequirePermission("category:enable")
     public Result<CategoryCreateResponse> toggle(@PathVariable("id") Long id,
-            @Valid @RequestBody CategoryToggleRequest request) {
+            @Valid @RequestBody CategoryToggleRequest request, HttpServletRequest httpRequest) {
+        csrf.requireValid(httpRequest);
         return Result.ok(service.toggle(id, request.getEnabled()));
     }
 
     @DeleteMapping("/{id}")
     @RequirePermission("category:delete")
-    public Result<Long> delete(@PathVariable("id") Long id) {
+    public Result<Long> delete(@PathVariable("id") Long id, HttpServletRequest httpRequest) {
+        csrf.requireValid(httpRequest);
         service.delete(id);
         return Result.ok(id);
     }

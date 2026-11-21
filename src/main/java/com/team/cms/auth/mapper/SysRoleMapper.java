@@ -10,6 +10,10 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface SysRoleMapper extends BaseMapper<SysRole> {
+    /** 管理员数量检查与角色替换共用的事务锁；必须在读取用户之前获取。 */
+    @org.apache.ibatis.annotations.Select("SELECT id FROM sys_role WHERE code='ADMIN' AND deleted=0 FOR UPDATE")
+    Long lockAdminRole();
+
     /** 查询指定用户的全部角色代码（关联表联查，见 SysRoleMapper.xml）。 */
     List<String> selectRoleCodesByUserId(@Param("userId") Long userId);
 

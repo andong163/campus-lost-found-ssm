@@ -241,7 +241,9 @@
       renderTree();
     }
 
+    let loadSequence = 0;
     async function loadTree() {
+      const sequence = ++loadSequence;
       const refreshButton = el('refresh');
       const createRootButton = el('create-root');
       refreshButton.disabled = true;
@@ -249,6 +251,7 @@
       if (state.nodes.length === 0) treeHost.textContent = '加载中…';
       try {
         const nodes = await api('/api/categories/tree');
+        if (sequence !== loadSequence) return;
         state.nodes = nodes || [];
         state.byId = new Map();
         for (const { node } of flatten(state.nodes)) state.byId.set(node.id, node);
@@ -260,6 +263,7 @@
         workspace.hidden = false;
         renderTree();
       } catch (error) {
+        if (sequence !== loadSequence || error.name === 'AbortError') return;
         if (error.status === 401) {
           workspace.hidden = true;
           loginPanel.hidden = false;
@@ -267,6 +271,7 @@
           toast(error.message, true);
         }
       } finally {
+        if (sequence !== loadSequence) return;
         refreshButton.disabled = false;
         createRootButton.disabled = false;
       }

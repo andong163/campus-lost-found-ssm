@@ -11,6 +11,7 @@
   let roles = [];
   let permissions = [];
   let selected = null;
+  let initialized = false, identity, loadSequence = 0;
 
   function showAlert(message, ok) {
     alertBox.textContent = message;
@@ -102,20 +103,25 @@
   }
 
   async function loadAll() {
+    const sequence = ++loadSequence;
     try {
       const loaded = await Cms.api.request('/api/roles');
+      if (sequence !== loadSequence) return;
       roles = loaded || [];
       try {
         permissions = (await Cms.api.request('/api/permissions')) || [];
       } catch (error) {
+        if (error.name === 'AbortError') return;
         permissions = [];
       }
+      if (sequence !== loadSequence) return;
       renderRoles();
       if (selected) {
         const again = roles.filter((item) => item.id === selected.id)[0];
         if (again) select(again);
       }
     } catch (error) {
+      if (sequence !== loadSequence || error.name === 'AbortError') return;
       showAlert(error.message || '角色列表加载失败');
     }
   }
@@ -165,17 +171,18 @@
 
   async function savePermissions() {
     if (!selected) return;
+    const role = selected;
     const codes = Array.from(el('permission-groups').querySelectorAll('input[type=checkbox]'))
       .filter((box) => box.checked)
       .map((box) => box.value);
     const button = el('save-permissions');
     button.disabled = true;
     try {
-      await Cms.api.request('/api/roles/' + selected.id + '/permissions', {
+      await Cms.api.request('/api/roles/' + role.id + '/permissions', {
         method: 'PUT',
         body: { permissionCodes: codes }
       });
-      showAlert('已保存 ' + selected.code + ' 的 ' + codes.length + ' 个权限', true);
+      showAlert('已保存 ' + role.code + ' 的 ' + codes.length + ' 个权限', true);
       await loadAll();
     } catch (error) {
       showAlert(error.message || '保存权限失败');
@@ -185,6 +192,8 @@
 
   async function start() {
     await Cms.shell.ready;
+    initialized = true;
+    identity = Cms.shell.user?.id;
     if (!Cms.shell.user) {
       window.location.replace(Cms.shell.link('pages/auth/login.html?next=' +
         encodeURIComponent(window.location.pathname + window.location.search)));
@@ -202,10 +211,22 @@
   }
 
   window.addEventListener('cms:authchange', function (event) {
-    if (!event.detail || !event.detail.user) {
+    const next = event.detail?.user;
+    if (initialized && next && next.id !== identity) {
+      window.location.reload();
+      return;
+    }
+    identity = next?.id;
+    if (!next || !Cms.shell.hasPermission(REQUIRED)) {
+      ++loadSequence;
+      roles = [];
+      permissions = [];
+      selected = null;
+      el('role-rows').replaceChildren();
+      el('permission-groups').replaceChildren();
       el('workspace').hidden = true;
       el('editor').hidden = true;
-      el('denied').hidden = true;
+      el('denied').hidden = !next;
     }
   });
 

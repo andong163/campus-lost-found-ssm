@@ -89,6 +89,15 @@ public class ArticleR4HttpTest {
         return mvc.perform(req).andReturn().getResponse();
     }
     Map<String,Object> application(){return Map.of("claimDescription","PRIVATE_EVIDENCE_MARKER 私有核实证据","contactInfo","PRIVATE_APPLICANT_CONTACT");}
+    @Test public void adminReadsBothContactTypesWithOnlyRequiredManagementGrants() throws Exception {
+        jdbc.update("DELETE FROM sys_user_role WHERE user_id=?",uid(other));
+        jdbc.update("INSERT INTO sys_user_role(user_id,role_id) SELECT ?,id FROM sys_role WHERE code='ADMIN'",uid(other));
+        jdbc.update("DELETE FROM sys_role_permission WHERE role_id=(SELECT id FROM sys_role WHERE code='ADMIN') "
+            + "AND permission_id NOT IN (SELECT id FROM sys_permission WHERE code IN ('user:manage','role:manage'))");
+        for(ItemType type:ItemType.values()) {
+            assertEquals(type.name(),200,read("/api/items/"+item(type)+"/contact",other).getStatus());
+        }
+    }
     long apply(long id,MockHttpSession who) throws Exception {
         var response=write("/api/items/"+id+"/claims",application(),who,true);assertEquals(200,response.getStatus());return data(response).get("id").asLong();
     }

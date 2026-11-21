@@ -1,5 +1,7 @@
 package com.team.cms;
 
+import static com.team.cms.support.CsrfTestRequests.csrf;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.team.cms.auth.service.AuthService;
@@ -117,7 +119,7 @@ public class AuthFlowTest {
     @Test public void logoutInvalidatesSession() throws Exception {
         register("stu05", "学生戊", "password123");
         MockHttpSession session = login("stu05", "password123");
-        assertEquals(200, mvc.perform(post("/api/auth/logout").session(session)).andReturn()
+        assertEquals(200, mvc.perform(post("/api/auth/logout").session(session).with(csrf())).andReturn()
             .getResponse().getStatus());
         assertEquals(401, mvc.perform(get("/api/auth/me").session(session)).andReturn()
             .getResponse().getStatus());

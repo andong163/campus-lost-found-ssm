@@ -1,23 +1,26 @@
 # 企业开发规范自检
 
-这是根据项目约定整理的工程清单，不能替代尚未提供的双师课堂听课笔记。
+本表按 2026-11-21 的 CMS 项目源码核对。双师课堂笔记应另按真实听课内容填写。
 
-| 项目 | 当前状态 |
-|---|---|
-| 严格采用传统SSM，禁止Spring Boot | 已核查POM、启动入口、手动配置和现有WAR，未发现Boot依赖；后续模块合并逐次检查 |
-| 固定 Java、Spring、MP、容器版本 | 基础工程已完成 |
-| 父子容器职责分离 | 已有集成测试 |
-| Controller/Service/Mapper 分层 | 基础模块已完成，业务继续遵守 |
-| 统一返回与 HTTP 状态 | 基础接口及异常测试已完成 |
-| DTO 参数校验与分页上限 | 公共配置已完成，业务 DTO 待接入 |
-| Service 声明式事务与回滚测试 | 基础验证已完成，业务事务待接入 |
-| 关联表及主外键索引设计 | 十表及本机升级已完成，成员确认业务模型 |
-| 凭据外置且排除 Git/WAR | 已完成 |
-| 登录与细粒度权限 | 待郭金滔实现 |
-| 招领与审核认领状态约束 | 约定已完成，待袁运轩与杨程实现 |
-| 分类循环与关联校验 | 待孙睿实现 |
-| 请求诊断日志与业务审计 | 请求日志已完成，业务审计待杨程实现 |
-| Git分支、评审及提交归属 | 私有GitHub仓库已建立，main／develop／高鸣远分支已同步；其他成员按约定接入 |
-| MP特性与SQL优化证据 | 公共插件和XML已验证，业务N+1优化待完成 |
-| AI交互与人工修改留痕 | 已建过程记录，人工审查待填写 |
-| 可复现构建及部署 | 已建安装升级脚本与打包后验证 |
+| 自检项 | 实现与证据 |
+| --- | --- |
+| 传统 SSM 与外部部署 | SpringConfig、SpringMvcConfig、PersistenceConfig、WebAppInitializer；Java 11、WAR、Tomcat 9 |
+| 统一依赖 | pom.xml 固定 Spring、MP 和数据库驱动版本 |
+| 父子容器职责 | 根容器管理 Service、Mapper、事务与权限切面，MVC 子容器管理 Controller 和异常处理 |
+| 三层架构 | Controller 接收 DTO，Service 执行业务，Mapper/XML 执行数据访问 |
+| 统一响应 | Result 使用 code/message/data，GlobalExceptionHandler 统一错误状态 |
+| 参数校验 | DTO 使用 JSR303；跨字段对应关系在业务入口补充校验 |
+| 声明式事务 | 审核、批量和交接操作使用 Service 事务，已有失败回滚测试 |
+| 关联数据库 | sql/init.sql 定义十表及外键、索引、唯一约束，001～007 支持旧库升级 |
+| 凭据管理 | 本机 jdbc-local.properties 被 Git 忽略并排除出 WAR |
+| 登录与权限 | Session 登录、AuthInterceptor 和 PermissionAspect，停用及撤权回归已覆盖 |
+| 内容状态流程 | 草稿、提审、审核、发布、下架、认领核实和实际交接分别处理 |
+| 分类关联 | 循环检查、父级停用、内容引用、绑定与删除并发测试 |
+| 日志 | RequestLogFilter 记录请求，audit 模块记录业务操作，SQL 使用 SLF4J/Logback |
+| MP 使用 | BaseMapper、LambdaQueryWrapper、分页、逻辑删除、自动填充及乐观锁 |
+| 查询优化 | 分类批量查询验证 20 次降至 1 次；真实 MySQL 性能数据需单独保留 |
+| Git 协作 | 五人分支和四轮集成保留原始作者，修复另行提交 |
+| 可复现部署 | build、bootstrap-db、upgrade-db、test-gmy-r4 和 package-gmy-r4 脚本 |
+| 人工主导与报告 | 每人补齐实际代码审阅、课堂笔记、六部分报告及真实截图 |
+
+保留登录、权限、参数校验、CSRF、事务和状态约束。重复的字段检查优先交给已有 DTO 注解，查询结果使用正常返回值判断，业务规则集中在现有 Service 中维护。

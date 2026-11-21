@@ -15,6 +15,34 @@ import static org.junit.Assert.*;
 public class ArticleDtoTest {
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
+    @Test public void batchUsesBeanValidationBeforeCheckingVersionIds() throws Exception {
+        ObjectMapper json = new ObjectMapper();
+        for (String payload : new String[]{
+            "{\"ids\":null,\"versions\":{}}",
+            "{\"ids\":[],\"versions\":{}}",
+            "{\"ids\":[1,1],\"versions\":{\"1\":0}}",
+            "{\"ids\":[0],\"versions\":{\"0\":0}}",
+            "{\"ids\":[null],\"versions\":{}}",
+            "{\"ids\":[1],\"versions\":null}",
+            "{\"ids\":[1],\"versions\":{\"1\":null}}",
+            "{\"ids\":[1],\"versions\":{\"1\":-1}}"
+        }) {
+            BatchArticleRequest request = json.readValue(payload, BatchArticleRequest.class);
+            assertFalse(payload, validator.validate(request).isEmpty());
+        }
+        BatchArticleRequest valid = json.readValue("{\"ids\":[1,2],\"versions\":{\"1\":0,\"2\":3}}",
+            BatchArticleRequest.class);
+        assertTrue(validator.validate(valid).isEmpty());
+        valid.validateVersions();
+        valid.setVersions(java.util.Map.of(1L,0));
+        try {
+            valid.validateVersions();
+            fail("缺少 ID 的版本应拒绝");
+        } catch (com.team.cms.common.exception.BusinessException expected) {
+            assertEquals(400,expected.getStatus().value());
+        }
+    }
+
     @Test public void validatesRequiredLengthEnumAndFutureEventTime() throws Exception {
         CreateDraftRequest value = validRequest();
         assertTrue(validator.validate(value).toString(), validator.validate(value).isEmpty());

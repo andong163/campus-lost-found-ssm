@@ -1,4 +1,20 @@
 {
   "module": "claims",
-  "entries": []
+  "entries": [
+    {
+      "label": "我的认领",
+      "page": "claim/mine.html",
+      "authenticated": true
+    },
+    {
+      "label": "认领处理",
+      "page": "claim/manage.html",
+      "permission": "claim:handle"
+    },
+    {
+      "label": "交接结案",
+      "page": "claim/handover.html",
+      "permission": "claim:handover:own"
+    }
+  ]
 }

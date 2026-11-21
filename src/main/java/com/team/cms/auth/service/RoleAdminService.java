@@ -82,7 +82,9 @@ public class RoleAdminService {
     public RoleResponse update(Long id, UpdateRoleRequest request) {
         SysRole role = requireRole(id);
         role.setName(request.getName().trim());
-        roleMapper.updateById(role);
+        if (roleMapper.updateById(role) != 1) {
+            throw new BusinessException(HttpStatus.CONFLICT, "角色已被其他操作修改，请刷新后重试");
+        }
         return detail(id);
     }
 

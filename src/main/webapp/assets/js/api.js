@@ -21,6 +21,13 @@
   }
   let token = null, tokenRequest = null, generation = 0;
   function invalidateSession() { generation++; token = null; tokenRequest = null; }
+  const sessionChannel = typeof window.BroadcastChannel === 'function'
+    ? new window.BroadcastChannel('cms-session:' + root.href) : null;
+  if (sessionChannel) sessionChannel.onmessage = () => {
+    invalidateSession();
+    window.document.querySelectorAll('form').forEach(form => form.reset());
+    window.location.reload();
+  };
   function url(path) {
     if (typeof path !== 'string' || !/^\/api\//.test(path) || /[\\#]/.test(path)) throw new ApiError(400);
     const destination = new URL(root.pathname.replace(/\/$/, '') + path, root.origin);
@@ -32,6 +39,12 @@
     const method = (options.method || 'GET').toUpperCase();
     if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'].includes(method)) throw new ApiError(400);
     const startGeneration = generation;
+    const sessionBound = !/^\/api\/(public|system)\//.test(path) &&
+      !['/api/auth/login', '/api/auth/register', '/api/auth/csrf'].includes(path);
+    const checkSession = () => {
+      if (sessionBound && startGeneration !== generation)
+        throw new DOMException('会话已切换，请重新读取信息。', 'AbortError');
+    };
     const headers = new Headers({ Accept: 'application/json' });
     if (options.body !== undefined) headers.set('Content-Type', 'application/json');
     const controller = new AbortController();
@@ -46,10 +59,12 @@
         headers.set('X-CSRF-Token', await waitFor(csrf(), controller.signal));
       }
       if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError');
+      checkSession();
       const response = await window.fetch(destination.href, {
         method, credentials: 'same-origin', cache: 'no-store', redirect: 'error', headers,
         body: options.body === undefined ? undefined : JSON.stringify(options.body), signal: controller.signal
       });
+      checkSession();
       if (!response.ok) {
         if (response.status === 401 && startGeneration === generation) {
           invalidateSession();
@@ -60,7 +75,12 @@
       }
       let result;
       try { result = await response.json(); } catch (_) { throw new ApiError(502); }
+      checkSession();
       if (!result || result.code !== response.status || !Object.prototype.hasOwnProperty.call(result, 'data')) throw new ApiError(502);
+      if (method === 'POST' && ['/api/auth/login', '/api/auth/logout'].includes(path)) {
+        invalidateSession();
+        sessionChannel?.postMessage('changed');
+      }
       return result.data;
     } catch (error) {
       if (error instanceof ApiError) throw error;

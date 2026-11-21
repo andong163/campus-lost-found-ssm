@@ -68,7 +68,10 @@
 (function () {
   const state = {page: 1, size: 10, total: 0};
 
+  let loadSequence = 0;
+
   async function load() {
+    const sequence = ++loadSequence;
     const params = new URLSearchParams({
       page: String(state.page),
       size: String(state.size),
@@ -76,16 +79,17 @@
     });
     try {
       const data = await YC.request('/api/claims/mine?' + params.toString());
+      if (sequence !== loadSequence) return;
       state.total = data.total;
       render(data.records || []);
     } catch (error) {
+      if (sequence !== loadSequence || error.name === 'AbortError') return;
       state.total = 0;
       render([]);
       YC.setMessage('message', YC.errorMessage(error), 'error');
     }
     renderPager();
   }
-
   function render(records) {
     const tbody = document.getElementById('rows');
     tbody.textContent = '';

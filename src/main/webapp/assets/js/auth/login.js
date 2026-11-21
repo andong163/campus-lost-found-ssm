@@ -54,7 +54,6 @@
   }
 
   async function enter() {
-    Cms.api.invalidateSession();
     await Cms.shell.refreshSession();
     window.location.replace(nextUrl());
   }

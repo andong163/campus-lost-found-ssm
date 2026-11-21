@@ -62,6 +62,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public Result<Void> logout(HttpServletRequest httpRequest) {
+        csrfTokenService.requireValid(httpRequest);
         HttpSession session = httpRequest.getSession(false);
         if (session != null) {
             session.invalidate();
