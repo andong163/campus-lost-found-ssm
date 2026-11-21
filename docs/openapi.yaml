@@ -4682,7 +4682,7 @@
             }
           }
         },
-        "required" : [ "ids" ]
+        "required" : [ "ids", "versions" ]
       },
       "com_team_cms_article_dto_ContactView" : {
         "type" : "object",

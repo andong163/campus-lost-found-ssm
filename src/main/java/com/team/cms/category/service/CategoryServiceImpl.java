@@ -273,12 +273,7 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
 
     @Override
     public boolean isBindable(Long categoryId) {
-        try {
-            requireBindable(categoryId);
-            return true;
-        } catch (BusinessException error) {
-            return false;
-        }
+        return categoryId != null && bindableIds(Set.of(categoryId)).contains(categoryId);
     }
 
     /**
