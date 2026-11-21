@@ -69,17 +69,21 @@ public class UserAdminService {
     /** 启停账号：停用时禁止让系统失去最后一个有效管理员。 */
     @Transactional(rollbackFor = Exception.class)
     public void updateStatus(Long id, boolean enabled) {
+        roleMapper.lockAdminRole();
         SysUser user = requireUser(id);
         if (!enabled) {
             assertNotLastAdmin(user);
         }
         user.setEnabled(enabled ? 1 : 0);
-        userMapper.updateById(user);
+        if (userMapper.updateById(user) != 1) {
+            throw new BusinessException(HttpStatus.CONFLICT, "用户已被其他操作修改，请刷新后重试");
+        }
     }
 
     /** 替换式分配角色：提交的集合即最终角色；移除 ADMIN 时同样保护最后一个管理员。 */
     @Transactional(rollbackFor = Exception.class)
     public void assignRoles(Long id, List<String> roleCodes) {
+        roleMapper.lockAdminRole();
         SysUser user = requireUser(id);
         List<String> codes = normalize(roleCodes);
         if (codes.isEmpty()) {

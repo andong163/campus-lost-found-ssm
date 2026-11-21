@@ -139,6 +139,8 @@ public class CategoryR2IntegrationTest {
 
         // 合法移动：挂回根级
         assertCode(moveCategory(middle, null), 200);
+        JsonNode moved = findTx(adminTree(), "中间");
+        assertTrue("移到根级必须真正清空数据库父级", moved.get("parentId").isNull());
     }
 
     // ---------------------------------------------------------------- 排序

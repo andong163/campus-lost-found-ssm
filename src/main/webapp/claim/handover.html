@@ -39,17 +39,22 @@
     <button id="resolveButton" type="button" class="danger">确认结案</button>
   </section>
 </main>
+<script src="../assets/js/api.js"></script>
 <script src="../yangcheng/common.js"></script>
 <script>
 (function () {
   let current = null;
   let currentItemId = null;
 
+  let loadSequence = 0;
+
   async function load(itemId) {
+    const sequence = ++loadSequence;
     YC.setMessage('message', '正在加载……');
     document.getElementById('detail').hidden = true;
     try {
       const data = await YC.request('/api/items/' + itemId + '/handover');
+      if (sequence !== loadSequence) return;
       current = data;
       currentItemId = itemId;
       document.getElementById('detail').hidden = false;
@@ -75,6 +80,7 @@
       button.textContent = data.itemType === 'LOST' ? '确认已找回' : '确认已实际交接';
       YC.setMessage('message', '');
     } catch (error) {
+      if (sequence !== loadSequence || error.name === 'AbortError') return;
       YC.setMessage('message', YC.errorMessage(error), 'error');
     }
   }

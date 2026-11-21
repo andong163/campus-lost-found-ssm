@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>新增信息 · 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/modules.css">
+  <script defer src="../../assets/js/api.js"></script>
+  <script defer src="../../assets/js/shell.js"></script>
+  <script defer src="../../assets/js/item-create.js"></script>
+</head>
+<body class="module-page" data-page-title="新增信息">
+  <div data-cms-shell></div>
+  <main>
+    <nav><a href="mine.html">返回我的信息</a></nav>
+    <h1>新增信息</h1>
+    <p class="muted">丢失物品请选择“寻物”，拾到物品请选择“招领”。先保存草稿，再到详情页提交审核。</p>
+    <p id="notice" role="status"></p>
+    <form id="form" hidden>
+      <label>标题<input name="title" minlength="2" maxlength="100" required></label>
+      <label>正文<textarea name="content" minlength="10" maxlength="5000" required></textarea></label>
+      <label>类型<select name="itemType"><option value="LOST">寻物</option><option value="FOUND">招领</option></select></label>
+      <label>分类<select name="categoryId" required><option value="">请选择分类</option></select></label>
+      <label>事发时间<input name="eventTime" type="datetime-local" required></label>
+      <label>地点<input name="location" minlength="2" maxlength="100" required aria-describedby="location-hint"></label>
+      <p id="location-hint" class="muted">请填写建筑名称及具体位置，如：第一教学楼302教室、图书馆二楼、三号宿舍楼入口。</p>
+      <label>联系方式<input name="contactInfo" minlength="2" maxlength="100" required aria-describedby="contact-hint"></label>
+      <p id="contact-hint" class="muted">联系方式不会出现在公开列表中，由专用入口按权限查看。请勿在正文中公开他人的个人信息。</p>
+      <button type="submit">保存草稿</button>
+    </form>
+  </main>
+</body>
+</html>

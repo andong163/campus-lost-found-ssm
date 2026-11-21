@@ -37,7 +37,8 @@ public class ArticleR4Service {
             Article item=requireItem(id);
             if (item.isFound()) return new ContactView(claims.readFoundContact(item).getContactInfo());
             boolean owner=item.getAuthorId().equals(user.getId());
-            boolean staff=user.hasPermission(ReviewPermissions.REVIEW_HANDLE)
+            boolean staff=user.hasRole(com.team.cms.auth.AuthConstants.ROLE_ADMIN)
+                || user.hasPermission(ReviewPermissions.REVIEW_HANDLE)
                 || user.hasPermission(PermissionCodes.REVIEW_DECIDE);
             if (!owner && !staff) {
                 requirePublic(item);

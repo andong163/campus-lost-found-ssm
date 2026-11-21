@@ -35,7 +35,7 @@
       button.disabled = true;
       try {
         await Cms.api.request('/api/auth/logout', { method: 'POST' });
-        authSequence++; Cms.api.invalidateSession(); setUser(null); notify('已退出登录。');
+        authSequence++; setUser(null); notify('已退出登录。');
       } catch (error) { report(error); } finally { button.disabled = false; }
     });
     sessionArea.append(button);
@@ -128,7 +128,7 @@
       try {
         ++authSequence;
         const value = await Cms.api.request('/api/auth/login', { method: 'POST', body: { username: data.get('username'), password: data.get('password') } });
-        Cms.api.invalidateSession(); setUser(value); dialog.close(); notify('登录成功。');
+        setUser(value); dialog.close(); notify('登录成功。');
       } catch (error) {
         errorText.textContent = error.status === 401 ? '账号或密码不正确，请重新输入。' : error.message;
         if (error.status === 400 || error.status === 401) {

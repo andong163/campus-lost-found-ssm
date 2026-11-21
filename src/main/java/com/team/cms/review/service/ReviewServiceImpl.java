@@ -82,7 +82,7 @@ public class ReviewServiceImpl implements ReviewService {
         if (article.getStatus() != ArticleStatus.PENDING_REVIEW) {
             throw conflict("只有待审核信息可以处理，请刷新后重试");
         }
-        if (article.getVersion() == null || article.getVersion() != request.getVersion()) {
+        if (article.getVersion() == null || !article.getVersion().equals(request.getVersion())) {
             throw conflict("信息版本已变化，请刷新后重试");
         }
         String comment = normalizeComment(request.getComment());

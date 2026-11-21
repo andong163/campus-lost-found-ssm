@@ -12,6 +12,7 @@
   let canListRoles = false;
   let current = null;
   let pager = null;
+  let initialized = false, identity, listSequence = 0, detailSequence = 0;
 
   function showAlert(message, ok) {
     alertBox.textContent = message;
@@ -41,16 +42,19 @@
   }
 
   async function loadPage(request) {
+    const sequence = ++listSequence;
     clearAlert();
     const params = query();
     params.set('page', String(request.page));
     params.set('size', String(request.size));
     try {
       const result = await Cms.api.request('/api/users?' + params.toString());
+      if (sequence !== listSequence) return;
       renderRows(result.records || []);
       el('empty').hidden = (result.records || []).length > 0;
       if (pager) pager.render({ page: result.page, size: result.size, total: result.total });
     } catch (error) {
+      if (sequence !== listSequence || error.name === 'AbortError') return;
       el('empty').hidden = true;
       el('rows').textContent = '';
       showAlert(error.message || '用户列表加载失败');
@@ -144,8 +148,10 @@
   }
 
   async function openDetail(id) {
+    const sequence = ++detailSequence;
     try {
       const user = await Cms.api.request('/api/users/' + id);
+      if (sequence !== detailSequence) return;
       el('d-username').textContent = user.username;
       el('d-display').textContent = user.displayName || '—';
       el('d-enabled').textContent = user.enabled ? '启用' : '停用';
@@ -154,6 +160,7 @@
       el('d-created').textContent = formatTime(user.createdAt);
       el('detail').hidden = false;
     } catch (error) {
+      if (sequence !== detailSequence || error.name === 'AbortError') return;
       showAlert(error.message || '详情加载失败');
     }
   }
@@ -194,6 +201,7 @@
 
   async function saveRoles() {
     if (!current) return;
+    const target = current;
     const codes = selectedRoles();
     if (!codes.length) {
       showAlert('至少需要保留一个角色');
@@ -201,12 +209,12 @@
     }
     el('role-save').disabled = true;
     try {
-      await Cms.api.request('/api/users/' + current.id + '/roles', {
+      await Cms.api.request('/api/users/' + target.id + '/roles', {
         method: 'PUT',
         body: { roleCodes: codes }
       });
       el('role-modal').hidden = true;
-      showAlert('已更新用户「' + current.username + '」的角色', true);
+      showAlert('已更新用户「' + target.username + '」的角色', true);
       await loadPage(pager ? pager.value : { page: 1, size: 10 });
     } catch (error) {
       showAlert(error.message || '角色分配失败');
@@ -234,6 +242,8 @@
 
   async function start() {
     await Cms.shell.ready;
+    initialized = true;
+    identity = Cms.shell.user?.id;
     if (!Cms.shell.user) {
       window.location.replace(Cms.shell.link('pages/auth/login.html?next=' +
         encodeURIComponent(window.location.pathname + window.location.search)));
@@ -260,9 +270,26 @@
   }
 
   window.addEventListener('cms:authchange', function (event) {
-    if (!event.detail || !event.detail.user) {
+    const next = event.detail?.user;
+    if (initialized && next && next.id !== identity) {
+      window.location.reload();
+      return;
+    }
+    identity = next?.id;
+    if (!next || !Cms.shell.hasPermission(REQUIRED)) {
+      ++listSequence;
+      ++detailSequence;
+      current = null;
+      roles = [];
+      canListRoles = false;
+      el('role-modal').hidden = true;
+      el('role-modal-target').textContent = '';
+      el('role-options').replaceChildren();
+      el('role-codes').value = '';
+      el('detail').hidden = true;
+      el('rows').replaceChildren();
       el('workspace').hidden = true;
-      el('denied').hidden = true;
+      el('denied').hidden = !next;
     }
   });
 

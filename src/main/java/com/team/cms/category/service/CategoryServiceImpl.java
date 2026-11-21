@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -36,9 +35,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  *   <li>同级有效重名拒绝。比较在 Java 层 trim + equalsIgnoreCase：
  *       H2 默认大小写敏感而 MySQL utf8mb4_0900_ai_ci 不敏感，交给数据库会导致测试与生产结论不一致；</li>
  *   <li>公开树只包含自身与全部祖先均启用的节点，父停用整棵子树隐藏；</li>
- *   <li>新增用"按父级分段的 ReentrantLock 包住整个事务"防并发同名同时通过，
- *       锁在事务提交后才释放（若在 @Transactional 方法内加锁会在提交前释放）。
- *       该方案只保证单实例；多实例需唯一索引或分布式锁，属 R4 复验项；</li>
+ *   <li>分类写操作共用一把锁，防止并发移动形成环及同级重名；事务提交后才释放。
+ *       适用于本项目单个 Tomcat 实例的部署方式；</li>
  *   <li>祖先校验走单次全表查询 + 内存遍历，避免逐级查询；分类表规模小，
  *       R3 再按 SQL 次数证据决定是否引入递归 CTE/闭包表。</li>
  * </ul>
@@ -46,8 +44,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class CategoryServiceImpl implements CategoryService, CategoryAccessService {
     private static final Logger LOG = LoggerFactory.getLogger(CategoryServiceImpl.class);
-    /** parentId 为 null（根级新增）时使用的锁键；ConcurrentHashMap 不接受 null 键。 */
-    private static final long ROOT_LOCK_KEY = 0L;
     /** 树内稳定排序：sortOrder 升序，再按 id 升序兜底。 */
     private static final Comparator<Category> ORDER = Comparator
             .comparingInt((Category node) -> node.getSortOrder() == null ? 0 : node.getSortOrder())
@@ -55,8 +51,8 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
 
     private final CategoryMapper mapper;
     private final TransactionTemplate transactionTemplate;
-    /** 按父级分段的写锁；条目不清理（分类数量级小，R2/R4 收敛锁策略时再评估）。 */
-    private final ConcurrentHashMap<Long, ReentrantLock> parentLocks = new ConcurrentHashMap<>();
+    /** 整棵分类树的写操作必须基于上一次已提交的结构进行校验。 */
+    private final ReentrantLock writeLock = new ReentrantLock();
     /** 内容模块登记的分类引用检查；尚无实现时为空集合，删除只校验子分类。 */
     private final ObjectProvider<CategoryReferenceGuard> referenceGuards;
 
@@ -69,7 +65,7 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
 
     @Override
     public CategoryCreateResponse create(CategoryCreateRequest request) {
-        return inParentLock(request.getParentId(), () -> doCreate(request));
+        return inWriteTransaction(() -> doCreate(request));
     }
 
     private CategoryCreateResponse doCreate(CategoryCreateRequest request) {
@@ -106,8 +102,7 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
 
     @Override
     public CategoryCreateResponse rename(Long id, String name) {
-        // 与"同父级下新增/改名"共用一把锁，同级重名判定才不会被并发穿透。
-        return inParentLock(requireCategory(id).getParentId(), () -> doRename(id, name));
+        return inWriteTransaction(() -> doRename(id, name));
     }
 
     private CategoryCreateResponse doRename(Long id, String name) {
@@ -129,7 +124,7 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
 
     @Override
     public CategoryCreateResponse move(Long id, Long parentId) {
-        return inParentLock(parentId, () -> doMove(id, parentId));
+        return inWriteTransaction(() -> doMove(id, parentId));
     }
 
     private CategoryCreateResponse doMove(Long id, Long parentId) {
@@ -162,7 +157,7 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
 
     @Override
     public CategoryCreateResponse sort(Long id, Integer sortOrder) {
-        return inParentLock(requireCategory(id).getParentId(), () -> doSort(id, sortOrder));
+        return inWriteTransaction(() -> doSort(id, sortOrder));
     }
 
     private CategoryCreateResponse doSort(Long id, Integer sortOrder) {
@@ -178,8 +173,7 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
 
     @Override
     public CategoryCreateResponse toggle(Long id, boolean enabled) {
-        // 锁目标分类自身：与"往该分类下新增子分类"互斥，避免刚停用又挂上子节点。
-        return inParentLock(id, () -> doToggle(id, enabled));
+        return inWriteTransaction(() -> doToggle(id, enabled));
     }
 
     private CategoryCreateResponse doToggle(Long id, boolean enabled) {
@@ -195,8 +189,7 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
 
     @Override
     public void delete(Long id) {
-        // 同样锁目标分类自身：与"新增子分类到该分类下"共用锁键，避免删出孤儿。
-        inParentLock(id, () -> {
+        inWriteTransaction(() -> {
             doDelete(id);
             return null;
         });
@@ -462,27 +455,16 @@ public class CategoryServiceImpl implements CategoryService, CategoryAccessServi
     }
 
     /**
-     * 在指定锁键的写锁内执行事务。不用 @Transactional 的原因：注解方式在方法返回时即释放锁，
+     * 在分类写锁内执行事务。不用 @Transactional 的原因：注解方式在方法返回时即释放锁，
      * 而事务在方法返回后才提交，锁会提前放掉。这里的顺序是"加锁 → 开启事务 → 提交 → 解锁"。
      */
-    private <T> T inParentLock(Long lockKey, Supplier<T> action) {
-        ReentrantLock lock = parentLocks.computeIfAbsent(lockKey == null ? ROOT_LOCK_KEY : lockKey,
-                key -> new ReentrantLock());
-        lock.lock();
+    private <T> T inWriteTransaction(Supplier<T> action) {
+        writeLock.lock();
         try {
             return transactionTemplate.execute(status -> action.get());
         } finally {
-            lock.unlock();
+            writeLock.unlock();
         }
-    }
-
-    /** 读取未删除的分类；不存在抛 404。只用于取锁键或修改单行字段的场景。 */
-    private Category requireCategory(Long id) {
-        Category found = id == null ? null : mapper.selectById(id);
-        if (found == null) {
-            throw new BusinessException(HttpStatus.NOT_FOUND, "分类不存在");
-        }
-        return found;
     }
 
     /** 乐观锁写回：BaseEntity.version 由 MyBatis-Plus 自动递增，影响 0 行说明记录已被并发修改。 */

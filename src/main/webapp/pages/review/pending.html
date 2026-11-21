@@ -4,9 +4,9 @@
 <label>队列<select id="queue"><option value="pending">待审核</option><option value="approved">待发布</option></select></label>
 <div id="list">加载中…</div><p><button id="prev">上一页</button> <span id="page"></span> <button id="next">下一页</button></p>
 </main><script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
-let current=1,total=0;const size=10;
-async function load(){try{const queue=document.querySelector('#queue').value;
- const data=await api('/reviews/'+queue+'?page='+current+'&size='+size);total=data.total;
+let current=1,total=0,requestSequence=0;const size=10;
+async function load(){const sequence=++requestSequence;try{const queue=document.querySelector('#queue').value;
+ const data=await api('/reviews/'+queue+'?page='+current+'&size='+size);if(sequence!==requestSequence)return;total=data.total;
  const box=document.querySelector('#list');box.replaceChildren();if(!data.records.length)
   box.textContent=queue==='approved'?'暂无待发布信息':'暂无待审信息';
  for(const item of data.records){const card=document.createElement('article');const title=document.createElement('h2');title.textContent=item.title;
@@ -27,7 +27,7 @@ async function load(){try{const queue=document.querySelector('#queue').value;
  box.append(card)}
  document.querySelector('#page').textContent=`第 ${current} 页，共 ${total} 条`;
  document.querySelector('#prev').disabled=current<=1;document.querySelector('#next').disabled=current*size>=total;
- }catch(e){document.querySelector('#list').textContent='';show(e.message,true)}}
+ }catch(e){if(sequence!==requestSequence||e.name==='AbortError')return;document.querySelector('#list').textContent='';show(e.message,true)}}
 document.querySelector('#prev').onclick=()=>{current--;load()};document.querySelector('#next').onclick=()=>{current++;load()};load();
 document.querySelector('#queue').onchange=()=>{current=1;load()};
 </script></body></html>

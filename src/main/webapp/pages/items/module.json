@@ -2,6 +2,11 @@
   "module": "items",
   "entries": [
     {
+      "label": "新增信息",
+      "page": "pages/items/create.html",
+      "permission": "item:create"
+    },
+    {
       "label": "寻物招领",
       "page": "pages/items/public.html"
     },

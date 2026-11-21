@@ -129,7 +129,7 @@ public class ClaimServiceImpl implements ClaimService {
         if (!ClaimStatus.PENDING.name().equals(claim.getStatus())) {
             throw conflict("只有待核实的申请可以处理，请刷新后重试");
         }
-        if (claim.getVersion() == null || claim.getVersion() != request.getVersion()) {
+        if (claim.getVersion() == null || !claim.getVersion().equals(request.getVersion())) {
             throw conflict("认领版本已变化，请刷新后重试");
         }
         if (claim.getApplicantId().equals(actor.getId())) {
@@ -188,7 +188,7 @@ public class ClaimServiceImpl implements ClaimService {
                 && !ClaimStatus.APPROVED.name().equals(claim.getStatus())) {
             throw conflict("当前认领状态不能撤销");
         }
-        if (claim.getVersion() == null || claim.getVersion() != request.getVersion()) {
+        if (claim.getVersion() == null || !claim.getVersion().equals(request.getVersion())) {
             throw conflict("认领版本已变化，请刷新后重试");
         }
         if (article.getResolutionStatus() == ResolutionStatus.RESOLVED) {

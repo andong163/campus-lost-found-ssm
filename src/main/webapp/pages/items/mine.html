@@ -1,6 +1,7 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>我的信息</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script></head>
 <body class="module-page" data-page-title="我的信息"><div data-cms-shell></div><main><nav><a href="../index.html">首页</a></nav><h1>我的信息</h1>
+<p><a id="create-item" href="create.html" hidden>新增信息</a></p>
 <p id="notice" role="status"></p><label>状态筛选 <select id="status"><option value="">全部</option><option value="DRAFT">草稿</option><option value="PENDING_REVIEW">待审核</option><option value="APPROVED">已批准</option><option value="PUBLISHED">已发布</option><option value="REJECTED">已驳回</option><option value="OFFLINE">已下架</option></select></label>
 <div id="list" aria-live="polite">加载中…</div><p><button id="prev">上一页</button> <span id="page"></span> <button id="next">下一页</button></p></main>
 <script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
@@ -21,5 +22,5 @@ async function load(){const request=++sequence;busy=true;buttons();document.quer
  finally{if(request===sequence){busy=false;buttons();}}}
 document.querySelector('#status').onchange=()=>{current=1;load()};
 document.querySelector('#prev').onclick=()=>{if(busy||current<=1)return;current--;load()};document.querySelector('#next').onclick=()=>{if(busy||current*size>=total)return;current++;load()};
-document.addEventListener('DOMContentLoaded',async()=>{await Cms.shell.ready;load();},{once:true});
+document.addEventListener('DOMContentLoaded',async()=>{await Cms.shell.ready;document.getElementById('create-item').hidden=!Cms.shell.hasPermission('item:create');load();},{once:true});
 </script></body></html>

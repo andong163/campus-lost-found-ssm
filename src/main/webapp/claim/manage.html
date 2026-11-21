@@ -54,7 +54,10 @@
 (function () {
   const state = {page: 1, size: 10, total: 0};
 
+  let loadSequence = 0;
+
   async function load() {
+    const sequence = ++loadSequence;
     YC.setMessage('message', '正在加载……');
     const params = new URLSearchParams({
       page: String(state.page),
@@ -63,16 +66,17 @@
     });
     try {
       const data = await YC.request('/api/claims?' + params.toString());
+      if (sequence !== loadSequence) return;
       state.total = data.total;
       render(data.records || []);
       YC.setMessage('message', '');
     } catch (error) {
+      if (sequence !== loadSequence || error.name === 'AbortError') return;
       render([]);
       YC.setMessage('message', YC.errorMessage(error), 'error');
     }
     renderPager();
   }
-
   function render(records) {
     const tbody = document.getElementById('rows');
     tbody.textContent = '';

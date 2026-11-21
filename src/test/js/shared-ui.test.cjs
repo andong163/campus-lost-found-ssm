@@ -4,9 +4,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const assets = path.resolve(__dirname, '../../main/webapp/assets/js');
-function runtime(fetch) {
+function runtime(fetch, extras={}) {
   const window = new EventTarget();
-  Object.assign(window, { fetch, setTimeout, clearTimeout, document: { currentScript: { src:'http://localhost:9876/cms/assets/js/api.js' } } });
+  Object.assign(window, { fetch, setTimeout, clearTimeout, document: { currentScript: { src:'http://localhost:9876/cms/assets/js/api.js' }, querySelectorAll:()=>[] } }, extras);
   const context = { window, URL, Headers, AbortController, DOMException, CustomEvent: class extends Event { constructor(type, value) { super(type); this.detail=value?.detail; } } };
   for (const file of ['api.js','pagination.js']) vm.runInNewContext(fs.readFileSync(path.join(assets,file),'utf8'),context,{ filename:file });
   return window;
@@ -33,11 +33,11 @@ function minePage() {
   class Element { constructor(){this.children=[];this.value='';this.textContent='';this.disabled=false;} replaceChildren(){this.children=[];this.textContent='';} append(...nodes){this.children.push(...nodes);} }
   const elements=new Map(), requests=[], errors=[];let ready;
   const el=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
-  const document={querySelector:el,createElement:()=>new Element(),createTextNode:text=>({textContent:text}),addEventListener:(name,fn)=>{if(name==='DOMContentLoaded')ready=fn;}};
+  const document={querySelector:el,getElementById:id=>el('#'+id),createElement:()=>new Element(),createTextNode:text=>({textContent:text}),addEventListener:(name,fn)=>{if(name==='DOMContentLoaded')ready=fn;}};
   const window=new EventTarget();
   const file=path.resolve(assets,'../../pages/items/mine.html');
   const inline=[...fs.readFileSync(file,'utf8').matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1];
-  vm.runInNewContext(inline,{window,document,Cms:{shell:{ready:Promise.resolve()}},api:url=>new Promise((resolve,reject)=>requests.push({url,resolve,reject})),statusText:{},show:message=>errors.push(message)});
+  vm.runInNewContext(inline,{window,document,Cms:{shell:{ready:Promise.resolve(),hasPermission:()=>true}},api:url=>new Promise((resolve,reject)=>requests.push({url,resolve,reject})),statusText:{},show:message=>errors.push(message)});
   return {el,requests,errors,window,start:()=>ready()};
 }
 const mineResult=(title,total=30)=>({total,records:[{id:1,title,status:'DRAFT',version:0}]});
@@ -82,6 +82,45 @@ test('parallel writes share a session token request and attach the actual data s
 test('login is possible without an anonymous CSRF endpoint', async () => {
   let calls=0; const w=runtime(async (url,options)=>{ calls++; assert.ok(url.endsWith('/login')); assert.equal(options.headers.get('X-CSRF-Token'),null); return ok({ id:1 }); });
   await w.Cms.api.request('/api/auth/login',{ method:'POST', body:{ username:'test',password:'test-only' } }); assert.equal(calls,1);
+});
+
+for(const status of [200,401])test(`an old private HTTP ${status} response cannot survive a session change`,async()=>{
+  let finish,expired=0;const w=runtime(()=>new Promise(resolve=>finish=resolve));
+  w.addEventListener('cms:unauthorized',()=>expired++);
+  const pending=w.Cms.api.request('/api/users');w.Cms.api.invalidateSession();
+  finish(status===200?ok({private:'old-account'}):new Response('',{status:401}));
+  await assert.rejects(pending,{name:'AbortError'});assert.equal(expired,0);
+});
+
+test('changing session after a cached CSRF token prevents the queued write',async()=>{
+  let writes=0;const w=runtime(async url=>url.endsWith('/csrf')?ok(token):(writes++,ok(null)));
+  await w.Cms.api.csrf();const pending=w.Cms.api.request('/api/items',{method:'POST',body:{}});
+  w.Cms.api.invalidateSession();await assert.rejects(pending,{name:'AbortError'});assert.equal(writes,0);
+});
+
+test('session changes during JSON decoding discard private data',async()=>{
+  let decode;const w=runtime(async()=>({ok:true,status:200,json:()=>new Promise(resolve=>decode=resolve)}));
+  const pending=w.Cms.api.request('/api/users');await new Promise(setImmediate);
+  w.Cms.api.invalidateSession();decode({code:200,data:{private:'old-account'}});
+  await assert.rejects(pending,{name:'AbortError'});
+});
+
+test('public requests remain usable after an account change',async()=>{
+  let finish;const w=runtime(()=>new Promise(resolve=>finish=resolve));
+  const pending=w.Cms.api.request('/api/public/categories');w.Cms.api.invalidateSession();finish(ok([]));
+  assert.deepEqual(await pending,[]);
+});
+
+test('login in another tab resets forms and invalidates private requests without broadcasting credentials',async()=>{
+  const channels=[];let reset=0,reload=0,finish;
+  class Channel {constructor(name){this.name=name;channels.push(this);}postMessage(value){
+    assert.equal(value,'changed');for(const other of channels)if(other!==this&&other.name===this.name)other.onmessage?.({data:value});}}
+  const a=runtime(async()=>ok({id:2}),{BroadcastChannel:Channel});
+  const b=runtime(()=>new Promise(resolve=>finish=resolve),{BroadcastChannel:Channel,location:{reload(){reload++;}}});
+  b.document.querySelectorAll=()=>[{reset(){reset++;}}];
+  const old=b.Cms.api.request('/api/users');await a.Cms.api.request('/api/auth/login',{method:'POST',body:{username:'test',password:'test-only'}});
+  finish(ok({private:'old-account'}));await assert.rejects(old,{name:'AbortError'});
+  assert.equal(reset,1);assert.equal(reload,1);
 });
 for(const status of [400,401,403,409,503]) test(`HTTP ${status} cannot expose SQL, HTML or server messages`, async ()=>{
   const w=runtime(async ()=>new Response('<script>private-sql-marker jdbc:secret</script>',{ status }));
