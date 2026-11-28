@@ -4,41 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>我的认领 - 校园失物招领</title>
-  <link rel="stylesheet" href="../assets/css/base.css"><link rel="stylesheet" href="../assets/css/modules.css">
+  <link rel="stylesheet" href="../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../assets/css/workbench.css?v=6a526eb869">
 </head>
-<body class="module-page" data-page-title="我的认领">
+<body class="module-page cms-workflow workbench-page" data-page-title="我的认领">
 <div data-cms-shell></div>
-<main><h1>我的认领</h1>
-  <nav aria-label="审核与认领">
-    <a href="../review/review.html">内容审核</a> ·
-    <a href="../claim/manage.html">认领处理</a> ·
-    <a href="../claim/handover.html">交接结案</a> ·
-    <a href="../claim/mine.html">我的认领</a> ·
-    <a href="../audit/logs.html">操作日志</a>
-  </nav>
-  <div id="message" class="message"></div>
+<main>
+  <header class="panel workbench-heading">
+    <div><h1>我的认领</h1><p class="muted">提交认领申请，查看核实与交接进度。</p></div>
+  </header>
+  <div id="message" class="message" role="status" aria-live="polite"></div>
 
-  <section class="panel">
+  <section class="panel" id="claim-application" hidden>
     <h2>提交认领申请</h2>
     <p class="meta">只能申请他人已发布、未结案的招领信息；同一物品最多一条待核实或已通过申请。</p>
-    <form id="applyForm" class="filters">
-      <label>招领信息 ID
+    <div id="claim-shortcuts" class="item-shortcuts" aria-live="polite"></div>
+    <form id="applyForm" class="cms-filter-bar">
+      <label>物品编号
         <input id="itemId" type="number" min="1" required placeholder="例如 12">
       </label>
-      <label>认领说明（10～1000 字）
+      <label class="filter-wide">认领说明（10～1000 字）
         <textarea id="claimDescription" minlength="10" maxlength="1000" required
                   placeholder="描述物品特征、丢失经过和可核实的证据"></textarea>
       </label>
       <label>联系方式（2～100 字）
         <input id="contactInfo" maxlength="100" required placeholder="手机号或微信号">
       </label>
-      <button type="submit">提交申请</button>
+      <button type="submit" class="button button-primary">提交申请</button>
     </form>
   </section>
 
   <section class="panel">
     <h2>申请记录</h2>
-    <form id="filters" class="filters">
+    <form id="filters" class="cms-filter-bar">
       <label>状态
         <select id="status">
           <option value="">全部</option>
@@ -49,21 +48,27 @@
           <option value="COMPLETED">已完成</option>
         </select>
       </label>
-      <button type="submit">查询</button>
+      <button type="submit" class="button button-primary">查询</button>
     </form>
-    <table>
-      <thead>
-      <tr>
-        <th>ID</th><th>物品</th><th>说明</th><th>状态</th>
-        <th>核实意见</th><th>提交时间</th><th>操作</th>
-      </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="我的认领列表">
+      <table>
+        <thead>
+        <tr>
+          <th>申请编号</th><th>物品</th><th>说明</th><th>状态</th>
+          <th>核实意见</th><th>提交时间</th><th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
     <div id="claim-pager"></div>
   </section>
 </main>
-<script src="../assets/js/api.js"></script><script src="../assets/js/pagination.js"></script><script src="../assets/js/shell.js"></script><script src="../yangcheng/common.js"></script><script src="../assets/js/r4-claim-ui.js?v=85168d556a"></script>
+<script src="../assets/js/api.js?v=ee5b78cb8a"></script>
+<script src="../assets/js/pagination.js?v=258dff3de7"></script>
+<script src="../assets/js/shell.js?v=fceec445c6"></script>
+<script src="../yangcheng/common.js?v=a7e2f2e2e0"></script>
+<script src="../assets/js/r4-claim-ui.js?v=85168d556a"></script>
 <script>
 (function () {
   const state = {page: 1, size: 10, total: 0};
@@ -108,7 +113,7 @@
         actions.appendChild(YC.actionButton('撤销', 'danger', () => cancel(claim)));
       }
       const statusCell = YC.text('td');
-      statusCell.appendChild(YC.text('span', claim.status, 'status ' + claim.status));
+      statusCell.appendChild(YC.badge(claim.status));
 
       const result = YC.text('td');
       result.appendChild(YC.text('div', claim.reviewComment || '—'));
@@ -120,7 +125,7 @@
       }
 
       tbody.appendChild(YC.row([
-        claim.id, claim.articleTitle, claim.claimDescription, statusCell,
+        claim.id, YC.itemCell(claim.articleId, claim.articleTitle), claim.claimDescription, statusCell,
         result, YC.formatTime(claim.createdAt), actions
       ]));
     });
@@ -154,7 +159,8 @@
   document.getElementById('applyForm').addEventListener('submit', async event => {
     event.preventDefault();
     const submit=event.currentTarget.querySelector('[type=submit]');
-    if(submit.disabled)return; submit.disabled=true;
+    if (submit.disabled || application.hidden || !Cms.shell.hasPermission('claim:create')) return;
+    submit.disabled = true;
     const itemId = document.getElementById('itemId').value;
     try {
       await YC.post('/api/items/' + itemId + '/claims', {
@@ -177,9 +183,70 @@
     load();
   });
 
-  const selected=new URLSearchParams(location.search).get('itemId');
-  if (/^[1-9][0-9]*$/.test(selected||'')) document.getElementById('itemId').value=selected;
-  load();
+  const application = document.getElementById('claim-application');
+  const itemInput = document.getElementById('itemId');
+  const choices = document.getElementById('claim-shortcuts');
+  const selected = new URLSearchParams(location.search).get('itemId');
+  if (/^[1-9][0-9]*$/.test(selected || '')) itemInput.value = selected;
+  let choiceSequence = 0;
+
+  async function loadChoices(user) {
+    const sequence = ++choiceSequence;
+    if (application.hidden) { choices.replaceChildren(); return; }
+    choices.replaceChildren(YC.text('span', '正在读取可选物品…'));
+    try {
+      const [publicPage, ownPage] = await Promise.all([
+        YC.request('/api/public/items?page=1&size=12&itemType=FOUND&resolutionStatus=OPEN'),
+        user && Cms.shell.hasPermission('item:view:own')
+          ? YC.request('/api/items/mine?page=1&size=100&status=PUBLISHED')
+          : null
+      ]);
+      if (sequence !== choiceSequence) return;
+      const ownIds = new Set((ownPage?.records || []).map(item => item.id));
+      const options = publicPage.records.filter(item => !ownIds.has(item.id)).slice(0, 8);
+      choices.replaceChildren(YC.text('span', options.length ? '点击物品带入编号' : '暂无可选的公开招领物品。'));
+      for (const item of options) {
+        const choice = YC.text('button', '', 'button button-quiet');
+        choice.type = 'button';
+        choice.append(YC.itemId(item.id), document.createTextNode(item.title));
+        choice.addEventListener('click', () => {
+          itemInput.value = item.id;
+          document.getElementById('claimDescription').focus();
+        });
+        choices.append(choice);
+      }
+    } catch (error) {
+      if (sequence === choiceSequence && error.name !== 'AbortError') {
+        choices.replaceChildren(YC.text('span', '无法加载快捷选项，可以填写物品编号。'));
+      }
+    }
+  }
+
+  let applicationAvailable;
+  function syncApplication(user) {
+    const allowed = !!user && Cms.shell.hasPermission('claim:create');
+    if (allowed === applicationAvailable) return;
+    applicationAvailable = allowed;
+    application.hidden = !allowed;
+    if (!allowed) document.getElementById('applyForm').reset();
+    loadChoices(user);
+    return true;
+  }
+
+  YC.onAccountChange(user => {
+    const changed = syncApplication(user);
+    ++loadSequence;
+    state.page = 1;
+    state.total = 0;
+    render([]);
+    renderPager();
+    if (user) {
+      YC.setMessage('message', '');
+      load();
+    } else YC.setMessage('message', '请登录后提交申请或查看记录。');
+    if (!changed && !application.hidden) loadChoices(user);
+  });
+  window.addEventListener('cms:authchange', event => syncApplication(event.detail.user));
 })();
 </script>
 </body>

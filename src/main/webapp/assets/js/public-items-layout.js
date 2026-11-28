@@ -10,13 +10,6 @@
   const indicator = document.getElementById('advanced-indicator');
   const badge = document.getElementById('advanced-badge');
   if (!header || !toolbar || !details || !toggle) return;
-  const heading = header.querySelector('.page-heading');
-  if (heading && heading.tagName !== 'H1') {
-    const title = document.createElement('h1');
-    title.className = heading.className;
-    title.textContent = heading.textContent;
-    heading.replaceWith(title);
-  }
   function syncDisclosure() {
     toggle.setAttribute('aria-expanded', String(details.open));
     badge.hidden = indicator.hidden;

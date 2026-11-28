@@ -10,6 +10,7 @@
   const registerForm = document.getElementById('form-register');
   const tabLogin = document.getElementById('tab-login');
   const tabRegister = document.getElementById('tab-register');
+  loginForm.addEventListener('input', hideAlert);
   const USERNAME = /^[A-Za-z0-9_]{4,30}$/;
 
   function showAlert(message, ok) {
@@ -33,6 +34,13 @@
 
   tabLogin.addEventListener('click', function () { switchTab(false); });
   tabRegister.addEventListener('click', function () { switchTab(true); });
+
+  function syncLocationTab() {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (window.location.hash === '#register' || tab === 'register') switchTab(true);
+  }
+  syncLocationTab();
+  window.addEventListener('hashchange', syncLocationTab);
 
   /** 只接受本应用内的回跳地址，避免被构造成开放重定向。 */
   function nextUrl() {

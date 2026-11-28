@@ -30,14 +30,15 @@ for (const reason of ['cancel', 'timeout']) test(`a write can ${reason} while wa
 });
 
 function minePage() {
-  class Element { constructor(){this.children=[];this.value='';this.textContent='';this.disabled=false;} replaceChildren(){this.children=[];this.textContent='';} append(...nodes){this.children.push(...nodes);} }
+  class Element { constructor(){this.children=[];this.value='';this.textContent='';this.disabled=false;} replaceChildren(...nodes){this.children=nodes;this.textContent='';} append(...nodes){this.children.push(...nodes);} }
   const elements=new Map(), requests=[], errors=[];let ready;
   const el=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
   const document={querySelector:el,getElementById:id=>el('#'+id),createElement:()=>new Element(),createTextNode:text=>({textContent:text}),addEventListener:(name,fn)=>{if(name==='DOMContentLoaded')ready=fn;}};
   const window=new EventTarget();
   const file=path.resolve(assets,'../../pages/items/mine.html');
   const inline=[...fs.readFileSync(file,'utf8').matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1];
-  vm.runInNewContext(inline,{window,document,Cms:{shell:{ready:Promise.resolve(),hasPermission:()=>true}},api:url=>new Promise((resolve,reject)=>requests.push({url,resolve,reject})),statusText:{},show:message=>errors.push(message)});
+  const itemUi={node:(tag,className,text)=>Object.assign(new Element(),{textContent:text}),ownerCard:item=>{const card=new Element();card.append(Object.assign(new Element(),{textContent:item.title}));return card;}};
+  vm.runInNewContext(inline,{window,document,itemUi,URLSearchParams,Cms:{api:{messages:{401:'请先登录'}},shell:{ready:Promise.resolve(),hasPermission:()=>true}},api:url=>new Promise((resolve,reject)=>requests.push({url,resolve,reject})),statusText:{},show:message=>{if(message)errors.push(message);}});
   return {el,requests,errors,window,start:()=>ready()};
 }
 const mineResult=(title,total=30)=>({total,records:[{id:1,title,status:'DRAFT',version:0}]});

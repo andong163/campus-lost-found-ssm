@@ -6,6 +6,7 @@
 
 ## 当前交付
 
+- [2026-11-28 前端统一与项目复验](docs/frontend-unification-2026-11-28.md)：柔和灰蓝配色、统一导航与响应式布局，以及本轮实际检查结果。
 - [高鸣远第四轮说明](docs/gmy-r4.md) 和 [工程报告 PDF](docs/gmy-r4-report.pdf)
 - [高鸣远 11 月 8 日历史验收 JSON](docs/gmy-r4-verification.json)、[部署说明](docs/deployment-r4.md)、[评分点对照](docs/school-rubric-matrix.md)
 - [架构 E R 业务流程图](docs/diagrams/README.md)，包含可编辑源稿、SVG 和 PNG

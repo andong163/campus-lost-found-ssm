@@ -4,25 +4,29 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>用户管理 - 校园失物招领</title>
-  <link rel="stylesheet" href="../../assets/css/base.css">
-  <link rel="stylesheet" href="../../assets/css/modules.css">
-  <link rel="stylesheet" href="../../assets/css/auth.css">
-  <script defer src="../../assets/js/api.js"></script>
-  <script defer src="../../assets/js/pagination.js"></script>
-  <script defer src="../../assets/js/shell.js"></script>
-  <script defer src="../../assets/js/auth/users.js"></script>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../../assets/css/auth.css?v=e98c0e1a30">
+  <script defer src="../../assets/js/api.js?v=ee5b78cb8a"></script>
+  <script defer src="../../assets/js/pagination.js?v=258dff3de7"></script>
+  <script defer src="../../assets/js/shell.js?v=fceec445c6"></script>
+  <script defer src="../../assets/js/auth/users.js?v=5db1cebb5a"></script>
+  <link rel="stylesheet" href="../../assets/css/workbench.css?v=6a526eb869">
 </head>
-<body class="module-page" data-page-title="用户管理">
+<body class="module-page auth-workbench workbench-page" data-page-title="用户管理">
   <div data-cms-shell></div>
   <main>
-    <section class="cms-card" id="denied" hidden>
+  <header class="panel workbench-heading">
+    <div><h1>用户管理</h1><p class="muted">查询校园账号，管理账号状态和角色。</p></div>
+  </header>
+    <section class="panel" id="denied" hidden>
       <h2>没有访问权限</h2>
-      <p class="cms-hint">用户管理需要「用户管理」权限。入口隐藏不构成接口授权，服务端仍会返回 403。</p>
-      <p class="cms-hint"><a href="./login.html">去登录</a></p>
+      <p class="cms-hint">请使用有「用户管理」权限的账号。</p>
+      <a class="button button-primary" href="./login.html?ui=soft-20261128-3">去登录</a>
     </section>
 
     <div id="workspace" hidden>
-      <section class="cms-card">
+      <section class="panel">
         <h2>筛选</h2>
         <form id="filter-form" class="cms-grid" novalidate>
           <div class="cms-field">
@@ -48,17 +52,17 @@
             </select>
           </div>
           <div class="cms-actions" style="grid-column:1/-1;">
-            <button type="submit" class="cms-btn-primary">查询</button>
-            <button type="reset" class="cms-btn-ghost">重置</button>
+            <button type="submit" class="button button-primary">查询</button>
+            <button type="reset" class="button button-quiet">重置</button>
           </div>
         </form>
       </section>
 
       <div class="cms-split">
-        <section class="cms-card">
+        <section class="panel">
           <h2>用户列表</h2>
           <div class="cms-alert" id="alert" role="alert"></div>
-          <div style="overflow-x:auto;">
+          <div class="table-scroll">
             <table class="cms-table">
               <thead>
                 <tr>
@@ -72,25 +76,25 @@
           <div id="pager"></div>
         </section>
 
-        <section class="cms-card" id="detail" hidden>
+        <section class="panel" id="detail" hidden>
           <h2>用户详情</h2>
           <dl class="cms-hint" style="margin:0;">
             <div>用户名：<strong id="d-username">—</strong></div>
             <div>昵称：<span id="d-display">—</span></div>
             <div>状态：<span id="d-enabled">—</span></div>
             <div>角色：<span id="d-roles">—</span></div>
-            <div>有效权限：<span id="d-permissions">—</span></div>
+            <div>有效权限代码：<span id="d-permissions">—</span></div>
             <div>创建时间：<span id="d-created">—</span></div>
           </dl>
           <div class="cms-actions">
-            <button type="button" class="cms-btn-ghost" id="d-close">关闭</button>
+            <button type="button" class="button button-quiet" id="d-close">关闭</button>
           </div>
         </section>
       </div>
     </div>
 
     <div class="modal-backdrop" id="role-modal" hidden>
-      <section class="cms-card" role="dialog" aria-modal="true" aria-labelledby="role-modal-title">
+      <section class="panel" role="dialog" aria-modal="true" aria-labelledby="role-modal-title">
         <h2 id="role-modal-title">分配角色</h2>
         <p class="cms-hint" id="role-modal-target"></p>
         <div class="cms-checkboxes" id="role-options"></div>
@@ -102,8 +106,8 @@
           <input id="role-codes" placeholder="例如 EDITOR,REVIEWER">
         </div>
         <div class="cms-actions">
-          <button type="button" class="cms-btn-primary" id="role-save">保存</button>
-          <button type="button" class="cms-btn-ghost" id="role-cancel">取消</button>
+          <button type="button" class="button button-primary" id="role-save">保存</button>
+          <button type="button" class="button button-quiet" id="role-cancel">取消</button>
         </div>
       </section>
     </div>

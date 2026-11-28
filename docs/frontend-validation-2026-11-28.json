@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-28",
+  "timezone": "Asia/Shanghai",
+  "baseCommit": "6d21f125477383ee6c35d6c86f666e8910c08e50",
+  "codeFingerprint": "814eb48a12a3ffda5ac14e02e78bfc5645256545e9060d613d34aa435d98416a",
+  "scope": "Fourth-round integrated SSM project; unified frontend, permission alignment, documentation and validation entry.",
+  "completedAt": "2026-11-28T11:37:06.6535901Z",
+  "passed": true,
+  "build": {
+    "mavenVerifyPassed": true,
+    "javaTests": {
+      "errors": 0,
+      "skipped": 0,
+      "failures": 0,
+      "tests": 216
+    },
+    "warDeploymentTests": 1,
+    "tomcatVersion": "9.0.123",
+    "warSha256": "ed62701bfc660be17b7e51e78cdaa04ed43dda1944d1ffb01cb57321496819bc",
+    "foundationNegativeChecks": 6,
+    "runtimeJars": 34
+  },
+  "javascript": {
+    "tests": 61,
+    "passed": 61,
+    "failed": 0
+  },
+  "http": {
+    "crossModuleChecks": 76,
+    "handoverChecks": 123,
+    "passed": true
+  },
+  "browser": {
+    "checks": 25,
+    "layouts": 38,
+    "pageErrors": 0,
+    "passed": true
+  },
+  "interceptedBrowser": {
+    "checks": 26,
+    "passed": true
+  },
+  "responsive": {
+    "pages": 19,
+    "widths": [
+      1440,
+      768,
+      390
+    ],
+    "visits": 57,
+    "overflow": 0,
+    "scriptErrors": 0,
+    "resourceFailures": 0,
+    "visibleMainTitlesPerPage": 1,
+    "roles": [
+      {
+        "role": "guest",
+        "passed": true
+      },
+      {
+        "role": "student",
+        "passed": true
+      }
+    ]
+  },
+  "static": {
+    "html": 19,
+    "references": 131,
+    "missing": [],
+    "js": 18,
+    "inline": 12,
+    "duplicates": [],
+    "sourceRuntimeMismatch": [],
+    "apiWrapperPreserved": true
+  },
+  "database": {
+    "isolated": true,
+    "legacyUpgrade": {
+      "passed": true,
+      "nonemptyLegacyRefusedWithoutDataLoss": true,
+      "partialSchemaRefused": true,
+      "r4LostContactPermissionUpgrade": true,
+      "legacyNineTableUpgrade": true,
+      "repeatUpgrade": true,
+      "existingUsersCategoryAndCustomGrantPreserved": true,
+      "uniquenessAndProbeRollback": true
+    },
+    "freshMigration": {
+      "mode": "fresh-init",
+      "permissionCount": 8,
+      "ADMINNewGrants": 8,
+      "EDITORNewGrants": 4,
+      "REVIEWERNewGrants": 0,
+      "VIEWERNewGrants": 0,
+      "repeatedMigrationPassed": true,
+      "customGrantPreserved": false
+    },
+    "businessDatabaseModified": false,
+    "primaryTestDatabaseDropped": true,
+    "upgradeTestDatabaseDropped": true,
+    "temporarySecretsDeleted": true
+  },
+  "limitations": [
+    "Checks cover documented rules and regression scenarios, not every possible input or environment.",
+    "Responsive screenshots use fixture APIs; real browser business checks use isolated MySQL.",
+    "Historical candidate-release reports remain historical; local commit is not remote publication."
+  ],
+  "evidence": "Local raw logs and screenshots are in workspace .qa/project-final-* and .qa/soft-design-review; private runtime configuration is ignored and excluded."
+}

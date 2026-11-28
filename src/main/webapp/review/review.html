@@ -4,26 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>审核工作台 - 校园失物招领</title>
-  <link rel="stylesheet" href="../yangcheng/common.css">
+  <link rel="stylesheet" href="../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../assets/css/workbench.css?v=6a526eb869">
 </head>
-<body>
-<header>
-  <h1>审核工作台</h1>
-  <nav>
-    <a class="active" href="../review/review.html">内容审核</a>
-    <a href="../claim/manage.html">认领处理</a>
-    <a href="../claim/handover.html">交接结案</a>
-    <a href="../claim/mine.html">我的认领</a>
-    <a href="../audit/logs.html">操作日志</a>
-  </nav>
-</header>
+<body class="module-page cms-workflow workbench-page" data-page-title="审核工作台">
+<div data-cms-shell></div>
 <main>
-  <div id="message" class="message"></div>
+  <header class="panel workbench-heading">
+    <div><h1>筛选待审核信息</h1><p class="muted">审核员的待办会排除本人发布的信息。</p></div>
+    <a class="button button-quiet" href="../pages/review/pending.html?ui=soft-20261128-3">返回审核队列</a>
+  </header>
+  <div id="message" class="message" role="status" aria-live="polite"></div>
 
   <section class="panel">
     <h2>待审核内容</h2>
-    <p class="meta">审核员不能处理本人发布的信息；待办列表已自动排除本人内容。</p>
-    <form id="filters" class="filters">
+    <form id="filters" class="cms-filter-bar">
       <label>关键字
         <input id="keyword" maxlength="100" placeholder="标题或描述">
       </label>
@@ -34,29 +30,32 @@
           <option value="FOUND">招领</option>
         </select>
       </label>
-      <button type="submit">查询</button>
+      <button type="submit" class="button button-primary">查询</button>
     </form>
   </section>
 
   <section class="panel">
-    <table>
-      <thead>
-      <tr>
-        <th>ID</th><th>标题</th><th>类型</th><th>分类</th><th>作者</th>
-        <th>地点</th><th>更新时间</th><th>版本</th><th>操作</th>
-      </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <div class="pager">
-      <button type="button" id="prev" class="secondary">上一页</button>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="审核工作台列表">
+      <table>
+        <thead>
+        <tr>
+          <th>物品编号</th><th>标题</th><th>类型</th><th>分类</th><th>作者</th>
+          <th>地点</th><th>更新时间</th><th>版本</th><th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="pagination pagination-controls">
+      <button type="button" id="prev" class="button button-quiet">上一页</button>
       <span id="pageInfo"></span>
-      <button type="button" id="next" class="secondary">下一页</button>
+      <button type="button" id="next" class="button button-quiet">下一页</button>
     </div>
   </section>
 </main>
-<script src="../assets/js/api.js"></script>
-<script src="../yangcheng/common.js"></script>
+<script src="../assets/js/api.js?v=ee5b78cb8a"></script>
+<script src="../assets/js/shell.js?v=fceec445c6"></script>
+<script src="../yangcheng/common.js?v=a7e2f2e2e0"></script>
 <script>
 (function () {
   const state = {page: 1, size: 10, total: 0};
@@ -99,10 +98,14 @@
     records.forEach(item => {
       const actions = document.createElement('td');
       actions.className = 'actions';
-      actions.appendChild(YC.actionButton('通过', '', () => decide(item, 'APPROVED')));
+      actions.appendChild(YC.actionButton('批准', '', () => decide(item, 'APPROVED')));
       actions.appendChild(YC.actionButton('驳回', 'danger', () => decide(item, 'REJECTED')));
+      const typeCell = YC.text('td');
+      typeCell.appendChild(YC.badge(item.itemType));
+      const idCell = YC.text('td');
+      idCell.append(YC.itemId(item.id));
       tbody.appendChild(YC.row([
-        item.id, item.title, item.itemType === 'LOST' ? '寻物' : '招领',
+        idCell, item.title, typeCell,
         item.categoryName, item.authorName, item.location,
         YC.formatTime(item.updatedAt), item.version, actions
       ]));
@@ -150,7 +153,15 @@
     if (state.page * state.size < state.total) { state.page += 1; load(); }
   });
 
-  load();
+  YC.onAccountChange(user => {
+    ++loadSequence;
+    state.page = 1;
+    state.total = 0;
+    render([]);
+    renderPager();
+    if (user) load();
+    else YC.setMessage('message', '请登录后查看记录。');
+  });
 })();
 </script>
 </body>

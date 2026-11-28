@@ -1,10 +1,10 @@
-# 当前实际接口与第三轮接入约定
+# 当前实际接口与接入约定
 
-高鸣远 GMY R3，基于第二轮总合并 `c3f8562`。主文件：[openapi.json](openapi.json)；兼容原导入入口 [openapi.yaml](openapi.yaml)，两者是同一份 OpenAPI 3.0.3 文档，后者使用 YAML 1.2 兼容的 JSON 语法。可导入 ApiFox。第一轮契约文件保留作历史记录，当前接口以本文件、主文件和 Controller 为准。
+更新至第四轮集成及 2026-11-28 前端统一版本；本文件最初由高鸣远在第三轮整理。主文件：[openapi.json](openapi.json)；兼容原导入入口 [openapi.yaml](openapi.yaml)，两者是同一份 OpenAPI 3.0.3 文档，后者使用 YAML 1.2 兼容的 JSON 语法。可导入 ApiFox。各轮契约和成员报告保留作历史记录，当前接口以本文件、主文件和 Controller 为准。
 
 ## 实际范围
 
-当前主文件汇总第三轮集成源码的 13 个实际 Controller、56 个路径、63 个 HTTP 操作；覆盖 system、auth、用户角色权限、分类、本人信息、审核、公开检索、全站管理、批量操作、认领和只读业务日志。已有交接上下文/结案接口按实际代码记录，本次仅补齐写入口防护，不表示第四轮业务已验收。
+当前主文件汇总 14 个实际 Controller、61 个路径、68 个 HTTP 操作；覆盖 system、auth、用户角色权限、分类、本人信息、审核、公开检索、全站管理、批量操作、认领、交接结案、联系方式读取与业务日志。本次前端统一没有新增或改变服务端接口，最新复验结果见[前端统一与项目复验](frontend-unification-2026-11-28.md)。
 
 | 维护人 | 当前片段 | 关键权限/规则 |
 | --- | --- | --- |
@@ -14,7 +14,7 @@
 | 袁运轩 | `/api/items*` | 本人操作限定所有权；公开检索匿名且不含私密字段；全站管理 item:view:any/offline:any/delete:any，批量 item:batch |
 | 杨程 | `/api/reviews*`、`/api/items/{itemId}/review-records`、`/api/operation-logs` | 审核保留旧/新权限兼容；认领 claim:create/cancel:own，核实 claim:handle；日志 audit:view |
 
-后续成员在各自分支交付新接口和片段，高鸣远集成时执行 `./scripts/export-api.ps1` 汇总，不要求各人同时手工修改整份主文件。集成契约测试核对路径数量、每路径操作数量、权限、请求结构及 CSRF 标注，第三轮总基线须同时汇总新旧接口。
+后续成员在各自分支交付新接口和片段，高鸣远集成时执行 `./scripts/export-api.ps1` 汇总，不要求各人同时手工修改整份主文件。集成契约测试核对路径数量、每路径操作数量、权限、请求结构及 CSRF 标注，并同时覆盖新旧兼容接口。
 
 ## 请求、会话和响应
 

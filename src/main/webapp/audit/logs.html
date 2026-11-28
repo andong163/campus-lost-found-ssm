@@ -4,31 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>操作日志 - 校园失物招领</title>
-  <link rel="stylesheet" href="../yangcheng/common.css">
+  <link rel="stylesheet" href="../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../assets/css/workbench.css?v=6a526eb869">
 </head>
-<body>
-<header>
-  <h1>操作日志</h1>
-  <nav>
-    <a href="../review/review.html">内容审核</a>
-    <a href="../claim/manage.html">认领处理</a>
-    <a href="../claim/handover.html">交接结案</a>
-    <a href="../claim/mine.html">我的认领</a>
-    <a class="active" href="../audit/logs.html">操作日志</a>
-  </nav>
-</header>
+<body class="module-page cms-workflow workbench-page" data-page-title="操作日志">
+<div data-cms-shell></div>
 <main>
-  <div id="message" class="message"></div>
+  <header class="panel workbench-heading">
+    <div><h1>操作日志</h1><p class="muted">按操作者、动作、结果或时间查找记录。</p></div>
+  </header>
+  <div id="message" class="message" role="status" aria-live="polite"></div>
 
   <section class="panel">
     <h2>审计查询</h2>
-    <p class="meta">仅管理员或持有 audit:view 的只读审计账号可查询。日志只含操作者、动作、目标、结果、耗时和 requestId。</p>
-    <form id="filters" class="filters">
+    <datalist id="audit-actions"></datalist>
+    <form id="filters" class="cms-filter-bar">
       <label>操作者 ID
         <input id="operatorId" type="number" min="1" placeholder="可选">
       </label>
       <label>动作
-        <input id="action" maxlength="80" placeholder="如 REVIEW_DECIDE">
+        <input id="action" maxlength="80" list="audit-actions" placeholder="输入或选择动作">
       </label>
       <label>结果
         <select id="result">
@@ -43,32 +39,58 @@
       <label>结束时间
         <input id="to" type="datetime-local">
       </label>
-      <button type="submit">查询</button>
+      <button type="submit" class="button button-primary">查询</button>
     </form>
   </section>
 
   <section class="panel">
-    <table>
-      <thead>
-      <tr>
-        <th>ID</th><th>时间</th><th>操作者</th><th>模块</th><th>动作</th>
-        <th>目标</th><th>结果</th><th>耗时(ms)</th><th>requestId</th>
-      </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <div class="pager">
-      <button type="button" id="prev" class="secondary">上一页</button>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="操作日志列表">
+      <table>
+        <thead>
+        <tr>
+          <th>编号</th><th>时间</th><th>操作者</th><th>模块</th><th>动作</th>
+          <th>目标</th><th>结果</th><th>耗时(ms)</th><th>请求编号</th>
+        </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="pagination pagination-controls">
+      <button type="button" id="prev" class="button button-quiet">上一页</button>
       <span id="pageInfo"></span>
-      <button type="button" id="next" class="secondary">下一页</button>
+      <button type="button" id="next" class="button button-quiet">下一页</button>
     </div>
   </section>
 </main>
-<script src="../assets/js/api.js"></script>
-<script src="../yangcheng/common.js"></script>
+<script src="../assets/js/api.js?v=ee5b78cb8a"></script>
+<script src="../assets/js/shell.js?v=fceec445c6"></script>
+<script src="../yangcheng/common.js?v=a7e2f2e2e0"></script>
 <script>
 (function () {
   const state = {page: 1, size: 20, total: 0};
+  const modules = new Map([
+    ['article','物品信息'], ['review','审核'], ['claim','认领'],
+    ['auth','账号'], ['category','分类'], ['unknown','未知模块']
+  ]);
+  const actions = new Map([
+    ['REVIEW_DECIDE','处理审核'], ['CLAIM_APPLY','提交认领'], ['CLAIM_DECIDE','核实认领'],
+    ['CLAIM_CANCEL','撤销认领'], ['CLAIM_RESOLVE','交接结案'], ['CONTACT_READ','查看联系方式'],
+    ['PUBLISH','发布信息'], ['OFFLINE','下架信息'], ['DELETE','删除信息']
+  ]);
+  const actionCodes = new Map(Array.from(actions, ([code, label]) => [label, code]));
+  const actionField = document.getElementById('action');
+  const options = document.getElementById('audit-actions');
+  for (const label of actions.values()) {
+    const option = document.createElement('option');
+    option.value = label;
+    options.append(option);
+  }
+
+  function namedCell(code, labels, fallback) {
+    const cell = YC.text('td', labels.get(code) || fallback, 'workbench-result');
+    if (code) cell.title = code;
+    return cell;
+  }
 
   function iso(value) {
     if (!value) return '';
@@ -80,11 +102,12 @@
   async function load() {
     const sequence = ++loadSequence;
     YC.setMessage('message', '正在加载……');
+    const action = actionField.value.trim();
     const params = new URLSearchParams({
       page: String(state.page),
       size: String(state.size),
       operatorId: document.getElementById('operatorId').value.trim(),
-      action: document.getElementById('action').value.trim(),
+      action: actionCodes.get(action) || action,
       result: document.getElementById('result').value,
       from: iso(document.getElementById('from').value),
       to: iso(document.getElementById('to').value)
@@ -120,13 +143,13 @@
     }
     records.forEach(log => {
       const resultCell = YC.text('td');
-      resultCell.appendChild(YC.text('span', log.result,
-        'status ' + (log.result === 'SUCCESS' ? 'APPROVED' : 'REJECTED')));
+      resultCell.appendChild(YC.badge(log.result));
       tbody.appendChild(YC.row([
         log.id,
         YC.formatTime(log.createdAt),
         (log.operatorName || '—') + (log.operatorId ? '（#' + log.operatorId + '）' : ''),
-        log.module, log.action,
+        namedCell(log.module, modules, '其他模块'),
+        namedCell(log.action, actions, '其他操作'),
         log.targetId === null || log.targetId === undefined ? '—' : log.targetId,
         resultCell, log.elapsedMs, log.requestId
       ]));
@@ -153,7 +176,15 @@
     if (state.page * state.size < state.total) { state.page += 1; load(); }
   });
 
-  load();
+  YC.onAccountChange(user => {
+    ++loadSequence;
+    state.page = 1;
+    state.total = 0;
+    render([]);
+    renderPager();
+    if (user) load();
+    else YC.setMessage('message', '请登录后查看记录。');
+  });
 })();
 </script>
 </body>

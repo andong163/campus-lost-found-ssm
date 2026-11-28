@@ -3,10 +3,12 @@
   const form = document.getElementById('form');
   const notice = document.getElementById('notice');
   const button = form.querySelector('[type=submit]');
+  const type = new URLSearchParams(location.search).get('itemType');
+  if (type === 'FOUND' || type === 'LOST') form.elements.itemType.value = type;
   await Cms.shell.ready;
   if (!Cms.shell.user) {
     location.replace(Cms.shell.link('pages/auth/login.html?next=' +
-      encodeURIComponent(location.pathname)));
+      encodeURIComponent(location.pathname + location.search)));
     return;
   }
   if (!Cms.shell.hasPermission('item:create')) {

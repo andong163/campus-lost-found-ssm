@@ -1,36 +1,132 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>编辑信息</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script><style>
-#form .item-location-field { display: grid; gap: var(--space-2); margin: var(--space-4) 0; min-width: 0; }
-#form .item-location-field label { display: block; margin: 0; }
-#form .item-location-field input { width: 100%; min-width: 0; }
-#form .item-location-field .muted { margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
-</style></head><body class="module-page" data-page-title="编辑信息"><div data-cms-shell></div><main>
-<nav><a id="back" href="mine.html">返回详情</a></nav><h1>编辑信息</h1><p id="notice" role="status"></p>
-<form id="form"><label>标题<input name="title" minlength="2" maxlength="100" required></label>
-<label>正文<textarea name="content" minlength="10" maxlength="5000" required></textarea></label>
-<label>类型<select name="itemType"><option value="LOST">寻物</option><option value="FOUND">招领</option></select></label>
-<label>分类<select name="categoryId" required></select></label>
-<label>事发时间<input name="eventTime" type="datetime-local" required></label>
-<div class="item-location-field">
-<label for="item-location">地点</label>
-<input id="item-location" name="location" minlength="2" maxlength="100" required aria-describedby="item-location-hint">
-<p id="item-location-hint" class="muted">请填写建筑名称及具体位置，如：第一教学楼302教室、图书馆二楼、三号宿舍楼入口。</p>
-</div>
-<label>联系方式<input name="contactInfo" minlength="2" maxlength="100" required></label>
-<button type="submit">保存修改</button></form></main><script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
-const id=new URLSearchParams(location.search).get('id');let version;
-document.querySelector('#back').href='detail.html?id='+encodeURIComponent(id);
-async function init(){try{const item=await api('/items/'+encodeURIComponent(id)+'/mine');version=item.version;
- if(!['DRAFT','REJECTED'].includes(item.status))throw new Error('当前状态不可编辑，请先撤回或下架转草稿');
- const form=document.querySelector('#form');for(const key of ['title','content','itemType','location','contactInfo'])form.elements[key].value=item[key];
- form.elements.eventTime.value=item.eventTime.slice(0,16);
- const tree=await api('/public/categories');const select=form.elements.categoryId;
- const add=(nodes)=>{for(const c of nodes){const option=document.createElement('option');option.value=c.id;option.textContent=c.name;select.append(option);if(c.children)add(c.children)}};add(tree);
- select.value=item.categoryId;
- }catch(e){show(e.message,true);document.querySelector('#form').hidden=true}}
-document.querySelector('#form').onsubmit=async e=>{e.preventDefault();const button=e.target.querySelector('button');button.disabled=true;
- const values=Object.fromEntries(new FormData(e.target));values.categoryId=Number(values.categoryId);values.version=version;
- values.eventTime=values.eventTime+':00';
- try{await write('/items/'+id,'PUT',values);show('保存成功');location.href='detail.html?id='+encodeURIComponent(id)}
- catch(error){show(error.message,true);button.disabled=false}};init();
-</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>编辑信息 · 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../../assets/css/items-workspace.css?v=bfe6bbea3a">
+  <script defer src="../../assets/js/api.js?v=ee5b78cb8a"></script>
+  <script defer src="../../assets/js/shell.js?v=fceec445c6"></script>
+  <script defer src="../../assets/js/item-view.js?v=62ca9423e8"></script>
+</head>
+<body class="module-page items-workspace" data-page-title="编辑信息">
+  <div data-cms-shell></div>
+  <main class="items-narrow">
+    <a id="back" class="button button-quiet item-back" href="mine.html?ui=soft-20261128-3">返回详情</a>
+    <header class="panel item-header">
+      <div><h1>编辑信息</h1><p class="muted">保存修改后，可在详情页重新提交审核。</p></div>
+      <div id="edit-badges" class="record-labels"></div>
+    </header>
+    <p id="notice" class="panel item-notice" role="status"></p>
+    <form id="form" class="panel item-form" aria-labelledby="item-fields-title" hidden>
+      <h2 id="item-fields-title">物品信息</h2>
+      <div class="item-fields">
+        <div class="item-field">
+          <label for="item-type">信息类型</label>
+          <select id="item-type" name="itemType"><option value="LOST">寻物</option><option value="FOUND">招领</option></select>
+        </div>
+        <div class="item-field">
+          <label for="item-category">物品分类</label>
+          <select id="item-category" name="categoryId" required><option value="">请选择分类</option></select>
+        </div>
+        <div class="item-field item-field--wide">
+          <label for="item-title">标题</label>
+          <input id="item-title" name="title" minlength="2" maxlength="100" required>
+        </div>
+        <div class="item-field">
+          <label for="event-time">事发时间</label>
+          <input id="event-time" name="eventTime" type="datetime-local" required>
+        </div>
+        <div class="item-field">
+          <label for="item-location">地点</label>
+          <input id="item-location" name="location" minlength="2" maxlength="100" required aria-describedby="location-hint">
+          <p id="location-hint" class="muted">填写建筑与具体位置，例如第一教学楼 302 教室。</p>
+        </div>
+        <div class="item-field item-field--wide">
+          <label for="item-content">物品描述</label>
+          <textarea id="item-content" name="content" minlength="10" maxlength="5000" required></textarea>
+        </div>
+        <div class="item-field item-field--wide">
+          <label for="item-contact">联系方式</label>
+          <input id="item-contact" name="contactInfo" minlength="2" maxlength="100" required aria-describedby="contact-hint">
+          <p id="contact-hint" class="muted">只有获得授权的用户能通过详情页查看联系方式。</p>
+        </div>
+      </div>
+      <div class="item-form-actions">
+        <button class="button button-primary" type="submit">保存修改</button>
+        <a id="cancel" class="button button-quiet" href="mine.html?ui=soft-20261128-3">取消</a>
+      </div>
+    </form>
+  </main>
+  <script src="../../assets/js/items.js?v=d95317b5a6"></script>
+  <script>
+    const id = new URLSearchParams(location.search).get('id');
+    const form = document.querySelector('#form');
+    const submit = form.querySelector('[type=submit]');
+    let version;
+
+    function addCategories(nodes, depth = 0) {
+      for (const category of nodes) {
+        const option = itemUi.node('option', '', '　'.repeat(depth) + category.name);
+        option.value = category.id;
+        form.elements.categoryId.append(option);
+        addCategories(category.children || [], depth + 1);
+      }
+    }
+
+    async function load() {
+      if (!/^[1-9][0-9]*$/.test(id || '')) { show('无效的信息编号。', true); return; }
+      const path = 'detail.html?id=' + encodeURIComponent(id);
+      document.querySelector('#back').href = path;
+      document.querySelector('#cancel').href = path;
+      show('正在加载信息…');
+      try {
+        const item = await api('/items/' + encodeURIComponent(id) + '/mine');
+        if (!itemUi.canEdit(item)) throw new Error('当前账号或信息状态不可编辑。');
+        const identity = Cms.shell.user?.id;
+        const categories = await api('/public/categories');
+        if (identity !== Cms.shell.user?.id) return;
+        version = item.version;
+        for (const key of ['title','content','itemType','location','contactInfo']) {
+          form.elements[key].value = item[key] ?? '';
+        }
+        form.elements.eventTime.value = item.eventTime?.slice(0, 16) || '';
+        addCategories(categories);
+        form.elements.categoryId.value = item.categoryId;
+        document.querySelector('#edit-badges').replaceChildren(Cms.itemView.idBadge(item.id), itemUi.badge(item.status));
+        form.hidden = false;
+        show('');
+      } catch (error) {
+        if (error.name !== 'AbortError') show(error.message, true);
+      }
+    }
+
+    form.onsubmit = async event => {
+      event.preventDefault();
+      if (form.hidden || submit.disabled) return;
+      submit.disabled = true;
+      const values = Object.fromEntries(new FormData(form));
+      values.categoryId = Number(values.categoryId);
+      values.version = version;
+      if (values.eventTime.length === 16) values.eventTime += ':00';
+      try {
+        await write('/items/' + encodeURIComponent(id), 'PUT', values);
+        location.href = 'detail.html?id=' + encodeURIComponent(id);
+      } catch (error) {
+        if (error.name !== 'AbortError') show(error.message, true);
+      } finally {
+        submit.disabled = false;
+      }
+    };
+    window.addEventListener('cms:authchange', event => {
+      if (!event.detail.user) {
+        document.querySelector('#edit-badges').replaceChildren();
+        form.reset();
+      }
+    });
+    load();
+  </script>
+</body>
+</html>

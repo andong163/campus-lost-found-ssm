@@ -3,31 +3,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>新增信息 · 校园失物招领</title>
-  <link rel="stylesheet" href="../../assets/css/base.css">
-  <link rel="stylesheet" href="../../assets/css/modules.css">
-  <script defer src="../../assets/js/api.js"></script>
-  <script defer src="../../assets/js/shell.js"></script>
-  <script defer src="../../assets/js/item-create.js"></script>
+  <title>发布新信息 · 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../../assets/css/items-workspace.css?v=bfe6bbea3a">
+  <script defer src="../../assets/js/api.js?v=ee5b78cb8a"></script>
+  <script defer src="../../assets/js/shell.js?v=fceec445c6"></script>
+  <script defer src="../../assets/js/item-create.js?v=2c665fecac"></script>
 </head>
-<body class="module-page" data-page-title="新增信息">
+<body class="module-page items-workspace" data-page-title="发布新信息">
   <div data-cms-shell></div>
-  <main>
-    <nav><a href="mine.html">返回我的信息</a></nav>
-    <h1>新增信息</h1>
-    <p class="muted">丢失物品请选择“寻物”，拾到物品请选择“招领”。先保存草稿，再到详情页提交审核。</p>
-    <p id="notice" role="status"></p>
-    <form id="form" hidden>
-      <label>标题<input name="title" minlength="2" maxlength="100" required></label>
-      <label>正文<textarea name="content" minlength="10" maxlength="5000" required></textarea></label>
-      <label>类型<select name="itemType"><option value="LOST">寻物</option><option value="FOUND">招领</option></select></label>
-      <label>分类<select name="categoryId" required><option value="">请选择分类</option></select></label>
-      <label>事发时间<input name="eventTime" type="datetime-local" required></label>
-      <label>地点<input name="location" minlength="2" maxlength="100" required aria-describedby="location-hint"></label>
-      <p id="location-hint" class="muted">请填写建筑名称及具体位置，如：第一教学楼302教室、图书馆二楼、三号宿舍楼入口。</p>
-      <label>联系方式<input name="contactInfo" minlength="2" maxlength="100" required aria-describedby="contact-hint"></label>
-      <p id="contact-hint" class="muted">联系方式不会出现在公开列表中，由专用入口按权限查看。请勿在正文中公开他人的个人信息。</p>
-      <button type="submit">保存草稿</button>
+  <main class="items-narrow">
+    <a id="back" class="button button-quiet item-back" href="mine.html?ui=soft-20261128-3">返回我的信息</a>
+    <header class="panel item-header">
+      <div><h1>发布新信息</h1><p class="muted">填写物品信息并保存草稿，再到详情页提交审核。</p></div>
+
+    </header>
+    <p id="notice" class="panel item-notice" role="status"></p>
+    <form id="form" class="panel item-form" aria-labelledby="item-fields-title" hidden>
+      <h2 id="item-fields-title">物品信息</h2>
+      <div class="item-fields">
+        <div class="item-field">
+          <label for="item-type">信息类型</label>
+          <select id="item-type" name="itemType"><option value="LOST">寻物</option><option value="FOUND">招领</option></select>
+        </div>
+        <div class="item-field">
+          <label for="item-category">物品分类</label>
+          <select id="item-category" name="categoryId" required><option value="">请选择分类</option></select>
+        </div>
+        <div class="item-field item-field--wide">
+          <label for="item-title">标题</label>
+          <input id="item-title" name="title" minlength="2" maxlength="100" required>
+        </div>
+        <div class="item-field">
+          <label for="event-time">事发时间</label>
+          <input id="event-time" name="eventTime" type="datetime-local" required>
+        </div>
+        <div class="item-field">
+          <label for="item-location">地点</label>
+          <input id="item-location" name="location" minlength="2" maxlength="100" required aria-describedby="location-hint">
+          <p id="location-hint" class="muted">填写建筑与具体位置，例如第一教学楼 302 教室。</p>
+        </div>
+        <div class="item-field item-field--wide">
+          <label for="item-content">物品描述</label>
+          <textarea id="item-content" name="content" minlength="10" maxlength="5000" required></textarea>
+        </div>
+        <div class="item-field item-field--wide">
+          <label for="item-contact">联系方式</label>
+          <input id="item-contact" name="contactInfo" minlength="2" maxlength="100" required aria-describedby="contact-hint">
+          <p id="contact-hint" class="muted">只有获得授权的用户能通过详情页查看联系方式。</p>
+        </div>
+      </div>
+      <div class="item-form-actions">
+        <button class="button button-primary" type="submit">保存草稿</button>
+        <a id="cancel" class="button button-quiet" href="mine.html?ui=soft-20261128-3">取消</a>
+      </div>
     </form>
   </main>
 </body>

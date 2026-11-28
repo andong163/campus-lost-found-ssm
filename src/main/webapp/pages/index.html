@@ -3,33 +3,52 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="校园失物招领：登录校园账号，查看物品分类，了解妥善保管、核实信息与安全交接提示。">
+  <meta name="description" content="查询校园失物招领信息，登记丢失或拾获的物品。">
   <title>校园首页 · 校园失物招领</title>
-  <link rel="stylesheet" href="../assets/css/base.css?v=c7d00d325a">
-  <script defer src="../assets/js/api.js?v=e3db3cb9e9"></script>
-  <script defer src="../assets/js/pagination.js?v=258dff3de7"></script>
-  <script defer src="../assets/js/shell.js?v=2d1d783239"></script>
-  <script defer src="../assets/js/home.js"></script>
+  <link rel="stylesheet" href="../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../assets/css/modules.css?v=ad3a3ec06e">
+  <script defer src="../assets/js/api.js?v=ee5b78cb8a"></script>
+  <script defer src="../assets/js/shell.js?v=fceec445c6"></script>
+  <script defer src="../assets/js/item-view.js?v=62ca9423e8"></script>
+  <script defer src="../assets/js/home.js?v=fa3eb4246a"></script>
 </head>
-<body data-page-title="校园首页">
+<body class="home-page" data-page-title="校园首页">
   <div data-cms-shell></div>
-  <main>
-    <section class="hero" aria-labelledby="home-title">
-      <div class="hero-copy"><span class="hero-note">校园里的每一份善意，都值得回应</span>
-        <h1 id="home-title">让遗失的物品，<br>重新找到归处。</h1>
-        <p><span class="keep-together">一张校园卡，</span><span class="keep-together">一本笔记，</span><span class="keep-together">一把雨伞。</span><br>在这里，为失而复得<span class="keep-together">多留一份可能。</span></p>
-        <button class="button button-primary" type="button" data-login>登录校园账号 <span aria-hidden="true">↗</span></button>
-        <p><a href="items/public.html">浏览公开寻物招领信息 →</a></p>
+  <main class="home-content">
+    <section class="home-hero" aria-labelledby="home-title">
+      <div class="home-search">
+        <h1 id="home-title">校园失物与招领</h1>
+        <p>查找丢失的物品，或登记你在校园里捡到的东西。</p>
+        <form class="home-search-form" action="items/public.html" method="get" role="search">
+          <label class="sr-only" for="home-keyword">物品关键词</label>
+          <span class="search-mark" aria-hidden="true"></span>
+          <input id="home-keyword" name="keyword" type="search" maxlength="100" placeholder="搜索校园卡、耳机、雨伞…">
+          <button class="button button-primary" type="submit">搜索物品</button>
+        </form>
+        <div class="category-tags" id="public-categories" aria-label="按分类查找" aria-live="polite"></div>
       </div>
-      <div class="hero-art" aria-hidden="true"><div class="orbit"><div class="found-card"><div class="found-icon">↶</div><strong>失而复得</strong><span>GOOD THINGS FIND THEIR WAY HOME</span></div></div></div>
+
+      <aside class="home-publish" aria-labelledby="publish-title">
+        <h2 id="publish-title">发布物品信息</h2>
+        <p>选择类型，填写物品特征和地点。</p>
+        <div class="publish-actions">
+          <a class="button publish-lost" href="items/create.html?itemType=LOST&ui=soft-20261128-3">发布寻物</a>
+          <a class="button publish-found" href="items/create.html?itemType=FOUND&ui=soft-20261128-3">发布招领</a>
+        </div>
+        <div class="publish-overview" aria-live="polite">
+          <p id="public-open-count">正在读取公开信息…</p>
+          <a href="items/public.html?resolutionStatus=OPEN&ui=soft-20261128-3">查看未结案</a>
+        </div>
+      </aside>
     </section>
-    <div class="section-heading"><h2>让善意，从你我开始</h2><span>登记与认领服务将陆续开放</span></div>
-    <section class="info-grid" aria-label="招领提示">
-      <article class="info-card"><span class="step-number">01 / 妥善保管</span><h3>拾到物品，先留好线索</h3><p>记录拾到的时间和地点，妥善保管物品，避免公开他人的个人信息。</p></article>
-      <article class="info-card"><span class="step-number">02 / 核实信息</span><h3>提供特征，确认归属</h3><p>认领时准备能说明物品归属的细节，耐心核实，给双方多一份安心。</p></article>
-      <article class="info-card"><span class="step-number">03 / 安全交接</span><h3>当面确认，说声谢谢</h3><p>选择校园公共场所交接。确认物品无误后，让这份善意好好抵达。</p></article>
+
+    <section class="home-section" aria-labelledby="latest-title">
+      <div class="section-heading">
+        <h2 id="latest-title">最新失物招领</h2>
+        <a class="button button-quiet" href="items/public.html?ui=soft-20261128-3">查看全部</a>
+      </div>
+      <div id="latest-items" class="cms-item-grid" aria-live="polite"><p class="empty-text">正在加载物品…</p></div>
     </section>
-    <section class="category-panel" aria-labelledby="category-title"><div><h2 id="category-title">校园物品分类</h2><p>从物品特征开始，保留准确的寻找线索。</p></div><div class="category-tags" id="public-categories" aria-live="polite"><span class="empty-text">正在读取分类…</span></div></section>
   </main>
 </body>
 </html>

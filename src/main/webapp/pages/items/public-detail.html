@@ -1,1 +1,48 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>公开信息详情</title><link rel="stylesheet" href="../../assets/css/base.css"><script defer src="../../assets/js/api.js"></script><script defer src="../../assets/js/shell.js"></script><script defer src="../../assets/js/r4-detail.js?v=afbf0d0a91"></script></head><body class="module-page" data-page-title="公开信息详情" data-r4-detail="public"><div data-cms-shell></div><main><nav><a href="public.html">返回公开列表</a></nav><h1 id="title">加载中…</h1><p id="notice" role="status"></p><p id="meta"></p><p id="content"></p><section id="r4-history" aria-live="polite"></section><section id="r4-contact"><button id="r4-contact-button" type="button">查看联系方式</button><p id="r4-contact-value" aria-live="polite"></p></section><p id="r4-claim-message" role="status"></p><a id="r4-claim-link" hidden>申请认领</a></main></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>公开信息详情</title>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../../assets/css/modules.css?v=ad3a3ec06e">
+  <script defer src="../../assets/js/api.js?v=ee5b78cb8a"></script>
+  <script defer src="../../assets/js/shell.js?v=fceec445c6"></script>
+  <script defer src="../../assets/js/item-view.js?v=62ca9423e8"></script>
+  <script defer src="../../assets/js/r4-detail.js?v=95f8faa2a6"></script>
+</head>
+<body class="module-page" data-page-title="公开信息详情" data-r4-detail="public">
+  <div data-cms-shell></div>
+  <main class="item-detail">
+    <nav class="detail-breadcrumb" aria-label="面包屑"><a href="public.html?ui=soft-20261128-3">返回公开列表</a></nav>
+    <article class="panel detail-panel" aria-labelledby="title">
+      <header class="detail-heading">
+        <div id="detail-badges" class="item-card-identifiers"></div>
+        <h1 id="title">正在加载物品…</h1>
+        <p id="notice" role="status"></p>
+      </header>
+      <div id="detail-body" hidden>
+        <dl class="detail-facts">
+          <div><dt>分类</dt><dd id="detail-category"></dd></div>
+          <div><dt>地点</dt><dd id="detail-location"></dd></div>
+          <div><dt>事发时间</dt><dd id="detail-event-time"></dd></div>
+          <div><dt>结案时间</dt><dd id="detail-resolved-time">—</dd></div>
+        </dl>
+        <section class="detail-description" aria-labelledby="description-title">
+          <h2 id="description-title">物品描述</h2>
+          <p id="content"></p>
+          <p id="r4-history" class="muted" aria-live="polite"></p>
+        </section>
+        <div class="detail-actions">
+          <a id="r4-claim-link" class="button button-primary" hidden>去提交认领</a>
+          <div id="r4-contact">
+            <button id="r4-contact-button" class="button button-quiet" type="button">查看联系方式</button>
+            <p id="r4-contact-value" class="muted" aria-live="polite"></p>
+          </div>
+          <p id="r4-claim-message" class="muted" role="status"></p>
+        </div>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

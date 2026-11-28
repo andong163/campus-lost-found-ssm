@@ -4,24 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>认领处理 - 校园失物招领</title>
-  <link rel="stylesheet" href="../assets/css/base.css"><link rel="stylesheet" href="../assets/css/modules.css">
+  <link rel="stylesheet" href="../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../assets/css/workbench.css?v=6a526eb869">
 </head>
-<body class="module-page" data-page-title="认领处理">
+<body class="module-page cms-workflow workbench-page" data-page-title="认领处理">
 <div data-cms-shell></div>
-<main><h1>认领处理</h1>
-  <nav aria-label="审核与认领">
-    <a href="../review/review.html">内容审核</a> ·
-    <a href="../claim/manage.html">认领处理</a> ·
-    <a href="../claim/handover.html">交接结案</a> ·
-    <a href="../claim/mine.html">我的认领</a> ·
-    <a href="../audit/logs.html">操作日志</a>
-  </nav>
-  <div id="message" class="message"></div>
+<main>
+  <header class="panel workbench-heading">
+    <div><h1>认领处理</h1><p class="muted">核实通过后，由发布者在交接结案页确认实际交接。</p></div>
+  </header>
+  <div id="message" class="message" role="status" aria-live="polite"></div>
 
   <section class="panel">
     <h2>认领申请队列</h2>
-    <p class="meta">批准表示证据核实通过，物品仍保持“未结案”；实际交接由发布者在本人信息详情确认。</p>
-    <form id="filters" class="filters">
+    <form id="filters" class="cms-filter-bar">
       <label>状态
         <select id="status">
           <option value="PENDING">待核实</option>
@@ -32,24 +29,30 @@
           <option value="COMPLETED">已完成</option>
         </select>
       </label>
-      <button type="submit">查询</button>
+      <button type="submit" class="button button-primary">查询</button>
     </form>
   </section>
 
   <section class="panel">
-    <table>
-      <thead>
-      <tr>
-        <th>ID</th><th>物品</th><th>申请人</th><th>认领说明</th><th>联系方式</th>
-        <th>状态</th><th>提交时间</th><th>处理意见</th><th>操作</th>
-      </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="认领处理列表">
+      <table>
+        <thead>
+        <tr>
+          <th>申请编号</th><th>物品</th><th>申请人</th><th>认领说明</th><th>联系方式</th>
+          <th>状态</th><th>提交时间</th><th>处理意见</th><th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
     <div id="claim-pager"></div>
   </section>
 </main>
-<script src="../assets/js/api.js"></script><script src="../assets/js/pagination.js"></script><script src="../assets/js/shell.js"></script><script src="../yangcheng/common.js"></script><script src="../assets/js/r4-claim-ui.js?v=85168d556a"></script>
+<script src="../assets/js/api.js?v=ee5b78cb8a"></script>
+<script src="../assets/js/pagination.js?v=258dff3de7"></script>
+<script src="../assets/js/shell.js?v=fceec445c6"></script>
+<script src="../yangcheng/common.js?v=a7e2f2e2e0"></script>
+<script src="../assets/js/r4-claim-ui.js?v=85168d556a"></script>
 <script>
 (function () {
   const state = {page: 1, size: 10, total: 0};
@@ -97,7 +100,7 @@
       }
 
       const statusCell = YC.text('td');
-      statusCell.appendChild(YC.text('span', claim.status, 'status ' + claim.status));
+      statusCell.appendChild(YC.badge(claim.status));
 
       const reviewCell = YC.text('td');
       reviewCell.appendChild(YC.text('div', claim.reviewComment || '—'));
@@ -106,7 +109,7 @@
       }
 
       tbody.appendChild(YC.row([
-        claim.id, claim.articleTitle, claim.applicantName, claim.claimDescription,
+        claim.id, YC.itemCell(claim.articleId, claim.articleTitle), claim.applicantName, claim.claimDescription,
         claim.contactInfo, statusCell, YC.formatTime(claim.createdAt), reviewCell, actions
       ]));
     });
@@ -145,7 +148,15 @@
     load();
   });
 
-  load();
+  YC.onAccountChange(user => {
+    ++loadSequence;
+    state.page = 1;
+    state.total = 0;
+    render([]);
+    renderPager();
+    if (user) load();
+    else YC.setMessage('message', '请登录后查看记录。');
+  });
 })();
 </script>
 </body>

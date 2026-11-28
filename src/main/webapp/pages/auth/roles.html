@@ -4,32 +4,36 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>角色权限 - 校园失物招领</title>
-  <link rel="stylesheet" href="../../assets/css/base.css">
-  <link rel="stylesheet" href="../../assets/css/modules.css">
-  <link rel="stylesheet" href="../../assets/css/auth.css">
-  <script defer src="../../assets/js/api.js"></script>
-  <script defer src="../../assets/js/pagination.js"></script>
-  <script defer src="../../assets/js/shell.js"></script>
-  <script defer src="../../assets/js/auth/roles.js"></script>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../../assets/css/auth.css?v=e98c0e1a30">
+  <script defer src="../../assets/js/api.js?v=ee5b78cb8a"></script>
+  <script defer src="../../assets/js/pagination.js?v=258dff3de7"></script>
+  <script defer src="../../assets/js/shell.js?v=fceec445c6"></script>
+  <script defer src="../../assets/js/auth/roles.js?v=5a70db4caa"></script>
+  <link rel="stylesheet" href="../../assets/css/workbench.css?v=6a526eb869">
 </head>
-<body class="module-page" data-page-title="角色权限">
+<body class="module-page auth-workbench workbench-page" data-page-title="角色权限">
   <div data-cms-shell></div>
   <main>
-    <section class="cms-card" id="denied" hidden>
+  <header class="panel workbench-heading">
+    <div><h1>角色权限</h1><p class="muted">维护角色及其可用权限。</p></div>
+  </header>
+    <section class="panel" id="denied" hidden>
       <h2>没有访问权限</h2>
-      <p class="cms-hint">角色权限管理需要「角色管理」权限。入口隐藏不构成接口授权，服务端仍会返回 403。</p>
-      <p class="cms-hint"><a href="./login.html">去登录</a></p>
+      <p class="cms-hint">请使用有「角色管理」权限的账号。</p>
+      <a class="button button-primary" href="./login.html?ui=soft-20261128-3">去登录</a>
     </section>
 
     <div id="workspace" hidden>
       <div class="cms-split">
-        <section class="cms-card">
+        <section class="panel">
           <h2>角色列表</h2>
           <div class="cms-alert" id="alert" role="alert"></div>
-          <div style="overflow-x:auto;">
+          <div class="table-scroll">
             <table class="cms-table">
               <thead>
-                <tr><th>代码</th><th>名称</th><th>权限数</th><th>操作</th></tr>
+                <tr><th>角色代码</th><th>名称</th><th>权限数</th><th>操作</th></tr>
               </thead>
               <tbody id="role-rows"></tbody>
             </table>
@@ -46,12 +50,12 @@
               <input id="new-name" maxlength="80" placeholder="例如 图书管理员">
             </div>
             <div class="cms-actions" style="grid-column:1/-1;">
-              <button type="submit" class="cms-btn-primary" id="create-submit">创建</button>
+              <button type="submit" class="button button-primary" id="create-submit">创建</button>
             </div>
           </form>
         </section>
 
-        <section class="cms-card" id="editor" hidden>
+        <section class="panel" id="editor" hidden>
           <h2 id="editor-title">维护权限</h2>
           <div class="cms-field" style="margin-bottom:1rem;">
             <label for="edit-name">角色名称</label>
@@ -60,8 +64,8 @@
           <p class="cms-hint" id="editor-hint"></p>
           <div id="permission-groups"></div>
           <div class="cms-actions">
-            <button type="button" class="cms-btn-primary" id="save-permissions">保存权限</button>
-            <button type="button" class="cms-btn-ghost" id="save-name">仅改名称</button>
+            <button type="button" class="button button-primary" id="save-permissions">保存权限</button>
+            <button type="button" class="button button-quiet" id="save-name">仅改名称</button>
           </div>
         </section>
       </div>

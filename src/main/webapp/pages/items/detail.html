@@ -1,26 +1,137 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>信息详情</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script><script defer src="../../assets/js/r4-detail.js?v=afbf0d0a91"></script></head><body class="module-page" data-page-title="信息详情" data-r4-detail="owner"><div data-cms-shell></div><main>
-<nav><a href="mine.html">返回我的信息</a></nav><h1 id="title">加载中…</h1><p id="notice" role="status"></p>
-<p id="state"></p><p id="content"></p><p id="meta"></p><section><h2>审核意见</h2><div id="reviews">加载中…</div></section>
-<section id="r4-history" aria-live="polite"></section><section id="r4-contact"><button id="r4-contact-button" type="button">查看联系方式</button><p id="r4-contact-value" aria-live="polite"></p></section><div id="r4-resolve"></div><div id="actions"></div></main><script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
-const id=new URLSearchParams(location.search).get('id');let item;
-async function load(){try{item=await api('/items/'+encodeURIComponent(id)+'/r4-detail');
- document.querySelector('#title').textContent=item.title;
- document.querySelector('#state').textContent='状态：'+(statusText[item.status]||item.status)+' · 版本 '+item.version;
- document.querySelector('#content').textContent=item.content;
- document.querySelector('#meta').textContent=`${item.itemType} · ${item.location} · ${item.eventTime}`;
- window.dispatchEvent(new CustomEvent("cms:r4item",{detail:item}));
- const reviews=await api('/items/'+encodeURIComponent(id)+'/reviews');const box=document.querySelector('#reviews');box.replaceChildren();
- if(!reviews.length)box.textContent='暂无审核记录';for(const r of reviews){const p=document.createElement('p');p.textContent=`${r.decision}：${r.comment||'无意见'}`;box.append(p)}
- const actions=document.querySelector('#actions');actions.replaceChildren();
- if(['DRAFT','REJECTED'].includes(item.status)){const a=document.createElement('a');a.href='edit.html?id='+id;a.textContent='编辑';actions.append(a)}
- const map={DRAFT:['submit','提交审核'],REJECTED:['submit','重新提交审核'],PENDING_REVIEW:['withdraw','撤回'],PUBLISHED:['offline','下架'],OFFLINE:['draft','转为草稿']};
- if(map[item.status]){const [op,label]=map[item.status];const button=document.createElement('button');button.textContent=label;
- button.onclick=async()=>{button.disabled=true;try{await write('/items/'+id+'/'+op,'POST',{version:item.version});show('操作成功');await load()}catch(e){show(e.message,true);button.disabled=false}};actions.append(button)}
- const permissions=Cms.shell.user?.permissions||[];
- if(item.status==='APPROVED'||item.status==='OFFLINE'){
-  if(permissions.includes('item:publish')){const button=document.createElement('button');button.textContent='发布';button.onclick=async()=>{button.disabled=true;try{await write('/items/'+id+'/publish','POST',{version:item.version});show('发布成功');await load()}catch(e){show(e.message,true);button.disabled=false}};actions.append(button)}
- }
- if(permissions.includes('item:delete:own')||permissions.includes('item:delete:any')){const button=document.createElement('button');button.textContent='删除';button.onclick=async()=>{button.disabled=true;try{await write('/items/'+id,'DELETE',{version:item.version});location.href='mine.html'}catch(e){show(e.message,true);button.disabled=false}};actions.append(button)}
- }catch(e){show(e.message,true)}}load();
-</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>信息详情 · 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../../assets/css/items-workspace.css?v=bfe6bbea3a">
+  <script defer src="../../assets/js/api.js?v=ee5b78cb8a"></script>
+  <script defer src="../../assets/js/shell.js?v=fceec445c6"></script>
+  <script defer src="../../assets/js/item-view.js?v=62ca9423e8"></script>
+  <script defer src="../../assets/js/r4-detail.js?v=95f8faa2a6"></script>
+</head>
+<body class="module-page items-workspace" data-page-title="信息详情" data-r4-detail="owner">
+  <div data-cms-shell></div>
+  <main class="items-narrow">
+    <a class="button button-quiet item-back" href="mine.html?ui=soft-20261128-3">返回我的信息</a>
+    <p id="notice" class="panel item-notice" role="status">正在加载信息…</p>
+    <div id="owner-detail" hidden>
+      <article class="panel detail-panel item-owner-detail" aria-labelledby="title">
+        <header class="detail-heading">
+          <div id="state" class="record-labels"></div>
+          <h1 id="title">信息详情</h1>
+        </header>
+        <dl id="meta" class="detail-facts"></dl>
+        <section class="detail-description" aria-labelledby="description">
+          <h2 id="description">物品描述</h2>
+          <p id="content"></p>
+        </section>
+        <div class="item-action-bar">
+          <div id="actions" class="record-actions"></div>
+          <div id="r4-contact">
+            <button id="r4-contact-button" class="button button-quiet" type="button">查看联系方式</button>
+          </div>
+          <div id="r4-resolve"></div>
+        </div>
+        <p id="r4-contact-value" aria-live="polite"></p>
+        <p id="r4-history" class="muted" aria-live="polite"></p>
+      </article>
+      <section class="panel item-reviews" aria-labelledby="review-heading">
+        <h2 id="review-heading">审核意见</h2>
+        <div id="reviews" class="item-review-list" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <script src="../../assets/js/items.js?v=d95317b5a6"></script>
+  <script>
+    const id = new URLSearchParams(location.search).get('id');
+    const path = '/items/' + encodeURIComponent(id);
+    const detail = document.querySelector('#owner-detail');
+    const reviews = document.querySelector('#reviews');
+    const actions = document.querySelector('#actions');
+
+    function renderReviews(records) {
+      if (!records.length) {
+        reviews.replaceChildren(itemUi.node('p', 'muted item-review-empty', '暂无审核记录。'));
+        return;
+      }
+      reviews.replaceChildren(...records.map(record => {
+        const row = itemUi.node('div', 'item-review');
+        const labels = itemUi.node('div', 'record-labels muted');
+        labels.append(itemUi.badge(record.decision, record.decision === 'APPROVED' ? '审核通过' : '审核驳回'));
+        if (record.reviewerName) labels.append(itemUi.node('span', '', record.reviewerName));
+        if (record.createdAt) labels.append(itemUi.time(record.createdAt));
+        row.append(labels, itemUi.node('p', '', record.comment || '无意见'));
+        return row;
+      }));
+    }
+
+    function renderActions(item) {
+      actions.replaceChildren();
+      const can = Cms.shell.hasPermission;
+      if (itemUi.canEdit(item)) actions.append(itemUi.link('编辑', 'edit.html?id=' + encodeURIComponent(id)));
+      const transitions = {
+        DRAFT: ['submit','提交审核','item:submit'],
+        REJECTED: ['submit','重新提交审核','item:submit'],
+        PENDING_REVIEW: ['withdraw','撤回','item:withdraw'],
+        PUBLISHED: ['offline','下架','item:offline:own'],
+        OFFLINE: ['draft','转为草稿','item:edit:own']
+      };
+      function add(label, tone, op, method = 'POST') {
+        const button = itemUi.button(label, tone);
+        button.onclick = async () => {
+          const controls = Array.from(actions.querySelectorAll('button'));
+          controls.forEach(control => { control.disabled = true; });
+          try {
+            await write(path + (op ? '/' + op : ''), method, {version:item.version});
+            if (method === 'DELETE') { location.href = 'mine.html'; return; }
+            await load(label + '成功。');
+          } catch (error) {
+            if (error.name !== 'AbortError') show(error.message, true);
+          } finally {
+            controls.forEach(control => { control.disabled = false; });
+          }
+        };
+        actions.append(button);
+      }
+
+      const transition = transitions[item.status];
+      if (transition && can(transition[2])) add(transition[1], transition[0] === 'submit' ? 'primary' : 'quiet', transition[0]);
+      if (itemUi.canHandover(item)) actions.append(itemUi.handoverLink(item.id));
+      if (['APPROVED','OFFLINE'].includes(item.status) && can('item:publish')) add('发布','primary','publish');
+      if (can('item:delete:own')) add('删除','danger','','DELETE');
+    }
+
+    async function load(message = '') {
+      if (!/^[1-9][0-9]*$/.test(id || '')) { show('无效的信息编号。', true); return; }
+      try {
+        const item = await api(path + '/r4-detail');
+        document.querySelector('#title').textContent = item.title;
+        document.querySelector('#state').replaceChildren(Cms.itemView.idBadge(item.id), Cms.itemView.typeBadge(item), itemUi.badge(item.status));
+        document.querySelector('#content').textContent = item.content;
+        document.querySelector('#meta').replaceChildren(
+          itemUi.fact('地点', item.location || '—'), itemUi.fact('事发时间', itemUi.time(item.eventTime)),
+          itemUi.fact('版本', String(item.version ?? '—'))
+        );
+        renderActions(item);
+        detail.hidden = false;
+        show(message);
+        window.dispatchEvent(new CustomEvent('cms:r4item', {detail:item}));
+      } catch (error) {
+        if (error.name !== 'AbortError') show(error.message, true);
+        return;
+      }
+      reviews.replaceChildren(itemUi.node('p', 'muted item-review-empty', '正在加载审核记录…'));
+      try {
+        renderReviews(await api(path + '/reviews'));
+      } catch (error) {
+        if (error.name !== 'AbortError') reviews.replaceChildren(itemUi.node('p', 'muted item-review-empty', error.message));
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => load(), {once:true});
+  </script>
+</body>
+</html>

@@ -1,33 +1,203 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>信息审核</title><link rel="stylesheet" href="../../assets/css/base.css?v=c7d00d325a"><link rel="stylesheet" href="../../assets/css/modules.css?v=5084b5c8a0"><script defer src="../../assets/js/api.js?v=e3db3cb9e9"></script><script defer src="../../assets/js/pagination.js?v=258dff3de7"></script><script defer src="../../assets/js/shell.js?v=2d1d783239"></script></head><body class="module-page" data-page-title="审核工作台"><div data-cms-shell></div><main>
-<nav><a href="../index.html">首页</a></nav><h1>信息审核与发布</h1><p id="notice" role="status"></p>
-<label>队列<select id="queue"><option value="pending">待审核</option><option value="approved">待发布</option></select></label>
-<div id="list">加载中…</div><p><button id="prev">上一页</button> <span id="page"></span> <button id="next">下一页</button></p>
-</main><script src="../../assets/js/items.js?v=2c63176bdf"></script><script>
-let current=1,total=0,requestSequence=0;const size=10;
-async function load(){const sequence=++requestSequence;try{const queue=document.querySelector('#queue').value;
- const data=await api('/reviews/'+queue+'?page='+current+'&size='+size);if(sequence!==requestSequence)return;total=data.total;
- const box=document.querySelector('#list');box.replaceChildren();if(!data.records.length)
-  box.textContent=queue==='approved'?'暂无待发布信息':'暂无待审信息';
- for(const item of data.records){const card=document.createElement('article');const title=document.createElement('h2');title.textContent=item.title;
- const content=document.createElement('p');content.textContent=item.content;const meta=document.createElement('p');
- meta.textContent=`${item.itemType} · ${item.location} · 分类 ${item.categoryId} · 版本 ${item.version}`;
- card.append(title,content,meta);
- if(queue==='pending'){
-  const comment=document.createElement('textarea');comment.placeholder='驳回时请填写意见（最多500字）';comment.maxLength=500;
-  const approve=document.createElement('button');approve.textContent='批准';
-  const reject=document.createElement('button');reject.textContent='驳回';
-  const decide=async(op)=>{approve.disabled=reject.disabled=true;try{
-   await write('/reviews/'+item.id+'/'+op,'POST',{version:item.version,comment:comment.value});show('审核已保存');await load();
-  }catch(e){show(e.message,true);approve.disabled=reject.disabled=false}};
-  approve.onclick=()=>decide('approve');reject.onclick=()=>decide('reject');card.append(comment,approve,reject);
- }else{const publish=document.createElement('button');publish.textContent='发布';
-  publish.onclick=async()=>{publish.disabled=true;try{await write('/reviews/'+item.id+'/publish','POST',{version:item.version});show('发布成功');await load()}
-   catch(e){show(e.message,true);publish.disabled=false}};card.append(publish)}
- box.append(card)}
- document.querySelector('#page').textContent=`第 ${current} 页，共 ${total} 条`;
- document.querySelector('#prev').disabled=current<=1;document.querySelector('#next').disabled=current*size>=total;
- }catch(e){if(sequence!==requestSequence||e.name==='AbortError')return;document.querySelector('#list').textContent='';show(e.message,true)}}
-document.querySelector('#prev').onclick=()=>{current--;load()};document.querySelector('#next').onclick=()=>{current++;load()};load();
-document.querySelector('#queue').onchange=()=>{current=1;load()};
-</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>信息审核与发布 · 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../../assets/css/workbench.css?v=6a526eb869">
+  <script defer src="../../assets/js/api.js?v=ee5b78cb8a"></script>
+  <script defer src="../../assets/js/item-view.js?v=62ca9423e8"></script>
+  <script defer src="../../assets/js/shell.js?v=fceec445c6"></script>
+</head>
+<body class="module-page cms-workflow workbench-page" data-page-title="审核工作台">
+  <div data-cms-shell></div>
+  <main>
+    <header class="panel workbench-heading">
+      <div><h1>信息审核与发布</h1><p id="summary" class="muted">查看待审核或待发布的信息</p></div>
+      <a class="button button-quiet" href="../../review/review.html?ui=soft-20261128-3">按条件筛选待审核信息</a>
+    </header>
+    <div class="panel cms-filter-bar">
+      <label for="queue">队列
+        <select id="queue">
+          <option value="pending">待审核</option>
+          <option value="approved">待发布</option>
+        </select>
+      </label>
+    </div>
+    <p id="notice" class="panel workbench-note" role="status"></p>
+    <section id="list" class="review-queue" aria-label="审核队列" aria-live="polite"></section>
+    <nav class="pagination" aria-label="审核队列分页">
+      <span id="page" class="pagination-summary"></span>
+      <div class="pagination-controls">
+        <button id="prev" type="button" class="button button-quiet" disabled>上一页</button>
+        <button id="next" type="button" class="button button-quiet" disabled>下一页</button>
+      </div>
+    </nav>
+  </main>
+  <script src="../../assets/js/items.js?v=d95317b5a6"></script>
+  <script>
+    const list = document.querySelector('#list');
+    const queue = document.querySelector('#queue');
+    const summary = document.querySelector('#summary');
+    const pageText = document.querySelector('#page');
+    const prev = document.querySelector('#prev');
+    const next = document.querySelector('#next');
+    const size = 10;
+    const queuePrompt = '查看待审核或待发布的信息';
+    let page = 1, total = 0, sequence = 0, busy = false, writing = false;
+    let currentIdentity, categories;
+
+    async function loadCategoryNames() {
+      const names = new Map();
+      try {
+        const tree = await Cms.api.request('/api/public/categories');
+        function add(nodes) {
+          for (const category of nodes) {
+            names.set(String(category.id), category.name);
+            add(category.children || []);
+          }
+        }
+        add(tree);
+        return names;
+      } catch (_) {
+        categories = null;
+        return names;
+      }
+    }
+
+    function updateControls() {
+      const inactive = busy || writing || !Cms.shell.user;
+      prev.disabled = inactive || page <= 1;
+      next.disabled = inactive || page * size >= total;
+      queue.disabled = writing;
+      list.querySelectorAll('button').forEach(button => { button.disabled = inactive; });
+    }
+
+    async function act(item, action, comment = '') {
+      if (busy || writing) return;
+      const identity = Cms.shell.user?.id;
+      writing = true;
+      updateControls();
+      try {
+        const data = {version:item.version};
+        if (action !== 'publish') data.comment = comment;
+        await write('/reviews/' + encodeURIComponent(item.id) + '/' + action, 'POST', data);
+        if (identity === Cms.shell.user?.id) await load(action === 'publish' ? '信息已发布。' : '审核意见已保存。');
+      } catch (error) {
+        if (identity === Cms.shell.user?.id && error.name !== 'AbortError') show(error.message, true);
+      } finally {
+        writing = false;
+        updateControls();
+      }
+    }
+
+    function reviewCard(item, pending, names) {
+      const card = itemUi.node('article', 'panel review-card');
+      const labels = itemUi.node('div', 'review-labels');
+      labels.append(Cms.itemView.idBadge(item.id), Cms.itemView.typeBadge(item),
+        itemUi.badge(item.status, pending ? '待审核' : '待发布'));
+      const facts = itemUi.node('dl', 'review-facts');
+      facts.append(itemUi.fact('物品分类', item.categoryName || names.get(String(item.categoryId)) || '分类暂不可用'),
+        itemUi.fact('地点', item.location || '—'), itemUi.fact('版本', String(item.version ?? '—')));
+      card.append(labels, itemUi.node('h2', '', item.title), itemUi.node('p', 'review-description', item.content), facts);
+      const controls = itemUi.node('div', 'review-controls');
+      const buttons = itemUi.node('div', 'review-buttons');
+      if (pending && Cms.shell.hasPermission('review:decide')) {
+        const field = itemUi.node('label', '', '审核意见');
+        const comment = itemUi.node('textarea');
+        comment.placeholder = '批准可留空，驳回时请说明原因';
+        comment.maxLength = 500;
+        field.append(comment);
+        controls.append(field);
+        const approve = itemUi.button('批准', 'primary');
+        const reject = itemUi.button('驳回', 'danger');
+        approve.onclick = () => act(item, 'approve', comment.value.trim());
+        reject.onclick = () => {
+          if (!comment.value.trim()) {
+            show('请先填写驳回意见。', true);
+            comment.focus();
+            return;
+          }
+          act(item, 'reject', comment.value.trim());
+        };
+        buttons.append(approve, reject);
+      } else if (!pending && Cms.shell.hasPermission('item:publish')) {
+        const publish = itemUi.button('发布', 'primary');
+        publish.onclick = () => act(item, 'publish');
+        buttons.append(publish);
+      }
+      if (buttons.childElementCount) {
+        controls.append(buttons);
+        card.append(controls);
+      }
+      return card;
+    }
+
+    async function load(message = '') {
+      const request = ++sequence;
+      const selected = queue.value;
+      const pending = selected === 'pending';
+      busy = true;
+      show('');
+      list.replaceChildren(itemUi.node('p', 'panel review-empty', '正在加载队列…'));
+      updateControls();
+      try {
+        const [data, names] = await Promise.all([
+          api('/reviews/' + selected + '?page=' + page + '&size=' + size),
+          categories || (categories = loadCategoryNames())
+        ]);
+        if (request !== sequence) return;
+        total = data.total;
+        const lastPage = Math.max(1, Math.ceil(total / size));
+        if (page > lastPage) {
+          page = lastPage;
+          await load(message);
+          return;
+        }
+        const cards = data.records.map(item => reviewCard(item, pending, names));
+        const label = pending ? '待审核' : '待发布';
+        list.replaceChildren(...(cards.length ? cards : [itemUi.node('p', 'panel review-empty', '暂无' + label + '信息。')]));
+        summary.textContent = label + '共 ' + total + ' 条';
+        pageText.textContent = '第 ' + page + ' 页，共 ' + lastPage + ' 页';
+        show(message);
+      } catch (error) {
+        if (request !== sequence) return;
+        total = 0;
+        pageText.textContent = '';
+        summary.textContent = queuePrompt;
+        list.replaceChildren();
+        if (error.name !== 'AbortError') show(error.message, true);
+      } finally {
+        if (request === sequence) { busy = false; updateControls(); }
+      }
+    }
+
+    function syncAccount(user) {
+      const identity = user?.id ?? null;
+      if (currentIdentity === identity) return;
+      currentIdentity = identity;
+      ++sequence;
+      page = 1;
+      total = 0;
+      busy = false;
+      list.replaceChildren();
+      pageText.textContent = '';
+      summary.textContent = queuePrompt;
+      if (user) load();
+      else show('请登录后查看审核队列。');
+      updateControls();
+    }
+
+    queue.onchange = () => { if (Cms.shell.user) { page = 1; load(); } };
+    prev.onclick = () => { if (!prev.disabled) { page--; load(); } };
+    next.onclick = () => { if (!next.disabled) { page++; load(); } };
+    window.addEventListener('cms:authchange', event => syncAccount(event.detail.user));
+    document.addEventListener('DOMContentLoaded', async () => {
+      await Cms.shell.ready;
+      syncAccount(Cms.shell.user);
+    }, {once:true});
+  </script>
+</body>
+</html>

@@ -1,22 +1,257 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>信息管理</title><link rel="stylesheet" href="../../assets/css/base.css"><link rel="stylesheet" href="../../assets/css/modules.css"><script defer src="../../assets/js/api.js"></script><script defer src="../../assets/js/shell.js"></script></head><body class="module-page" data-page-title="信息管理"><div data-cms-shell></div><main><h1>信息管理</h1><form id="filter"><select name="status"><option value="">全部状态</option><option>APPROVED</option><option>PUBLISHED</option><option>OFFLINE</option><option>DRAFT</option><option>PENDING_REVIEW</option><option>REJECTED</option></select><input name="authorId" type="number" min="1" placeholder="作者 ID"><button>查询</button></form><p id="notice" role="status"></p><div id="list" aria-live="polite">加载中…</div><p><button id="prev">上一页</button> <span id="page"></span> <button id="next">下一页</button></p><p><button data-action="publish">批量发布</button> <button data-action="offline">批量下架</button> <button data-action="delete">批量删除</button></p></main><script>
-document.addEventListener('DOMContentLoaded', async function () {
-await Cms.shell.ready;
-const form=document.querySelector('#filter'),list=document.querySelector('#list'),notice=document.querySelector('#notice');let page=1,total=0,records=[],requestSequence=0;const size=10;
-async function load(){const sequence=++requestSequence;list.textContent='加载中…';notice.textContent='';const q=new URLSearchParams(new FormData(form));for(const [k,v] of [...q])if(!v)q.delete(k);q.set('page',page);q.set('size',size);history.replaceState(null,'','?'+q);try{const data=await Cms.api.request('/api/items?'+q);if(sequence!==requestSequence)return;records=data.records;total=data.total;list.replaceChildren();if(!records.length)list.textContent='暂无信息';for(const item of records){const row=document.createElement('p'),check=document.createElement('input'),link=document.createElement('a');check.type='checkbox';check.value=item.id;check.setAttribute('aria-label','选择 '+item.title);link.href=item.status==='PUBLISHED'?'public-detail.html?id='+encodeURIComponent(item.id):'#';link.textContent=item.title;row.append(check,link,document.createTextNode(` · 作者 ${item.authorId} · ${item.status} · 版本 ${item.version}`));for(const [action,label] of [['publish','发布'],['offline','下架'],['delete','删除']]){if((action==='publish'&&!['APPROVED','OFFLINE'].includes(item.status))||(action==='offline'&&item.status!=='PUBLISHED'))continue;const button=document.createElement('button');button.textContent=label;button.onclick=async()=>{button.disabled=true;try{const path=action==='offline'?'/api/items/'+item.id+'/manage-offline':'/api/items/'+item.id+(action==='publish'?'/publish':'');await Cms.api.request(path,{method:action==='delete'?'DELETE':'POST',body:{version:item.version}});await load();notice.textContent=label+'成功'}catch(e){notice.textContent=e.message;button.disabled=false}};row.append(button)}list.append(row)}document.querySelector('#page').textContent=`第 ${page} 页，共 ${total} 条`;document.querySelector('#prev').disabled=page<=1;document.querySelector('#next').disabled=page*size>=total}catch(e){if(sequence!==requestSequence)return;records=[];list.textContent='加载失败';notice.textContent=e.message}}
-(async()=>{const q=new URLSearchParams(location.search);for(const [k,v] of q)if(form.elements[k])form.elements[k].value=v;page=Math.max(1,Number(q.get('page'))||1);load()})();form.onsubmit=e=>{e.preventDefault();page=1;load()};document.querySelector('#prev').onclick=()=>{page--;load()};document.querySelector('#next').onclick=()=>{page++;load()};
-for(const button of document.querySelectorAll('[data-action]'))button.onclick=async()=>{const ids=[...list.querySelectorAll('input:checked')].map(x=>Number(x.value));if(!ids.length){notice.textContent='请先勾选信息';return}const versions={};for(const item of records)if(ids.includes(item.id))versions[item.id]=item.version;button.disabled=true;notice.textContent='正在处理…';try{const count=await Cms.api.request('/api/items/batch-'+button.dataset.action,{method:'POST',body:{ids,versions}});await load();notice.textContent=`成功处理 ${count} 条`}catch(e){notice.textContent=e.message;await load()}finally{button.disabled=false}};
-window.addEventListener('cms:authchange', event => {
-    ++requestSequence;
-    records=[];
-    page=1;
-    list.replaceChildren();
-    if(event.detail.user){load();return;}
-    notice.textContent=Cms.api.messages[401];
-    list.textContent='加载失败';
-    document.querySelector('#page').textContent='';
-    document.querySelector('#prev').disabled=true;
-    document.querySelector('#next').disabled=true;
-});
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>信息管理 · 校园失物招领</title>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../../assets/css/items-workspace.css?v=bfe6bbea3a">
+  <script defer src="../../assets/js/api.js?v=ee5b78cb8a"></script>
+  <script defer src="../../assets/js/item-view.js?v=62ca9423e8"></script>
+  <script defer src="../../assets/js/shell.js?v=fceec445c6"></script>
+</head>
+<body class="module-page items-workspace" data-page-title="信息管理">
+  <div data-cms-shell></div>
+  <main>
+    <header class="panel item-header">
+      <div><h1>信息管理</h1><p id="summary" class="muted item-count">按状态或作者筛选校园信息</p></div>
+    </header>
+    <form id="filter" class="panel cms-filter-bar item-filter" aria-label="管理筛选">
+      <label for="status">信息状态
+        <select id="status" name="status">
+          <option value="">全部状态</option><option value="APPROVED">已批准</option>
+          <option value="PUBLISHED">已发布</option><option value="OFFLINE">已下架</option>
+          <option value="DRAFT">草稿</option><option value="PENDING_REVIEW">待审核</option>
+          <option value="REJECTED">已驳回</option>
+        </select>
+      </label>
+      <label for="author-id">作者编号
+        <input id="author-id" name="authorId" type="number" min="1" placeholder="输入编号">
+      </label>
+      <button id="search" class="button button-primary" type="submit">查询</button>
+    </form>
+    <p id="notice" class="panel item-notice" role="status"></p>
+    <section class="panel item-table-panel" aria-label="信息记录">
+      <div id="batch-actions" class="item-action-bar" hidden>
+        <p class="muted" id="selected-count" aria-live="polite">已选 0 条</p>
+        <div class="record-actions">
+          <button class="button button-quiet" type="button" data-action="publish" disabled>批量发布</button>
+          <button class="button button-quiet" type="button" data-action="offline" disabled>批量下架</button>
+          <button class="button button-danger" type="button" data-action="delete" disabled>批量删除</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <caption class="sr-only">信息管理列表</caption>
+          <thead>
+            <tr>
+              <th scope="col"><input id="select-all" type="checkbox" aria-label="选择本页全部信息" disabled></th>
+              <th scope="col">物品</th><th scope="col">作者编号</th><th scope="col">状态</th>
+              <th scope="col">版本</th><th scope="col">更新时间</th><th scope="col">操作</th>
+            </tr>
+          </thead>
+          <tbody id="list" aria-live="polite"><tr><td colspan="7">正在加载信息…</td></tr></tbody>
+        </table>
+      </div>
+      <nav class="pagination" aria-label="信息分页">
+        <span id="page" class="pagination-summary"></span>
+        <div class="pagination-controls">
+          <button id="prev" class="button button-quiet" type="button" disabled>上一页</button>
+          <button id="next" class="button button-quiet" type="button" disabled>下一页</button>
+        </div>
+      </nav>
+    </section>
+  </main>
+  <script src="../../assets/js/items.js?v=d95317b5a6"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await Cms.shell.ready;
+      const form = document.querySelector('#filter');
+      const search = document.querySelector('#search');
+      const list = document.querySelector('#list');
+      const selectAll = document.querySelector('#select-all');
+      const selectedCount = document.querySelector('#selected-count');
+      const summary = document.querySelector('#summary');
+      const pageText = document.querySelector('#page');
+      const prev = document.querySelector('#prev');
+      const next = document.querySelector('#next');
+      const batch = document.querySelector('#batch-actions');
+      const batchButtons = Array.from(batch.querySelectorAll('button'));
+      const size = 10;
+      let page = 1, total = 0, records = [], requestSequence = 0, busy = false, writing = false;
+      let currentIdentity = Cms.shell.user?.id;
 
-}, {once:true});
-</script></body></html>
+      const can = Cms.shell.hasPermission;
+      function batchPermission(action) {
+        const permission = {publish:'item:publish', offline:'item:offline:any', delete:'item:delete:any'}[action];
+        return can('item:batch') && can(permission);
+      }
+
+      function updateControls() {
+        const frozen = busy || writing;
+        search.disabled = frozen;
+        prev.disabled = frozen || page <= 1;
+        next.disabled = frozen || page * size >= total;
+        const checks = Array.from(list.querySelectorAll('input'));
+        const selected = checks.filter(check => check.checked).length;
+        selectedCount.textContent = '已选 ' + selected + ' 条';
+        selectAll.disabled = frozen || batch.hidden || !checks.length;
+        selectAll.checked = selected > 0 && selected === checks.length;
+        selectAll.indeterminate = selected > 0 && selected < checks.length;
+        checks.forEach(check => { check.disabled = frozen; });
+        list.querySelectorAll('button').forEach(button => { button.disabled = frozen; });
+        for (const button of batchButtons) button.disabled = frozen || !selected;
+      }
+
+      function tableMessage(message) {
+        const row = itemUi.node('tr');
+        const cell = itemUi.node('td', '', message);
+        cell.colSpan = 7;
+        row.append(cell);
+        list.replaceChildren(row);
+      }
+
+      function cell(value, className) {
+        const td = itemUi.node('td', className);
+        td.append(value);
+        return td;
+      }
+
+      async function mutate(path, method, body, success) {
+        if (busy || writing) return;
+        const identity = Cms.shell.user?.id;
+        writing = true;
+        updateControls();
+        show('正在处理…');
+        try {
+          const result = await Cms.api.request(path, {method, body});
+          if (identity !== Cms.shell.user?.id) return;
+          await load(typeof success === 'function' ? success(result) : success);
+        } catch (error) {
+          if (identity !== Cms.shell.user?.id || error.name === 'AbortError') return;
+          if (error.status === 409) await load(error.message, true);
+          else show(error.message, true);
+        } finally {
+          writing = false;
+          updateControls();
+        }
+      }
+
+      function renderRow(item) {
+        const check = itemUi.node('input');
+        check.type = 'checkbox';
+        check.value = item.id;
+        check.hidden = batch.hidden;
+        check.setAttribute('aria-label', '选择 #' + item.id + ' ' + item.title);
+        const title = itemUi.node('div', 'item-table-title');
+        title.append(Cms.itemView.idBadge(item.id), itemUi.node('strong', '', item.title));
+        const actions = itemUi.node('div', 'record-actions');
+        const path = '/api/items/' + encodeURIComponent(item.id);
+        const published = item.status === 'PUBLISHED';
+        if (published) actions.append(itemUi.link('查看公开详情', 'public-detail.html?id=' + encodeURIComponent(item.id)));
+        function add(label, suffix, method, tone) {
+          const button = itemUi.button(label, tone);
+          button.onclick = () => mutate(path + suffix, method, {version:item.version}, label + '成功。');
+          actions.append(button);
+        }
+        if (['APPROVED','OFFLINE'].includes(item.status) && can('item:publish')) add('发布','/publish','POST','primary');
+        if (published && can('item:offline:any')) add('下架','/manage-offline','POST');
+        const deletePermission = item.authorId === Cms.shell.user?.id ? 'item:delete:own' : 'item:delete:any';
+        if (can(deletePermission)) add('删除','','DELETE','danger');
+        const row = itemUi.node('tr');
+        row.append(cell(check), cell(title), cell(String(item.authorId ?? '—')),
+          cell(itemUi.badge(item.status)), cell(String(item.version ?? '—')),
+          cell(itemUi.time(item.updatedAt), 'item-table-time'), cell(actions.childElementCount ? actions : '—'));
+        return row;
+      }
+
+      async function load(message = '', errorNotice = false) {
+        const sequence = ++requestSequence;
+        busy = true;
+        records = [];
+        tableMessage('正在加载信息…');
+        updateControls();
+        show('');
+        const query = new URLSearchParams(new FormData(form));
+        for (const [key, value] of [...query]) if (!value) query.delete(key);
+        query.set('page', page);
+        query.set('size', size);
+        history.replaceState(null, '', '?' + query);
+        try {
+          const data = await Cms.api.request('/api/items?' + query);
+          if (sequence !== requestSequence) return;
+          total = data.total;
+          const lastPage = Math.max(1, Math.ceil(total / size));
+          if (page > lastPage) {
+            page = lastPage;
+            await load(message, errorNotice);
+            return;
+          }
+          records = data.records;
+          if (records.length) list.replaceChildren(...records.map(renderRow));
+          else tableMessage('当前筛选条件下暂无信息。');
+          pageText.textContent = '第 ' + page + ' 页，共 ' + lastPage + ' 页';
+          summary.textContent = '筛选结果共 ' + total + ' 条';
+          show(message, errorNotice);
+        } catch (error) {
+          if (sequence !== requestSequence) return;
+          total = 0;
+          pageText.textContent = '';
+          summary.textContent = '按状态或作者筛选校园信息';
+          tableMessage('无法显示信息。');
+          if (error.name !== 'AbortError') show(error.message, true);
+        } finally {
+          if (sequence === requestSequence) { busy = false; updateControls(); }
+        }
+      }
+
+      selectAll.onchange = () => {
+        list.querySelectorAll('input').forEach(check => { check.checked = selectAll.checked; });
+        updateControls();
+      };
+      list.onchange = updateControls;
+      for (const button of batchButtons) {
+        button.hidden = !batchPermission(button.dataset.action);
+        button.onclick = () => {
+          const selected = new Set(Array.from(list.querySelectorAll('input:checked'), check => check.value));
+          if (!selected.size) return;
+          const items = records.filter(item => selected.has(String(item.id)));
+          const ids = items.map(item => item.id);
+          const versions = Object.fromEntries(items.map(item => [item.id, item.version]));
+          mutate('/api/items/batch-' + button.dataset.action, 'POST', {ids, versions},
+            count => '成功处理 ' + count + ' 条。');
+        };
+      }
+      batch.hidden = batchButtons.every(button => button.hidden);
+
+      form.onsubmit = event => { event.preventDefault(); if (!search.disabled) { page = 1; load(); } };
+      prev.onclick = () => { if (!prev.disabled) { page--; load(); } };
+      next.onclick = () => { if (!next.disabled) { page++; load(); } };
+      window.addEventListener('cms:authchange', event => {
+        const identity = event.detail.user?.id;
+        if (identity === currentIdentity) return;
+        currentIdentity = identity;
+        ++requestSequence;
+        records = [];
+        page = 1;
+        total = 0;
+        if (event.detail.user) { load(); return; }
+        busy = false;
+        tableMessage('请登录后查看信息。');
+        pageText.textContent = '';
+        summary.textContent = '按状态或作者筛选校园信息';
+        show(Cms.api.messages[401], true);
+        updateControls();
+      });
+
+      const query = new URLSearchParams(location.search);
+      form.elements.status.value = query.get('status') || '';
+      form.elements.authorId.value = query.get('authorId') || '';
+      const requestedPage = Number(query.get('page'));
+      if (Number.isSafeInteger(requestedPage) && requestedPage > 0) page = requestedPage;
+      load();
+    }, {once:true});
+  </script>
+</body>
+</html>

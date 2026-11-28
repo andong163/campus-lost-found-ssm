@@ -35,7 +35,9 @@
     try {
       const value=await Cms.api.request((mode==='public'?'/api/public/items/':'/api/items/')+id+'/resolution');
       if(current!==epoch)return;
-      text('r4-history',(resultText[value.result]||'结案结果待核对')+(value.resolvedAt?' · 结案时间：'+value.resolvedAt.replace('T',' '):''));
+      const date=value.resolvedAt ? value.resolvedAt.replace('T',' ').slice(0,16) : '—';
+      if(mode==='public')text('detail-resolved-time',date);
+      text('r4-history',(resultText[value.result]||'结案结果待核对')+(value.resolvedAt?' · 结案时间：'+date:''));
     }catch(error){if(current===epoch)text('r4-history',error.message);}
   }
   async function ownerActions() {
@@ -52,7 +54,7 @@
         claimId=context.approvedClaimId;
       }catch(error){if(current===epoch)text('r4-resolve',error.message);return;}
     }
-    const button=document.createElement('button');button.type='button';
+    const button=document.createElement('button');button.type='button';button.className='button button-primary';
     button.textContent=item.itemType==='LOST'?'确认本人已找回':'确认已实际交接';
     button.onclick=async()=>{
       if(button.disabled || !window.confirm(item.itemType==='LOST'?'确认已经实际找回物品？':'确认已在线下将物品交给核实通过的认领人？'))return;
@@ -74,10 +76,12 @@
     }catch(error){if(current===epoch)text('r4-contact-value',error.message);}
     finally{if(current===epoch){pending=false;el('r4-contact-button').disabled=false;}}
   };
-  let identity=Cms.shell.user?.id;
+  let identity=Cms.shell.user?.id, administrator=!!Cms.shell.user?.roles?.includes('ADMIN');
   window.addEventListener('cms:authchange',event=>{
     const next=event.detail.user?.id;
-    if(next===identity)return;identity=next;clearPrivate();
+    const nextAdministrator=!!event.detail.user?.roles?.includes('ADMIN');
+    if(next===identity && nextAdministrator===administrator)return;
+    identity=next;administrator=nextAdministrator;clearPrivate();
     if(mode==='public')eligibility();
   });
   window.addEventListener('pagehide',clearPrivate);
@@ -88,7 +92,12 @@
     try {
       item=await Cms.api.request('/api/public/items/'+encodeURIComponent(id));
       text('title',item.title);text('content',item.content);
-      text('meta',`${item.itemType==='LOST'?'寻物':'招领'} · ${item.location} · ${item.eventTime} · ${item.resolutionStatus==='RESOLVED'?'已结案':'未结案'}`);
+      const view=Cms.itemView;
+      el('detail-badges').replaceChildren(view.typeBadge(item),view.statusBadge(item),view.idBadge(item.id));
+      text('detail-category',item.categoryPath||item.categoryName||'—');
+      text('detail-location',item.location||'—');
+      text('detail-event-time',view.timeText(item.eventTime));
+      el('detail-body').hidden=false;
       await Promise.all([history(),eligibility()]);
     }catch(error){text('title','无法显示信息');text('notice',error.message);el('r4-contact').hidden=true;}
   }

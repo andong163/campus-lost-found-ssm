@@ -25,11 +25,17 @@
       const tr = document.createElement('tr');
 
       const code = document.createElement('td');
-      code.textContent = role.code;
+      const identifier = document.createElement('code');
+      identifier.className = 'workbench-code';
+      identifier.textContent = role.code;
+      code.append(identifier);
       tr.append(code);
 
       const name = document.createElement('td');
-      name.textContent = role.name || '—';
+      const badge = document.createElement('span');
+      badge.className = 'cms-badge cms-badge-muted';
+      badge.textContent = role.name || '—';
+      name.append(badge);
       tr.append(name);
 
       const count = document.createElement('td');
@@ -40,7 +46,7 @@
       actions.className = 'actions';
       const edit = document.createElement('button');
       edit.type = 'button';
-      edit.className = 'cms-btn-ghost';
+      edit.className = 'button button-quiet';
       edit.textContent = '维护权限';
       edit.addEventListener('click', () => select(role));
       actions.append(edit);
@@ -52,7 +58,9 @@
 
   function groupOf(code) {
     const index = code.indexOf(':');
-    return index > 0 ? code.slice(0, index) : '其他';
+    const module = index > 0 ? code.slice(0, index) : '';
+    return {user:'用户管理', role:'角色权限', category:'分类管理',
+      item:'物品信息', review:'审核', claim:'认领', audit:'审计'}[module] || '其他权限';
   }
 
   function renderPermissionGroups(role) {

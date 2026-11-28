@@ -4,31 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>交接结案 - 校园失物招领</title>
-  <link rel="stylesheet" href="../yangcheng/common.css">
+  <link rel="stylesheet" href="../assets/css/base.css?v=d4d28c8894">
+  <link rel="stylesheet" href="../assets/css/modules.css?v=ad3a3ec06e">
+  <link rel="stylesheet" href="../assets/css/workbench.css?v=6a526eb869">
 </head>
-<body>
-<header>
-  <h1>交接结案</h1>
-  <nav>
-    <a href="../review/review.html">内容审核</a>
-    <a href="../claim/manage.html">认领处理</a>
-    <a class="active" href="../claim/handover.html">交接结案</a>
-    <a href="../claim/mine.html">我的认领</a>
-    <a href="../audit/logs.html">操作日志</a>
-  </nav>
-</header>
+<body class="module-page cms-workflow workbench-page" data-page-title="交接结案">
+<div data-cms-shell></div>
 <main>
-  <div id="message" class="message"></div>
+  <header class="panel workbench-heading"><div><h1>交接结案</h1><p class="muted">确认物品已实际交接或找回，完成本次登记。</p></div></header>
+
+  <div id="message" class="message" role="status" aria-live="polite"></div>
 
   <section class="panel">
     <h2>查询待结案物品</h2>
     <p class="meta">招领：发布者在实际交接后确认，已通过申请变为完成，物品结案并关闭其他待核实申请。
       寻物：作者确认已找回，物品结案。</p>
-    <form id="loadForm" class="filters">
+    <div id="handover-shortcuts" class="handover-shortcuts" hidden></div>
+    <form id="loadForm" class="cms-filter-bar">
       <label>物品 ID
         <input id="itemId" type="number" min="1" required placeholder="例如 12">
       </label>
-      <button type="submit">查询</button>
+      <button type="submit" class="button button-primary">查询</button>
     </form>
   </section>
 
@@ -36,20 +32,28 @@
     <h2 id="detailTitle"></h2>
     <p id="detailMeta" class="meta"></p>
     <p id="approvedInfo"></p>
-    <button id="resolveButton" type="button" class="danger">确认结案</button>
+    <button id="resolveButton" type="button" class="button button-primary">确认结案</button>
   </section>
 </main>
-<script src="../assets/js/api.js"></script>
-<script src="../yangcheng/common.js"></script>
+<script src="../assets/js/api.js?v=ee5b78cb8a"></script>
+<script src="../assets/js/shell.js?v=fceec445c6"></script>
+<script src="../yangcheng/common.js?v=a7e2f2e2e0"></script>
 <script>
 (function () {
   let current = null;
   let currentItemId = null;
+  const statusText = {
+    DRAFT: '草稿', PENDING_REVIEW: '待审核', APPROVED: '已批准',
+    PUBLISHED: '已发布', REJECTED: '已驳回', OFFLINE: '已下架'
+  };
+  const resolutionText = {OPEN: '未结案', RESOLVED: '已结案'};
 
   let loadSequence = 0;
 
   async function load(itemId) {
     const sequence = ++loadSequence;
+    current = null;
+    currentItemId = null;
     YC.setMessage('message', '正在加载……');
     document.getElementById('detail').hidden = true;
     try {
@@ -62,12 +66,14 @@
         '#' + data.itemId + ' ' + data.title;
       document.getElementById('detailMeta').textContent =
         '类型：' + (data.itemType === 'LOST' ? '寻物' : '招领') +
-        '　状态：' + data.status +
-        '　处理状态：' + data.resolutionStatus +
+        '　状态：' + (statusText[data.status] || data.status) +
+        '　处理状态：' + (resolutionText[data.resolutionStatus] || data.resolutionStatus) +
         '　当前版本：' + data.version;
 
       const approved = document.getElementById('approvedInfo');
-      if (data.approvedClaimId) {
+      if (data.resolutionStatus === 'RESOLVED') {
+        approved.textContent = '物品已结案，无需重复确认。';
+      } else if (data.approvedClaimId) {
         approved.textContent = '已通过认领 #' + data.approvedClaimId +
           '，申请人：' + (data.approvedApplicantName || '');
       } else if (data.itemType === 'FOUND') {
@@ -75,9 +81,14 @@
       } else {
         approved.textContent = '寻物信息无认领申请，可由作者确认已找回。';
       }
+      if (data.resolutionStatus === 'OPEN' && data.status !== 'PUBLISHED') {
+        approved.textContent += ' 仅已发布的信息可确认结案。';
+      }
       const button = document.getElementById('resolveButton');
-      button.disabled = data.itemType === 'FOUND' && !data.approvedClaimId;
-      button.textContent = data.itemType === 'LOST' ? '确认已找回' : '确认已实际交接';
+      button.disabled = data.resolutionStatus !== 'OPEN' || data.status !== 'PUBLISHED' ||
+        (data.itemType === 'FOUND' && !data.approvedClaimId);
+      button.textContent = data.resolutionStatus === 'RESOLVED' ? '已结案' :
+        (data.itemType === 'LOST' ? '确认已找回' : '确认已实际交接');
       YC.setMessage('message', '');
     } catch (error) {
       if (sequence !== loadSequence || error.name === 'AbortError') return;
@@ -91,19 +102,64 @@
   });
 
   document.getElementById('resolveButton').addEventListener('click', async () => {
-    if (!current) return;
+    const button = document.getElementById('resolveButton');
+    if (!current || button.disabled) return;
     if (!window.confirm('确认结案后不能重复操作，其他待核实申请会被关闭。继续吗？')) return;
+    const itemId = currentItemId;
+    const sequence = loadSequence;
+    const context = current;
+    button.disabled = true;
     try {
-      await YC.post('/api/items/' + currentItemId + '/resolve', {
-        version: current.version,
-        claimId: current.approvedClaimId || null
+      await YC.post('/api/items/' + itemId + '/resolve', {
+        version: context.version,
+        claimId: context.approvedClaimId || null
       });
-      YC.setMessage('message', '结案成功。', 'ok');
-      await load(currentItemId);
+      if (sequence !== loadSequence) return;
+      await load(itemId);
+      if (current?.resolutionStatus === 'RESOLVED') YC.setMessage('message', '结案成功。', 'ok');
     } catch (error) {
+      if (sequence !== loadSequence || error.name === 'AbortError') return;
       YC.setMessage('message', YC.errorMessage(error), 'error');
+      button.disabled = false;
     }
   });
+
+  const selected = new URLSearchParams(location.search).get('itemId');
+  if (/^[1-9][0-9]*$/.test(selected || '')) {
+    document.getElementById('itemId').value = selected;
+    load(selected);
+  }
+  const shortcutHost = document.getElementById('handover-shortcuts');
+  let shortcutIdentity = Cms.shell.user?.id;
+  function clearShortcuts() { shortcutHost.replaceChildren(); shortcutHost.hidden = true; }
+  window.addEventListener('cms:authchange', event => {
+    const next = event.detail.user?.id;
+    if (next === shortcutIdentity) return;
+    shortcutIdentity = next;
+    clearShortcuts();
+  });
+  window.addEventListener('pagehide', clearShortcuts);
+  async function loadShortcuts() {
+    await Cms.shell.ready;
+    if (!Cms.shell.user) return;
+    const identity = Cms.shell.user.id;
+    try {
+      const data = await YC.request('/api/items/mine?page=1&size=10&status=PUBLISHED');
+      if (Cms.shell.user?.id !== identity) return;
+      const items = (data.records || []).filter(item => item.resolutionStatus === 'OPEN');
+      if (!items.length) return;
+      const host = document.getElementById('handover-shortcuts');
+      host.replaceChildren(YC.text('p', '最近发布且未结案的物品', 'meta'));
+      for (const item of items) {
+        const button = YC.text('button', '#' + item.id + ' ' + item.title, 'button button-quiet');
+        button.type = 'button';
+        button.addEventListener('click', () => { document.getElementById('itemId').value = item.id; load(item.id); });
+        host.appendChild(button);
+      }
+      host.hidden = false;
+    } catch (error) { if (error.name !== 'AbortError') document.getElementById('handover-shortcuts').hidden = true; }
+  }
+  loadShortcuts();
 })();
 </script>
 </body>

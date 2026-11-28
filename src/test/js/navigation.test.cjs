@@ -9,9 +9,11 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
 class Element extends EventTarget {
   constructor(tag) {
     super(); this.tagName=tag; this.children=[]; this.dataset={};
-    this.classList={add(){}}; this.textContent='';
+    this.classList={add(){}}; this.textContent=''; this.attributes={};
   }
-  setAttribute() {}
+  setAttribute(name,value) { this.attributes[name]=value; }
+  getAttribute(name) { return this.attributes[name] || null; }
+  contains(node) { return this===node || this.children.some(child=>child.contains?.(node)); }
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children=children; }
   querySelector(tag) { return this.children.find(child=>child.tagName===tag); }
@@ -22,6 +24,7 @@ async function navigation(user, injected=[]) {
   const document={
     body,
     createElement:tag=>new Element(tag),
+    createElementNS:(namespace,tag)=>Object.assign(new Element(tag),{namespaceURI:namespace}),
     querySelector:selector=>selector==='main'?main:host,
     querySelectorAll:()=>[],
     addEventListener(){}
@@ -44,7 +47,7 @@ async function navigation(user, injected=[]) {
   await tick();
   const links=[];
   function visit(node) {
-    if(node.tagName==='a')links.push({label:node.textContent,url:node.href});
+    if(node.tagName==='a'){const destination=new URL(node.href,'https://campus.test/cms/pages/index.html');links.push({label:node.textContent,url:destination.origin+destination.pathname});}
     for(const child of node.children)visit(child);
   }
   visit(host);

@@ -7,11 +7,11 @@ const assets=path.resolve(__dirname,'../../main/webapp/assets/js');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function harness({resolved=false,user={id:2},contact,mode='public',permissions=['claim:handover:own']}={}) {
   const nodes=new Map();
-  for(const id of ['title','content','meta','notice','r4-history','r4-contact','r4-contact-button','r4-contact-value','r4-claim-message','r4-claim-link','r4-resolve'])
+  for(const id of ['title','content','meta','notice','r4-history','r4-contact','r4-contact-button','r4-contact-value','r4-claim-message','r4-claim-link','r4-resolve','detail-badges','detail-category','detail-location','detail-event-time','detail-resolved-time','detail-body'])
     nodes.set(id,{textContent:'',children:[],hidden:id==='r4-claim-link',disabled:false,replaceChildren(...children){this.textContent='';this.children=children;}});
   const events=new Map(),calls=[];
   const listeners=(type,event)=>{for(const fn of events.get(type)||[])fn(event);};
-  const Cms={shell:{user,ready:Promise.resolve(),hasPermission:code=>permissions.includes(code),link:p=>'/cms/'+p,openLogin(){calls.push('LOGIN');}},
+  const Cms={itemView:{typeBadge:item=>({textContent:item.itemType}),statusBadge:item=>({textContent:item.resolutionStatus}),idBadge:id=>({textContent:String(id)}),timeText:value=>value},shell:{user,ready:Promise.resolve(),hasPermission:code=>permissions.includes(code),link:p=>'/cms/'+p,openLogin(){calls.push('LOGIN');}},
     api:{request:async(p)=>{
       calls.push(p);
       if(p.endsWith('/contact'))return contact?contact():{contactInfo:'<img src=x onerror=alert(1)>'};

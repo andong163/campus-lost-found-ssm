@@ -25,7 +25,7 @@ for(const lateError of [false,true])test(`public search ignores an older ${lateE
     ['keyword','location','categoryId','from','to','itemType','resolutionStatus','sortBy','direction'].map(name=>[name,new Element()]));
   form.elements.sortBy.value='publishedAt';form.elements.direction.value='desc';
   class FormData {constructor(form){this.form=form;} *[Symbol.iterator](){for(const [k,v] of Object.entries(this.form.elements))yield [k,v.value];}}
-  const Cms={shell:{ready:Promise.resolve()},api:{request:url=>url==='/api/public/categories'?Promise.resolve([]):
+  const Cms={shell:{ready:Promise.resolve()},itemView:{card:item=>{const card=new Element();card.textContent=item.title;return card;}},api:{request:url=>url==='/api/public/categories'?Promise.resolve([]):
     new Promise((resolve,reject)=>pending.push({url,resolve,reject}))}};
   const inline=[...fs.readFileSync(path.join(web,'pages/items/public.html'),'utf8').matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].at(-1)[1];
   vm.runInNewContext(inline,{document,Cms,FormData,URLSearchParams,history:{replaceState(){}},location:{search:''},
@@ -68,7 +68,7 @@ test('create page clears the previous account before a slow category response ca
   const Cms={shell:{ready:Promise.resolve(),user:{id:1},hasPermission:()=>true},
     api:{request:()=>new Promise(resolve=>categories=resolve)}};
   vm.runInNewContext(fs.readFileSync(path.join(web,'assets/js/item-create.js'),'utf8'),{
-    document,Cms,window:{addEventListener:(type,fn)=>events[type]=fn},location:{reload(){reload++;}}});
+    document,Cms,URLSearchParams,window:{addEventListener:(type,fn)=>events[type]=fn},location:{search:'',reload(){reload++;}}});
   await tick();Cms.shell.user={id:2};events['cms:authchange']({detail:{user:Cms.shell.user}});
   categories([]);await tick();
   assert.equal(reset,1);assert.equal(reload,1);assert.equal(form.hidden,true);assert.equal(button.disabled,true);

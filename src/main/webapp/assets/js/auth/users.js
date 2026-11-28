@@ -62,6 +62,11 @@
     }
   }
 
+  const builtInRoles = new Map([['ADMIN','管理员'], ['EDITOR','学生'], ['REVIEWER','审核人员'], ['VIEWER','只读用户']]);
+  function roleName(code) {
+    return roles.find(role => role.code === code)?.name || builtInRoles.get(code) || code;
+  }
+
   function renderRows(records) {
     const tbody = el('rows');
     tbody.textContent = '';
@@ -80,8 +85,9 @@
       if ((user.roles || []).length) {
         for (const role of user.roles) {
           const tag = document.createElement('span');
-          tag.className = 'cms-tag';
-          tag.textContent = role;
+          tag.className = 'cms-badge cms-badge-muted';
+          tag.textContent = roleName(role);
+          tag.title = role;
           roleCell.append(tag);
         }
       } else {
@@ -91,7 +97,7 @@
 
       const state = document.createElement('td');
       const badge = document.createElement('span');
-      badge.className = 'cms-tag ' + (user.enabled ? 'is-on' : 'is-off');
+      badge.className = 'cms-badge ' + (user.enabled ? 'cms-badge-positive' : 'cms-badge-error');
       badge.textContent = user.enabled ? '启用' : '停用';
       state.append(badge);
       tr.append(state);
@@ -105,21 +111,21 @@
 
       const detailBtn = document.createElement('button');
       detailBtn.type = 'button';
-      detailBtn.className = 'cms-btn-ghost';
+      detailBtn.className = 'button button-quiet';
       detailBtn.textContent = '详情';
       detailBtn.addEventListener('click', () => openDetail(user.id));
       actions.append(detailBtn);
 
       const toggleBtn = document.createElement('button');
       toggleBtn.type = 'button';
-      toggleBtn.className = user.enabled ? 'cms-btn-danger' : 'cms-btn-primary';
+      toggleBtn.className = user.enabled ? 'button button-danger' : 'button button-primary';
       toggleBtn.textContent = user.enabled ? '停用' : '启用';
       toggleBtn.addEventListener('click', () => toggleStatus(user, toggleBtn));
       actions.append(toggleBtn);
 
       const roleBtn = document.createElement('button');
       roleBtn.type = 'button';
-      roleBtn.className = 'cms-btn-ghost';
+      roleBtn.className = 'button button-quiet';
       roleBtn.textContent = '分配角色';
       roleBtn.addEventListener('click', () => openRoleModal(user));
       actions.append(roleBtn);
@@ -155,7 +161,7 @@
       el('d-username').textContent = user.username;
       el('d-display').textContent = user.displayName || '—';
       el('d-enabled').textContent = user.enabled ? '启用' : '停用';
-      el('d-roles').textContent = (user.roles || []).join('、') || '—';
+      el('d-roles').textContent = (user.roles || []).map(roleName).join('、') || '—';
       el('d-permissions').textContent = (user.permissions || []).join('、') || '—';
       el('d-created').textContent = formatTime(user.createdAt);
       el('detail').hidden = false;
@@ -178,7 +184,7 @@
         box.type = 'checkbox';
         box.value = role.code;
         box.checked = (user.roles || []).includes(role.code);
-        label.append(box, document.createTextNode(role.name ? role.name + '（' + role.code + '）' : role.code));
+        label.append(box, document.createTextNode(roleName(role.code)));
         el('role-options').append(label);
       }
     } else {
@@ -231,7 +237,7 @@
       for (const role of roles) {
         const option = document.createElement('option');
         option.value = role.code;
-        option.textContent = role.name || role.code;
+        option.textContent = roleName(role.code);
         select.append(option);
       }
     } catch (error) {
